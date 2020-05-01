@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Xml.Schema;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -34,10 +35,11 @@ public class Volume : MonoBehaviour
     [Flags]
     public enum GizmoVisibility
     {
-        Path = 1,
-        Profile = 2,
-        Points = 4,
-        Edge = 8,
+        Path    = 0x01,
+        Profile = 0x02,
+        Points  = 0x04,
+        Edge    = 0x08,
+        Normals = 0x10,
     }
     public GizmoVisibility ShowGizmos;
 
@@ -172,6 +174,21 @@ public class Volume : MonoBehaviour
                 {
                     //TODO: I don't know what the Edge list contains...
                     //Gizmos.DrawCube(face.Positions[face.Indices[i]], Vector3.one * 0.025f);
+                }
+            }
+        }
+
+        if (ShowGizmos.HasFlag(GizmoVisibility.Normals))
+        {
+            Gizmos.color = Color.cyan;
+            foreach (VolumeFace face in VolumeFaces)
+            {
+                for (var i = 0; i < face.Positions.Count; i++)
+                {
+                    Vector3 position = face.Positions[i];
+                    Vector3 normal = face.Normals[i];
+                    Gizmos.DrawSphere(position, 0.0125f);
+                    Gizmos.DrawLine(position, position + normal * 0.1f);
                 }
             }
         }
@@ -381,7 +398,7 @@ public class Volume : MonoBehaviour
         }
 
         mesh.vertices = vertices.ToArray();
-        //mesh.normals = normals.ToArray();
+        mesh.normals = normals.ToArray();
         mesh.triangles = triangles.ToArray();
 
         mesh.subMeshCount = subMeshes.Count;
@@ -389,9 +406,6 @@ public class Volume : MonoBehaviour
         {
             mesh.SetSubMesh(i, subMeshes[i]);
         }
-
-        //TODO: Since normals are bugged, calculate them:
-        mesh.RecalculateNormals();
 
         MeshFilter.sharedMesh = mesh;
         MeshRenderer.materials = materials.ToArray();

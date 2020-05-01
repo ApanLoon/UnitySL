@@ -352,10 +352,7 @@ public class VolumeFace
 		if (!partialBuild)
 		{
 			int[] idxs = { 0, 1, (gridSize + 1) + 1, (gridSize + 1) + 1, (gridSize + 1), 0 };
-
-			int curEdge = 0;
-
-			for (int gx = 0; gx < gridSize; gx++)
+            for (int gx = 0; gx < gridSize; gx++)
 			{
 
 				for (int gy = 0; gy < gridSize; gy++)
@@ -633,6 +630,7 @@ public class VolumeFace
 		//	}
 		//}
 		Positions.Clear();
+		Normals.Clear();
 		Indices.Clear();
 		Edge.Clear();
 
@@ -686,6 +684,7 @@ public class VolumeFace
 				}
 
                 Positions.Add (mesh[i]);
+				Normals.Add (Vector3.zero); // This will be calculated later
 				TexCoords.Add (new Vector2(ss, tt));
 
 				curVertex++;
@@ -693,6 +692,7 @@ public class VolumeFace
 				if (test && s > 0)
                 {
                     Positions.Add (mesh[i]);
+                    Normals.Add(Vector3.zero); // This will be calculated later
                     TexCoords.Add(new Vector2(ss, tt));
 					curVertex++;
 				}
@@ -708,6 +708,7 @@ public class VolumeFace
 				ss = profile[BeginS + s][2] - beginStex;
 
 				Positions.Add(mesh[i]);
+                Normals.Add(Vector3.zero); // This will be calculated later
                 TexCoords.Add(new Vector2(ss, tt));
 
 				curVertex++;
@@ -838,6 +839,8 @@ public class VolumeFace
 			}
 		}
 
+
+
 		//      //clear normals
 		//int dst = Normals.Count;
 		//int end = dst + NumVertices;
@@ -851,117 +854,97 @@ public class VolumeFace
 
 		//generate normals 
 
-        return true;
-
-		//TODO: Normal calculation is broken - Could it be that Indra supports a normal per index while re-using positions?
-
+		// Compute triangle normals:
 		int count = Indices.Count / 3;
-		Debug.Log($"Generate normals. {count}");
-		List<Vector3> triangle_normals = new List<Vector3>();
-		int output = 0;
-		int end_output = count;
-        int idx = 0;
-		while (output < end_output)
-        {
-            Vector3 b  = Positions[Indices[idx + 0]];
-            Vector3 v1 = Positions[Indices[idx + 1]];
-            Vector3 v2 = Positions[Indices[idx + 2]];
+		List<Vector3> triangleNormals = new List<Vector3>();
+		int idx = 0;
+		for (int triangleIndex = 0; triangleIndex < count; triangleIndex++)
+		{
+			Vector3 p0  = Positions[Indices[idx + 0]];
+			Vector3 p1 = Positions[Indices[idx + 1]];
+			Vector3 p2 = Positions[Indices[idx + 2]];
 
 			//calculate triangle normal
-			Vector3 a = b - v1;
-			b -= v2;
+			Vector3 a = p1 - p0;
+			Vector3 b = p2 - p0;
 
-            Vector3 d0 = v1 - b;
-            Vector3 d1 = v2 - b;
+            Vector3 normal = Vector3.Cross (a, b);
 
-            Vector3 normal = Vector3.Cross(d0, d1);
+			if (Vector3.Dot(normal, normal) > 0.00001f)
+			{
+				normal.Normalize();
+			}
+			else
+			{
+				//degenerate, make up a value
+				normal = normal.z >= 0 ? new Vector3(0f, 0f, 1f) : new Vector3(0f, 0f, -1f);
+			}
 
-            if (Vector3.Dot(normal, normal) > 0.00001f)
-            {
-                normal.Normalize();
-            }
-            else
-            {
-                //degenerate, make up a value
-                normal = normal.z >= 0 ? new Vector3(0f, 0f, 1f) : new Vector3(0f, 0f, -1f);
-            }
-
-            Normals.Add(normal);
-            Normals.Add(normal);
+			// This is probably an optimised way to calculate this:
 			//LLQuad & vector1 = *((LLQuad*)&v1);
 			//LLQuad & vector2 = *((LLQuad*)&v2);
 
 			//LLQuad & amQ = *((LLQuad*)&a);
 			//LLQuad & bmQ = *((LLQuad*)&b);
 
-			////v1.setCross3(t,v0);
-			////setCross3(const LLVector4a& a, const LLVector4a& b)
-			//// Vectors are stored in memory in w, z, y, x order from high to low
-			//// Set vector1 = { a[W], a[X], a[Z], a[Y] }
+			// Vectors are stored in memory in w, z, y, x order from high to low
+			// Set vector1 = { a[W], a[X], a[Z], a[Y] }
 			//vector1 = _mm_shuffle_ps(amQ, amQ, _MM_SHUFFLE(3, 0, 2, 1));
-			//// Set vector2 = { b[W], b[Y], b[X], b[Z] }
+			// Set vector2 = { b[W], b[Y], b[X], b[Z] }
 			//vector2 = _mm_shuffle_ps(bmQ, bmQ, _MM_SHUFFLE(3, 1, 0, 2));
-			//// mQ = { a[W]*b[W], a[X]*b[Y], a[Z]*b[X], a[Y]*b[Z] }
+			// mQ = { a[W]*b[W], a[X]*b[Y], a[Z]*b[X], a[Y]*b[Z] }
 			//vector2 = _mm_mul_ps(vector1, vector2);
-			//// vector3 = { a[W], a[Y], a[X], a[Z] }
+			// vector3 = { a[W], a[Y], a[X], a[Z] }
 			//amQ = _mm_shuffle_ps(amQ, amQ, _MM_SHUFFLE(3, 1, 0, 2));
-			//// vector4 = { b[W], b[X], b[Z], b[Y] }
+			// vector4 = { b[W], b[X], b[Z], b[Y] }
 			//bmQ = _mm_shuffle_ps(bmQ, bmQ, _MM_SHUFFLE(3, 0, 2, 1));
-			//// mQ = { 0, a[X]*b[Y] - a[Y]*b[X], a[Z]*b[X] - a[X]*b[Z], a[Y]*b[Z] - a[Z]*b[Y] }
+			// mQ = { 0, a[X]*b[Y] - a[Y]*b[X], a[Z]*b[X] - a[X]*b[Z], a[Y]*b[Z] - a[Z]*b[Y] }
 			//vector1 = _mm_sub_ps(vector2, _mm_mul_ps(amQ, bmQ));
 
 			//llassert(v1.isFinite3());
 
-			//v1.store4a((F32*)output);
-
-			output++;
-			idx += 3;
+			triangleNormals.Add(normal);
+            idx += 3;
 		}
 
-		//idx = 0;
+		idx = 0;
 
-		//for (int i = 0; i < count; i++) //for each triangle
-		//{
-		//	Vector3 c = triangle_normals[i];
+		for (int triangleIndex = 0; triangleIndex < count; triangleIndex++) //for each triangle
+		{
+			Vector3 c = triangleNormals[triangleIndex];
 
-        //  LLVector4a* n0p = Normals[Indices[idx + 0]];
-		//	LLVector4a* n1p = norm + idx[1];
-		//	LLVector4a* n2p = norm + idx[2];
+			Vector3 n0 = Normals[Indices[idx + 0]];
+            Vector3 n1 = Normals[Indices[idx + 1]];
+            Vector3 n2 = Normals[Indices[idx + 2]];
 
-		//	idx += 3;
+			n0 += c;
+			n1 += c;
+			n2 += c;
 
-		//	LLVector4a n0, n1, n2;
-		//	n0.load4a((F32*)n0p);
-		//	n1.load4a((F32*)n1p);
-		//	n2.load4a((F32*)n2p);
+			//llassert(c.isFinite3());
 
-		//	n0.add(c);
-		//	n1.add(c);
-		//	n2.add(c);
+			//even out quad contributions
+			switch (triangleIndex % 2 + 1)
+			{
+				case 0: n0 += c; break;
+				case 1: n1 += c; break;
+				case 2: n2 += c; break;
+			};
 
-		//	llassert(c.isFinite3());
+            Normals[Indices[idx + 0]] = n0;
+            Normals[Indices[idx + 1]] = n1;
+            Normals[Indices[idx + 2]] = n2;
 
-		//	//even out quad contributions
-		//	switch (i % 2 + 1)
-		//	{
-		//		case 0: n0.add(c); break;
-		//		case 1: n1.add(c); break;
-		//		case 2: n2.add(c); break;
-		//	};
-
-		//	n0.store4a((F32*)n0p);
-		//	n1.store4a((F32*)n1p);
-		//	n2.store4a((F32*)n2p);
-		//}
-
+            idx += 3;
+		}
 
 		// adjust normals based on wrapping and stitching
 
 		Vector3 top = (Positions[0] - Positions[NumS * (NumT - 2)]);
-		bool s_bottom_converges = UnityEngine.Vector3.Dot(top, top) < 0.000001f;
+		bool s_bottom_converges = Vector3.Dot(top, top) < 0.000001f;
 
 		top = Positions[NumS - 1] - Positions[NumS * (NumT - 2) + NumS - 1];
-		bool s_top_converges = UnityEngine.Vector3.Dot (top, top) < 0.000001f;
+		bool s_top_converges = Vector3.Dot(top, top) < 0.000001f;
 
 		if (sculptStitching == SculptType.None)  // logic for non-sculpt volumes
 		{
@@ -985,8 +968,8 @@ public class VolumeFace
 				}
 			}
 
-			if (   volume.Parameters.PathParameters.PathType == PathType.Circle
-                && volume.Parameters.ProfileParameters.ProfileType == ProfileType.CircleHalf)
+			if (volume.Parameters.PathParameters.PathType == PathType.Circle
+					  && volume.Parameters.ProfileParameters.ProfileType == ProfileType.CircleHalf)
 			{
 				if (s_bottom_converges)
 				{ //all lower S have same normal
@@ -1005,82 +988,87 @@ public class VolumeFace
 				}
 			}
 		}
-		else  // logic for sculpt volumes
-		{
-			//BOOL average_poles = FALSE;
-			//BOOL wrap_s = FALSE;
-			//BOOL wrap_t = FALSE;
+		//else  // logic for sculpt volumes
+		//{
+		//BOOL average_poles = FALSE;
+		//BOOL wrap_s = FALSE;
+		//BOOL wrap_t = FALSE;
 
-			//if (sculpt_stitching == LL_SCULPT_TYPE_SPHERE)
-			//	average_poles = TRUE;
+		//if (sculpt_stitching == LL_SCULPT_TYPE_SPHERE)
+		//	average_poles = TRUE;
 
-			//if ((sculpt_stitching == LL_SCULPT_TYPE_SPHERE) ||
-			//	(sculpt_stitching == LL_SCULPT_TYPE_TORUS) ||
-			//	(sculpt_stitching == LL_SCULPT_TYPE_CYLINDER))
-			//	wrap_s = TRUE;
+		//if ((sculpt_stitching == LL_SCULPT_TYPE_SPHERE) ||
+		//	(sculpt_stitching == LL_SCULPT_TYPE_TORUS) ||
+		//	(sculpt_stitching == LL_SCULPT_TYPE_CYLINDER))
+		//	wrap_s = TRUE;
 
-			//if (sculpt_stitching == LL_SCULPT_TYPE_TORUS)
-			//	wrap_t = TRUE;
+		//if (sculpt_stitching == LL_SCULPT_TYPE_TORUS)
+		//	wrap_t = TRUE;
 
 
-			//if (average_poles)
-			//{
-			//	// average normals for north pole
+		//if (average_poles)
+		//{
+		//	// average normals for north pole
 
-			//	LLVector4a average;
-			//	average.clear();
+		//	LLVector4a average;
+		//	average.clear();
 
-			//	for (S32 i = 0; i < mNumS; i++)
-			//	{
-			//		average.add(norm[i]);
-			//	}
+		//	for (S32 i = 0; i < mNumS; i++)
+		//	{
+		//		average.add(norm[i]);
+		//	}
 
-			//	// set average
-			//	for (S32 i = 0; i < mNumS; i++)
-			//	{
-			//		norm[i] = average;
-			//	}
+		//	// set average
+		//	for (S32 i = 0; i < mNumS; i++)
+		//	{
+		//		norm[i] = average;
+		//	}
 
-			//	// average normals for south pole
+		//	// average normals for south pole
 
-			//	average.clear();
+		//	average.clear();
 
-			//	for (S32 i = 0; i < mNumS; i++)
-			//	{
-			//		average.add(norm[i + mNumS * (mNumT - 1)]);
-			//	}
+		//	for (S32 i = 0; i < mNumS; i++)
+		//	{
+		//		average.add(norm[i + mNumS * (mNumT - 1)]);
+		//	}
 
-			//	// set average
-			//	for (S32 i = 0; i < mNumS; i++)
-			//	{
-			//		norm[i + mNumS * (mNumT - 1)] = average;
-			//	}
-   //         }
+		//	// set average
+		//	for (S32 i = 0; i < mNumS; i++)
+		//	{
+		//		norm[i + mNumS * (mNumT - 1)] = average;
+		//	}
+		//         }
 
-			//if (wrap_s)
-			//{
-			//	for (S32 i = 0; i < mNumT; i++)
-			//	{
-			//		LLVector4a n;
-			//		n.setAdd(norm[mNumS * i], norm[mNumS * i + mNumS - 1]);
-			//		norm[mNumS * i] = n;
-			//		norm[mNumS * i + mNumS - 1] = n;
-			//	}
-			//}
+		//if (wrap_s)
+		//{
+		//	for (S32 i = 0; i < mNumT; i++)
+		//	{
+		//		LLVector4a n;
+		//		n.setAdd(norm[mNumS * i], norm[mNumS * i + mNumS - 1]);
+		//		norm[mNumS * i] = n;
+		//		norm[mNumS * i + mNumS - 1] = n;
+		//	}
+		//}
 
-			//if (wrap_t)
-			//{
-			//	for (S32 i = 0; i < mNumS; i++)
-			//	{
-			//		LLVector4a n;
-			//		n.setAdd(norm[i], norm[mNumS * (mNumT - 1) + i]);
-			//		norm[i] = n;
-			//		norm[mNumS * (mNumT - 1) + i] = n;
-			//	}
-			//}
+		//if (wrap_t)
+		//{
+		//	for (S32 i = 0; i < mNumS; i++)
+		//	{
+		//		LLVector4a n;
+		//		n.setAdd(norm[i], norm[mNumS * (mNumT - 1) + i]);
+		//		norm[i] = n;
+		//		norm[mNumS * (mNumT - 1) + i] = n;
+		//	}
+		//}
+		//}
+
+        for (int normalIndex = 0; normalIndex < Normals.Count; normalIndex++)
+        {
+            Normals[normalIndex] = Normals[normalIndex].normalized;
         }
 
-    	return true;
+		return true;
 	}
 
 	protected void UpdateMinMax(ref Vector2 min, ref Vector2 max, Vector2 pos)
