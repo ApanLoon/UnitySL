@@ -717,8 +717,6 @@ public class VolumeFace
 
         Centre = Vector3.zero;
 
-//		int cur_pos = Positions.Count;
-//		int end_pos = cur_pos + NumVertices;
         int curPos = 0;
         int endPos = Positions.Count;
 
@@ -743,8 +741,6 @@ public class VolumeFace
 			TexCoords.Add(TexCoords[NumVertices - 1]);
 		}
 
-//		int cur_tc = TexCoords.Count;
-//		int end_tc = cur_tc + tc_count;
         int curTc = 0;
         int endTc = TexCoords.Count;
 
@@ -907,9 +903,9 @@ public class VolumeFace
             idx += 3;
 		}
 
+		// Add triangle normal contributions from each triangle to the vertex normals:
 		idx = 0;
-
-		for (int triangleIndex = 0; triangleIndex < count; triangleIndex++) //for each triangle
+        for (int triangleIndex = 0; triangleIndex < count; triangleIndex++) //for each triangle
 		{
 			Vector3 c = triangleNormals[triangleIndex];
 
@@ -1063,6 +1059,7 @@ public class VolumeFace
 		//}
 		//}
 
+		// Normalise normals:
         for (int normalIndex = 0; normalIndex < Normals.Count; normalIndex++)
         {
             Normals[normalIndex] = Normals[normalIndex].normalized;

@@ -151,7 +151,6 @@ public class Path
     /// <param name="twistScale"></param>
     protected void GenNGon (PathParameters parameters, int nSides, float endScale = 1f, float twistScale = 1f)
     {
-        float revolutions = parameters.Revolutions;
         float skew = parameters.Skew;
         float skewMag = Mathf.Abs (skew);
         float holeX = parameters.Scale.x * (1.0f - skewMag);
@@ -204,20 +203,13 @@ public class Path
                   || (Mathf.Abs (taperXEnd - taperXBegin) > 0.001f)
                   || (Mathf.Abs (taperYEnd - taperYBegin) > 0.001f)
                   || (Mathf.Abs (radiusEnd  - radiusStart)  > 0.001f) );
-
-        float ang, c, s;
-        Quaternion twist, qang;
-
-        Vector3 pathAxis = new Vector3(1f, 0f, 0f);
-        float twistBegin = parameters.TwistBegin * twistScale;
-        float twistEnd = parameters.TwistEnd * twistScale;
-
+        
         // We run through this once before the main loop, to make sure
         // the path begins at the correct cut.
         float step = 1.0f / nSides;
         float t = parameters.Begin;
 
-        AddNGonPoint(parameters, radiusStart, radiusEnd, holeX, holeY, taperXBegin, taperXEnd, taperYBegin, taperYEnd, t);
+        AddNGonPoint(parameters, radiusStart, radiusEnd, holeX, holeY, taperXBegin, taperXEnd, taperYBegin, taperYEnd, twistScale, t);
         t += step;
 
 	    // Snap to a quantized parameter, so that cut does not
@@ -227,13 +219,13 @@ public class Path
 	    // Run through the non-cut dependent points.
 	    while (t < parameters.End)
 	    {
-            AddNGonPoint(parameters, radiusStart, radiusEnd, holeX, holeY, taperXBegin, taperXEnd, taperYBegin, taperYEnd, t);
+            AddNGonPoint(parameters, radiusStart, radiusEnd, holeX, holeY, taperXBegin, taperXEnd, taperYBegin, taperYEnd, twistScale, t);
             t += step;
 	    }
 
 	    // Make one final pass for the end cut.
 	    t = parameters.End;
-        AddNGonPoint(parameters, radiusStart, radiusEnd, holeX, holeY, taperXBegin, taperXEnd, taperYBegin, taperYEnd, t);
+        AddNGonPoint(parameters, radiusStart, radiusEnd, holeX, holeY, taperXBegin, taperXEnd, taperYBegin, taperYEnd, twistScale, t);
     }
 
     protected void AddNGonPoint(PathParameters parameters,
@@ -241,6 +233,7 @@ public class Path
                                 float holeX,       float holeY,
                                 float taperXBegin, float taperXEnd,
                                 float taperYBegin, float taperYEnd,
+                                float twistScale,
                                 float t)
     {
         float ang = 2.0f * Mathf.PI * parameters.Revolutions * t;
@@ -248,8 +241,12 @@ public class Path
         float s = Mathf.Sin(ang) * Mathf.Lerp(radiusStart, radiusEnd, t);
 
         // Twist rotates the path along the x,y plane (I think) - DJS 04/05/02
-        Quaternion twist = Quaternion.AngleAxis ((2f * Mathf.PI * Mathf.Lerp(parameters.TwistBegin, parameters.TwistEnd, t)) * Mathf.Rad2Deg, // Note: Indra subtracts PI from this angle, but that makes torus shapes weird
-                                                  new Vector3(0f, 0f, 1f));
+        Quaternion twist = Quaternion.AngleAxis ((2f * Mathf.PI
+                                                       * Mathf.Lerp (parameters.TwistBegin * twistScale,
+                                                                     parameters.TwistEnd * twistScale,
+                                                                       t))
+                                                       * Mathf.Rad2Deg, // Note: Indra subtracts PI from this angle, but that makes torus shapes weird
+                                                 new Vector3(0f, 0f, 1f));
         // Rotate the point around the circle's center.
         Quaternion qang = Quaternion.AngleAxis(ang * Mathf.Rad2Deg, new Vector3(1f, 0f, 0f));
 
