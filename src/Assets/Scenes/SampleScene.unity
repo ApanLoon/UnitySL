@@ -4216,7 +4216,7 @@ PrefabInstance:
     - target: {fileID: 3903667052450107208, guid: 45becc00d48fa7d4da51c8691773fe3b,
         type: 3}
       propertyPath: Lod
-      value: 3
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 3903667052450107208, guid: 45becc00d48fa7d4da51c8691773fe3b,
         type: 3}
@@ -4267,6 +4267,11 @@ PrefabInstance:
         type: 3}
       propertyPath: ShowGizmos
       value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 3903667052450107208, guid: 45becc00d48fa7d4da51c8691773fe3b,
+        type: 3}
+      propertyPath: Parameters.ProfileParameters.Hollow
+      value: 0.611
       objectReference: {fileID: 0}
     - target: {fileID: 8482213769968385202, guid: 45becc00d48fa7d4da51c8691773fe3b,
         type: 3}

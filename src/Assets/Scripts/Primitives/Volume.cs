@@ -49,7 +49,7 @@ public class Volume : MonoBehaviour
     public Vector3 LodScaleBias;
 
     [SerializeField] protected bool IsUnique;
-    [SerializeField] protected float Lod = 3f;
+    [SerializeField, Range(MIN_LOD, MAX_LOD)] protected float Lod = 3f;
     [SerializeField] protected int SculptLevel;
     [SerializeField] protected float SurfaceArea;
     [SerializeField] protected bool IsMeshAssetLoaded;
@@ -376,19 +376,33 @@ public class Volume : MonoBehaviour
             Debug.Log($"Id: {face.Id}, FaceId: {Profile.Faces[face.Id].FaceId}, TypeMask {face.TypeMask}, nVertices: {face.Positions.Count}, nNormals: {face.Normals.Count}, nIndices: {face.Indices.Count}");
             //SubMeshDescriptor sd = subMeshes[subMeshes.Count - 1];
             //Debug.Log($"bounds: {sd.bounds}, baseVertex: {sd.baseVertex}, firstVertex: {sd.firstVertex}, vertexCount: {sd.vertexCount}, indexStart: {sd.indexStart}, indexCount: {sd.indexCount}");
-            string m;
-            m = "";
+            //string m;
+            //m = "";
             //foreach (Vector3 p in face.Positions)
             //{
             //    m += $"{p}, ";
             //}
             //Debug.Log($"Positions: {m}");
+            
             //m = "";
             //foreach (int faceIndex in face.Indices)
             //{
             //    m += $"{faceIndex}, ";
             //}
             //Debug.Log($"Indices: {m}");
+            
+            //m = "";
+            //for (var i = 0; i < face.Indices.Count; i++)
+            //{
+            //    if (i % 3 == 0)
+            //    {
+            //        m += "\n";
+            //    }
+            //    int faceIndex = face.Indices[i];
+            //    m += $"{face.Positions[faceIndex]}, ";
+            //}
+            //Debug.Log($"Triangles: {m}");
+
             //m = "";
             //foreach (int edgeIndex in face.Edge)
             //{

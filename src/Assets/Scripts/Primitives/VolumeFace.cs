@@ -594,12 +594,12 @@ public class VolumeFace
 
 	protected bool CreateSide (Volume volume, bool partialBuild)
     {
-        bool flat = TypeMask.HasFlag(VolumeFaceMask.Flat); //TypeMask & VolumeFaceMask.Flat) != 0;
+        bool flat = TypeMask.HasFlag(VolumeFaceMask.Flat);
 
 		SculptType sculptStitching = volume.Parameters.SculptType;
         SculptFlags sculptFlags = volume.Parameters.SculptFlags;
-        bool sculptInvert = sculptFlags.HasFlag(SculptFlags.Invert); //sculptFlags & SculptFlags.Invert) != 0;
-        bool sculptMirror = sculptFlags.HasFlag(SculptFlags.Mirror); //sculptFlags & SculptFlags.Mirror) != 0;
+        bool sculptInvert = sculptFlags.HasFlag(SculptFlags.Invert);
+        bool sculptMirror = sculptFlags.HasFlag(SculptFlags.Mirror);
 		bool sculptReverseHorizontal = (sculptInvert ? !sculptMirror : sculptMirror);  // XOR
 
 		int numVertices, numIndices;
@@ -636,13 +636,11 @@ public class VolumeFace
 
 
 		float beginStex = Mathf.Floor (profile[BeginS][2]);
-		int numS = (TypeMask.HasFlag(VolumeFaceMask.Inner | VolumeFaceMask.Flat) && NumS > 2) //(TypeMask & VolumeFaceMask.Inner) != 0 && (TypeMask & VolumeFaceMask.Flat) != 0 && NumS > 2)
-			? NumS / 2
-            : NumS;
+        bool test = TypeMask.HasFlag(VolumeFaceMask.Inner | VolumeFaceMask.Flat) && NumS > 2;
+        int numS = test ? NumS / 2 : NumS;
 
 		int curVertex = 0;
 		int endT = BeginT + NumT;
-        bool test = TypeMask.HasFlag(VolumeFaceMask.Inner | VolumeFaceMask.Flat) && NumS > 2; //(TypeMask & VolumeFaceMask.Inner) != 0 && (TypeMask & VolumeFaceMask.Flat) != 0 && NumS > 2;
 
 		// Copy the vertices into the array
 		for (t = BeginT; t < endT; t++)
@@ -650,7 +648,7 @@ public class VolumeFace
 			tt = pathData[t].ExtrusionT;
 			for (s = 0; s < numS; s++)
 			{
-				if (TypeMask.HasFlag(VolumeFaceMask.End)) //(TypeMask & VolumeFaceMask.End) != 0)
+				if (TypeMask.HasFlag(VolumeFaceMask.End))
                 {
                     ss = s > 0 ? 1f : 0f;
                 }
@@ -698,11 +696,9 @@ public class VolumeFace
 				}
 			}
 
-			if (TypeMask.HasFlag(VolumeFaceMask.Inner | VolumeFaceMask.Flat) && NumS > 2) //(TypeMask & VolumeFaceMask.Inner) != 0 && (TypeMask & VolumeFaceMask.Flat) != 0 && NumS > 2)
+			if (test)
 			{
-				s = TypeMask.HasFlag(VolumeFaceMask.Open) //((TypeMask & VolumeFaceMask.Open) != 0)
-					? s = numS - 1
-					: 0;
+				s = TypeMask.HasFlag(VolumeFaceMask.Open) ? numS - 1 : 0;
 
 				i = BeginS + s + maxS * t;
 				ss = profile[BeginS + s][2] - beginStex;
@@ -762,7 +758,6 @@ public class VolumeFace
 
 		Centre = (faceMin + faceMax) * 0.5f;
 
-		int curIndex = 0;
         bool flatFace = TypeMask.HasFlag(VolumeFaceMask.Flat); //(TypeMask & VolumeFaceMask.Flat) != 0;
 
 		if (!partialBuild)
@@ -778,7 +773,6 @@ public class VolumeFace
 					Indices.Add (s     + NumS *  t);       //bottom left
 					Indices.Add (s + 1 + NumS *  t);       //bottom right
 					Indices.Add (s + 1 + NumS * (t + 1));  //top right
-                    curIndex += 6;
 
 					Edge.Add ((NumS - 1) * 2 * t + s * 2 + 1);    //bottom left/top right neighbor face 
 					if (t < NumT - 2)
