@@ -1029,6 +1029,7 @@ GameObject:
   - component: {fileID: 394898784}
   - component: {fileID: 394898783}
   - component: {fileID: 394898782}
+  - component: {fileID: 394898786}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1116,6 +1117,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &394898786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 394898781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60aac2b83792ab64e83db7b631ad6f2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &402049447
 GameObject:
   m_ObjectHideFlags: 0
@@ -3027,7 +3040,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 511969290}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.6756757
+  m_Size: 0.9868421
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4216,7 +4229,7 @@ PrefabInstance:
     - target: {fileID: 3903667052450107208, guid: 45becc00d48fa7d4da51c8691773fe3b,
         type: 3}
       propertyPath: Lod
-      value: 0.01
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3903667052450107208, guid: 45becc00d48fa7d4da51c8691773fe3b,
         type: 3}
