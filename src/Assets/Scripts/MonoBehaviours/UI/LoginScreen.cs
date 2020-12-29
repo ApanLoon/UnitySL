@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,7 +9,9 @@ using UnityEngine.UI;
 public class LoginScreen : MonoBehaviour
 {
     [SerializeField] protected TMP_Text LogText;
-    [SerializeField] protected Scrollbar logVerticalScroiScrollbar;
+    [SerializeField] protected Scrollbar LogVerticalScrollbar;
+
+    [SerializeField] protected TMP_Text TimerText;
 
     [SerializeField] protected TMP_InputField NameText;
     [SerializeField] protected TMP_InputField PasswordText;
@@ -22,7 +24,7 @@ public class LoginScreen : MonoBehaviour
     protected string SaveNameSetting = "Login_SaveName";
     protected string SavePasswordSetting = "Login_SavePassword";
 
-    protected float TimeToLog = 0f;
+    protected float Timer = 0f;
 
     protected Dictionary<Logger.LogLevel, string> LogLevelToColour = new Dictionary<Logger.LogLevel, string>()
     {
@@ -36,12 +38,12 @@ public class LoginScreen : MonoBehaviour
     {
         Logger.OnLog += (level, message) =>
         {
-            bool autoScroll = Mathf.Abs(logVerticalScroiScrollbar.value) < 0.01f;
+            bool autoScroll = Mathf.Abs(LogVerticalScrollbar.value) < 0.01f;
             LogText.text += $"{LogLevelToColour[level]}{level} {message}";
             LogText.ForceMeshUpdate();
             if (autoScroll)
             {
-                logVerticalScroiScrollbar.value = 0f;
+                LogVerticalScrollbar.value = 0f;
             }
         };
 
@@ -58,6 +60,9 @@ public class LoginScreen : MonoBehaviour
             bool reverse = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             NavigateToNext(reverse);
         }
+
+        Timer += Time.deltaTime;
+        TimerText.text = Timer.ToString("F", CultureInfo.InvariantCulture);
     }
 
     protected void UpdateNames()

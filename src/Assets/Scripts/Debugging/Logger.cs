@@ -13,27 +13,32 @@ public class Logger
 
     public static event Action<LogLevel, string> OnLog;
 
+    protected static void RaiseOnLog(LogLevel logLevel, string message)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnLog?.Invoke(logLevel, message));
+    }
+
     public static void LogDebug(string s)
     {
         Debug.Log(s);
-        OnLog?.Invoke(LogLevel.Debug, $"{s}\n");
+        RaiseOnLog(LogLevel.Debug, $"{s}\n");
     }
 
     public static void LogInfo(string s)
     {
         Debug.Log(s);
-        OnLog?.Invoke(LogLevel.Info, $"{s}\n");
+        RaiseOnLog(LogLevel.Info, $"{s}\n");
     }
 
     public static void LogWarning(string s)
     {
         Debug.LogWarning(s);
-        OnLog?.Invoke(LogLevel.Warning, $"{s}\n");
+        RaiseOnLog(LogLevel.Warning, $"{s}\n");
     }
 
     public static void LogError(string s)
     {
         Debug.LogError(s);
-        OnLog?.Invoke(LogLevel.Error, $"{s}\n");
+        RaiseOnLog(LogLevel.Error, $"{s}\n");
     }
 }

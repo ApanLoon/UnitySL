@@ -23,6 +23,12 @@ public class Login
     protected string ViewerChannel { get; set; } = "Second Life Unity";
     protected string HostId { get; set; } = "APA";
 
+    protected UInt32 CircuitCode { get; set; }
+    protected Guid SessionId { get; set; }
+    protected Guid AgentId { get; set; }
+
+    protected Circuit InitialSimCircuit { get; set; }
+
     public void Initialise(string machineId,
                            string serialNumber,
                            string viewerVersion,
@@ -99,6 +105,12 @@ public class Login
         if (ProcessLoginSuccessResponse(responseData))
         {
             // Go to state STATE_WORLD_INIT
+
+            await InitialSimCircuit.SendUseCircuitCode(CircuitCode, SessionId, AgentId);
+            Logger.LogInfo("UseCircuitCode was acked.");
+            await InitialSimCircuit.SendCompleteAgentMovement(AgentId, SessionId, CircuitCode);
+            Logger.LogInfo("CompleteAgentMovement was acked.");
+
         }
         else
         {
@@ -111,32 +123,31 @@ public class Login
         // TODO: Parse benefits
         // TODO: Parse "udp_blacklist"
 
-        string agentId = "";
+        AgentId = Guid.Empty;
         if (responseData.Has("agent_id"))
         {
-            agentId = responseData["agent_id"].AsString;
+            AgentId = Guid.Parse(responseData["agent_id"].AsString);
         }
-        if (string.IsNullOrEmpty(agentId))
+        if (AgentId == Guid.Empty)
         {
             return false;
         }
 
-        string agentSessionId = "";
+        SessionId = Guid.Empty;
         if (responseData.Has("session_id"))
         {
-            agentSessionId = responseData["session_id"].AsString;
+            SessionId = Guid.Parse(responseData["session_id"].AsString);
         }
-        if (string.IsNullOrEmpty(agentSessionId))
+        if (SessionId == Guid.Empty)
         {
             return false;
         }
-
         // TODO: Send agentId and agentSessionId to the LLUrlEntryParcel
 
-        string agentSecureSessionId = "";
+        Guid agentSecureSessionId = Guid.Empty;
         if (responseData.Has("secure_session_id"))
         {
-            agentSecureSessionId = responseData["secure_session_id"].AsString;
+            agentSecureSessionId = Guid.Parse(responseData["secure_session_id"].AsString);
         }
 
         string agentUserName = "";
@@ -185,12 +196,12 @@ public class Login
             agentStartLocation = responseData["start_location"].AsString;
         }
 
-        ulong circuitCode = 0;
+        CircuitCode = 0;
         string simIp = "";
-        UInt32 simPort = 0;
+        int simPort = 0;
         if (responseData.Has("circuit_code"))
         {
-            circuitCode = UInt32.Parse(responseData["circuit_code"].AsString);
+            CircuitCode = UInt32.Parse(responseData["circuit_code"].AsString);
         }
         if (responseData.Has("sim_ip"))
         {
@@ -198,14 +209,15 @@ public class Login
         }
         if (responseData.Has("sim_port"))
         {
-            simPort = UInt32.Parse(responseData["sim_port"].AsString);
+            simPort = int.Parse(responseData["sim_port"].AsString);
         }
-        if (circuitCode == 0 || string.IsNullOrEmpty(simIp) || simPort == 0)
+        if (CircuitCode == 0 || string.IsNullOrEmpty(simIp) || simPort == 0)
         {
             return false;
         }
-        // TODO: MessageSystem.EnableCircuit(simIp, uint.Parse(simPort), circuitCode);
 
+        InitialSimCircuit = SlMessageSystem.Instance.EnableCircuit(simIp, simPort);
+        
         UInt64 simHandle;
         if (responseData.Has("region_x") && responseData.Has("region_y"))
         {

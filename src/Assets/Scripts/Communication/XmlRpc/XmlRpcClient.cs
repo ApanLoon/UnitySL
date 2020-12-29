@@ -63,7 +63,7 @@ namespace SLViewerLib.Communication.XmlRpc
                     while ((count = contentStream.Read(buffer, start, length - start)) != 0)
                     {
                         start += count;
-                        Logger.LogDebug($"XmlRpcClient.Call: Read {count} bytes. ({start}/{length})");
+                        //Logger.LogDebug($"XmlRpcClient.Call: Read {count} bytes. ({start}/{length})");
                     }
                 }
                 catch (IOException ex)
@@ -75,7 +75,7 @@ namespace SLViewerLib.Communication.XmlRpc
                 }
                 string responseText = Encoding.UTF8.GetString(buffer).Replace("\0", "");
 
-                File.WriteAllText("loginResponse.xml", responseText);
+                //File.WriteAllText("loginResponse.xml", responseText);
 
                 XmlDocument document = new XmlDocument();
                 document.Load(new StringReader(responseText));

@@ -1,33 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 
-public class SlMessageSystem
+public class SlMessageSystem : IDisposable
 {
     public static SlMessageSystem Instance = new SlMessageSystem();
-
-    public SlMessageSystem()
-    {
-    }
-    public SlMessageSystem (
-        string filename,
-        UInt32 port,
-        Int32 systemVersionMajor,
-        Int32 systemVersionMinor,
-        Int32 systemVersionPatch,
-        bool failure_is_fatal,
-        float circuit_heartbeat_interval,
-        float circuit_timeout)
-    {
-        SystemVersionMajor = systemVersionMajor;
-        SystemVersionMinor = systemVersionMinor;
-        SystemVersionPatch = systemVersionPatch;
-
-        //LoadTemplateFile(filename, failure_is_fatal);
-    }
 
     /// <summary>
     /// Local UDP port number
     /// </summary>
-    public int Port { get; protected set; } = 20000;
+    public int Port { get; protected set; } = 13028;
 
     public Int32 SystemVersionMajor { get; protected set; }
     public Int32 SystemVersionMinor { get; protected set; }
@@ -84,4 +69,159 @@ public class SlMessageSystem
 
     //mMessageBuilder = NULL;
 
+    protected Dictionary<IPEndPoint, Circuit> CircuitByEndPoint = new Dictionary<IPEndPoint, Circuit>();
+    protected UdpClient UdpClient;
+
+    protected class OutgoingMessage
+    {
+        public Circuit Circuit { get; set; }
+        public Message Message { get; set; }
+    }
+
+    protected Queue<OutgoingMessage> OutGoingMessages = new Queue<OutgoingMessage>(); // ConcurrentQueue?
+
+    protected class UdpState
+    {
+        public UdpClient Client;
+        public IPEndPoint EndPoint;
+    }
+
+    public void Start()
+    {
+        if (_threadLoopTask != null && _threadLoopTask.Status == TaskStatus.Running)
+        {
+            Logger.LogDebug("SlMessageSystem.Start: Already started.");
+            return;
+        }
+        Logger.LogDebug("SlMessageSystem.Start");
+
+        _cts = new CancellationTokenSource();
+        _threadLoopTask = Task.Run(() => ThreadLoop(_cts.Token), _cts.Token);
+    }
+
+    public void Stop()
+    {
+        Logger.LogDebug("SlMessageSystem.Stop");
+        _cts.Cancel();
+
+        _cts.Dispose();
+        UdpClient.Close();
+        UdpClient?.Dispose();
+    }
+
+    private CancellationTokenSource _cts;
+    private Task _threadLoopTask;
+
+    protected async Task ThreadLoop(CancellationToken ct)
+    {
+        UdpState state = new UdpState();
+        state.EndPoint = new IPEndPoint(IPAddress.Any, Port);
+        state.Client = new UdpClient(state.EndPoint);
+        UdpClient = state.Client;
+        Logger.LogInfo("SlMessageSystem.ThreadLoop: Running");
+
+        UdpClient.BeginReceive(ReceiveData, state);
+        while (ct.IsCancellationRequested == false)
+        {
+            while (OutGoingMessages.Count > 0 && ct.IsCancellationRequested == false)
+            {
+                try
+                {
+                    OutgoingMessage om = OutGoingMessages.Dequeue();
+                    byte[] buffer = new byte[om.Message.GetSerializedLength()];
+                    om.Message.Serialize(buffer, 0, buffer.Length);
+                    await Send(buffer, om.Circuit);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"SlMessageSystem.ThreadLoop: {e}");
+                }
+            }
+
+            //try
+            //{
+            //    //Byte[] data = UdpClient.Receive(ref endPoint);
+            //    //Logger.LogDebug("Message: " + BitConverter.ToString(data));
+            //}
+            //catch (SocketException ex)
+            //{
+            //    if (ex.ErrorCode != 10060)
+            //    {
+            //        //Logger.LogDebug("a more serious error " + ex.ErrorCode);
+            //    }
+            //    else
+            //    {
+            //        //Logger.LogDebug("expected timeout error");
+            //    }
+            //}
+
+            await Task.Delay(10, ct); // tune for your situation, can usually be omitted
+        }
+        // Cancelling appears to kill the task immediately without giving it a chance to get here
+        Logger.LogInfo($"SlMessageSystem.ThreadLoop: Stopping...");
+        UdpClient.Close();
+        UdpClient?.Dispose();
+    }
+
+    public Circuit EnableCircuit(string address, int port, float heartBeatInterval = 5f, float circuitTimeout = 100f)
+    {
+        IPAddress a = IPAddress.Parse(address);
+        return EnableCircuit(a, port, heartBeatInterval, circuitTimeout);
+    }
+
+    public Circuit EnableCircuit(IPAddress address, int port, float heartBeatInterval = 5f, float circuitTimeout = 100f)
+    {
+        Logger.LogDebug("SlMessageSystem.EnableCircuit");
+
+        IPEndPoint endPoint = new IPEndPoint(address, port);
+        if (CircuitByEndPoint.ContainsKey(endPoint))
+        {
+            return CircuitByEndPoint[endPoint];
+        }
+        Circuit circuit = new Circuit(address, port, this, heartBeatInterval, circuitTimeout);
+        CircuitByEndPoint.Add(endPoint, circuit);
+        return circuit;
+    }
+
+    public void EnqueueMessage(Circuit circuit, Message message)
+    {
+        OutGoingMessages.Enqueue(new OutgoingMessage(){Circuit = circuit, Message = message});
+    }
+
+
+    protected async Task Send(byte[] buffer, Circuit circuit)
+    {
+        Logger.LogDebug($"SlMessageSystem.Send: Sending {buffer.Length} bytes...");
+        await UdpClient.SendAsync(buffer, buffer.Length, circuit.RemoteEndPoint);
+    }
+    
+    protected void ReceiveData(IAsyncResult ar)
+    {
+        try
+        {
+            UdpState state = (UdpState) ar.AsyncState;
+            IPEndPoint EndPoint = null;
+            byte[] buf = state.Client.EndReceive(ar, ref EndPoint);
+            state.Client.BeginReceive(ReceiveData, state);
+
+            if (CircuitByEndPoint.ContainsKey(EndPoint))
+            {
+                CircuitByEndPoint[EndPoint].ReceiveData(buf);
+            }
+        }
+        catch (ObjectDisposedException e)
+        {
+            return;
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"SlMessageSystem.ReceiveData: {e}");
+        }
+    }
+
+    public void Dispose()
+    {
+        Logger.LogDebug("SlMessagingSystem.Dispose");
+        Stop();
+    }
 }
