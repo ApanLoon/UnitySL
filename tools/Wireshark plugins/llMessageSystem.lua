@@ -1,6 +1,11 @@
 
 -- Dissector for Linden Labs UDP message protocol
 --
+-- Messages are described here:
+--   http://wiki.secondlife.com/wiki/Packet_Layout
+--   http://wiki.secondlife.com/wiki/Message_Layout
+--   https://bitbucket.org/lindenlab/viewer/src/04c473ab46041133ea6a87dbe0d43e662472adf5/scripts/messages/message_template.msg
+--
 -- Install:
 --   Copy this file to one of the locations Wireshark uses to load plugins.
 --   If you go to Help –> About Wireshark –> Folders, you’ll find all the
@@ -11,8 +16,9 @@
 --   you do changes to the script, or reload all the Lua scripts with
 --   Ctrl+Shift+L.
 --
--- To force the lua console to stay open on reload, make sure that the last thing done in
---   D:\Program Files\Wireshark\console.lua
+-- For debugging, it can be nice to force the lua console to stay open on
+-- reload, to do this make sure that the last thing done in
+--   C:\Program Files\Wireshark\console.lua
 -- is 
 --   run_console()
 --
