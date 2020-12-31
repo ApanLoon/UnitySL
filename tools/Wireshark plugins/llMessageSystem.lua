@@ -426,11 +426,10 @@ Decoders =
 		},
 		Decoder = function (buffer, offset, tree, pinfo)
 			local name = Decoders.Ack.Name
-			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
-			local o = offset
-
-			local idString = ""
 			local ackCount = buffer(length - 1, 1):uint();
+			local o = length - (ackCount * 4 + 1)
+			local subtree = tree:add(llmsg_protocol, buffer(o), name)
+			local idString = ""
 			for i = 0, ackCount - 1, 1 do
 				if i > 0 then
 					idString = idString .. ", "
@@ -465,6 +464,27 @@ Decoders =
 			local oldestUnchecked = buffer(o, 4):le_uint()
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.OldestUnacked,        buffer, o,  4)
 			pinfo.cols.info:append(string.format(" %s (PingId=%d, OldestUnchecked=%d)", GetMessageIdString(name, messageNumber), pingId, oldestUnchecked))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0x02] =
+	{
+		Name = "CompletePingCheck",
+		Fields =
+		{
+			PingId        = ProtoField.uint8          ("llmsg.CompletePingCheck.PingId",          "PingId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0x02
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			local pingId = buffer(o, 1):uint()
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.PingId,               buffer, o,  1)
+			pinfo.cols.info:append(string.format(" %s (PingId=%d)", GetMessageIdString(name, messageNumber), pingId))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
 		end
@@ -1536,6 +1556,45 @@ Decoders =
 			o = AddVector3ToTree  (subtree, messageNumber, "SunDirection",                   buffer, o)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.SunPhase,         buffer, o,  4)
 			o = AddVector3ToTree  (subtree, messageNumber, "SunAngVelocity",                 buffer, o)
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff009c] =
+	{
+		Name = "RequestXfer",
+		Fields =
+		{
+			Id                  = ProtoField.uint64 ("llmsg.RequestXfer.Id",                     "Id"),
+			FileName            = ProtoField.string ("llmsg.RequestXfer.FileName",               "FileName",           base.UNICODE),
+			FilePath            = ProtoField.uint8  ("llmsg.RequestXfer.FilePath",               "FilePath"),
+			DeleteOnCompletion  = ProtoField.bool   ("llmsg.RequestXfer.DeleteOnCompletion",     "DeleteOnCompletion"),
+			UseBigPackets       = ProtoField.bool   ("llmsg.RequestXfer.UseBigPackets",          "UseBigPackets"),
+			VFileId             = ProtoField.guid   ("llmsg.RequestXfer.vFileId",                "vFileId"),
+			VFileType           = ProtoField.int16  ("llmsg.RequestXfer.vFileType",              "vFileType")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff009c
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				o = 0
+			end
+
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Id,                         buffer, o,    8)
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.FileName,                   buffer, o,  len)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.FilePath,                   buffer, o,    1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.DeleteOnCompletion,         buffer, o,    1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.UseBigPackets,              buffer, o,    1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.VFileId,                    buffer, o,   16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.VFileType,                  buffer, o,    2)
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
