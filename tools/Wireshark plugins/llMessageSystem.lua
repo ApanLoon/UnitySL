@@ -1178,8 +1178,8 @@ Decoders =
 			SalePrice      = ProtoField.int32  ("llmsg.ObjectPropertiesFamily.SalePrice",      "SalePrice"),
 			Category       = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.Category",       "Category"),
 			LastOwnerId    = ProtoField.guid   ("llmsg.ObjectPropertiesFamily.LastOwnerId",    "LastOwnerId"),
-			Name           = ProtoField.string ("llmsg.ObjectPropertiesFamily.TransactionId",  "Name",             base.UNICODE),
-			Description    = ProtoField.string ("llmsg.ObjectPropertiesFamily.TransactionId",  "Description",      base.UNICODE)
+			Name           = ProtoField.string ("llmsg.ObjectPropertiesFamily.Name",           "Name",             base.UNICODE),
+			Description    = ProtoField.string ("llmsg.ObjectPropertiesFamily.Description",    "Description",      base.UNICODE)
 		},
 		
 		Decoder = function (buffer, offset, dataLength, tree, pinfo)
@@ -2291,6 +2291,63 @@ Decoders =
 		end
 	},
 
+	[0xffff00fc] =
+	{
+		Name = "MuteListRequest",
+		Fields =
+		{
+			AgentId        = ProtoField.guid   ("llmsg.MuteListRequest.AgentId",        "AgentId"),
+			SessionId      = ProtoField.guid   ("llmsg.MuteListRequest.SessionId",      "SessionId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00fc
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,    buffer, o, 16)
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00fd] =
+	{
+		Name = "LogoutReply",
+		Fields =
+		{
+			AgentId       = ProtoField.guid   ("llmsg.LogoutReply.AgentId",         "AgentId"),
+			SessionId     = ProtoField.guid   ("llmsg.LogoutReply.SessionId",       "SessionId"),
+			ItemId        = ProtoField.guid   ("llmsg.LogoutReply.ItemId",          "ItemId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00fd
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, dataLength), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,             buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.SessionId,           buffer, o,  16)
+			local nItems = buffer(o, 1):uint(); o = o + 1
+			local itemsTree = subtree:add(llmsg_protocol, buffer(offset, nItems * 16), "Items", string.format(" (%d)", nItems))
+			for i = 0, nItems - 1, 1 do
+				o = AddFieldToTree (itemsTree, Decoders[messageNumber].Fields.ItemId,        buffer, o,  16)
+			end
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xffff0105] =
 	{
 		Name = "GenericMessage",
@@ -2353,6 +2410,95 @@ Decoders =
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,    buffer, o, 16)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.MuteCRC,      buffer, o,  4)
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff010b] =
+	{
+		Name = "UpdateCreateInventoryItem",
+		Fields =
+		{
+			AgentId        = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.AgentId",        "AgentId"),
+			SimApproved    = ProtoField.bool   ("llmsg.UpdateCreateInventoryItem.SimApproved",    "SimApproved"),
+			TransactionId  = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.TransactionId",  "TransactionId"),
+
+			ItemId         = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.ItemId",         "ItemId"),
+			FolderId       = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.FolderId",       "FolderId"),
+			CallbackId     = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.CallbackId",     "CallbackId"),
+
+			CreatorId      = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.CreatorId",      "CreatorId"),
+			OwnerId        = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.OwnerId",        "OwnerId"),
+			GroupId        = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.GroupId",        "GroupId"),
+			BaseMask       = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.BaseMask",       "BaseMask",         base.HEX),
+			OwnerMask      = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.OwnerMask",      "OwnerMask",        base.HEX),
+			GroupMask      = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.GroupMask",      "GroupMask",        base.HEX),
+			EveryoneMask   = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.EveryoneMask",   "EveryoneMask",     base.HEX),
+			NextOwnerMask  = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.NextOwnerMask",  "NextOwnerMask",    base.HEX),
+			GroupOwned     = ProtoField.bool   ("llmsg.UpdateCreateInventoryItem.GroupOwned",     "GroupOwned"),
+
+			AssetId        = ProtoField.guid   ("llmsg.UpdateCreateInventoryItem.AssetId",        "AssetId"),
+			Type           = ProtoField.uint8  ("llmsg.UpdateCreateInventoryItem.Type",           "Type"),
+			InvType        = ProtoField.uint8  ("llmsg.UpdateCreateInventoryItem.InvType",        "InvType"),
+			Flags          = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.Flags",          "Flags",   base.HEX),
+			SaleType       = ProtoField.uint8  ("llmsg.UpdateCreateInventoryItem.SaleType",       "SaleType"),
+			SalePrice      = ProtoField.int32  ("llmsg.UpdateCreateInventoryItem.SalePrice",      "SalePrice"),
+			Name           = ProtoField.string ("llmsg.UpdateCreateInventoryItem.Name",           "Name",             base.UNICODE),
+			Description    = ProtoField.string ("llmsg.UpdateCreateInventoryItem.Description",    "Description",      base.UNICODE),
+			CRC            = ProtoField.uint32 ("llmsg.UpdateCreateInventoryItem.CRC",            "CRC")
+		},
+
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff010b
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, dataLength), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,            buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SimApproved,        buffer, o,   1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TransactionId,      buffer, o,  16)
+			
+			local nItems = buffer(o, 1):uint(); o = o + 1
+			local itemsTree = subtree:add(llmsg_protocol, buffer(o), "Items", string.format(" (%d)", nItems))
+			for i = 0, nItems - 1, 1 do
+				local itemTree = itemsTree:add(llmsg_protocol, buffer(o), "Item")
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.ItemId,             buffer, o,  16)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.FolderId,           buffer, o,  16)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.CallbackId,         buffer, o,   4)
+
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.CreatorId,          buffer, o,  16)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.OwnerId,            buffer, o,  16)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.GroupId,            buffer, o,  16)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.BaseMask,           buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.OwnerMask,          buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.GroupMask,          buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.EveryoneMask,       buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.NextOwnerMask,      buffer, o,   4)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.GroupOwned,         buffer, o,   1)
+				
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.AssetId,            buffer, o,  16)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.Type,               buffer, o,   1)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.InvType,            buffer, o,   1)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.Flags,              buffer, o,   4)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.SaleType,           buffer, o,   1)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.SalePrice,          buffer, o,   4)
+
+				local len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.Name,               buffer, o, len)
+
+				local len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.Description,        buffer, o, len)
+
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.CRC,                buffer, o,   4)
+			end
+			
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
@@ -2811,8 +2957,8 @@ Decoders =
 			GroupMask       = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.GroupMask",      "GroupMask",        base.HEX),
 			EveryoneMask    = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.EveryoneMask",   "EveryoneMask",     base.HEX),
 			NextOwnerMask   = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.NextOwnerMask",  "NextOwnerMask",    base.HEX),
-			Name            = ProtoField.string ("llmsg.RezMultipleAttachmentsFromInv.TransactionId",  "Name",             base.UNICODE),
-			Description     = ProtoField.string ("llmsg.RezMultipleAttachmentsFromInv.TransactionId",  "Description",      base.UNICODE)
+			Name            = ProtoField.string ("llmsg.RezMultipleAttachmentsFromInv.Name",           "Name",             base.UNICODE),
+			Description     = ProtoField.string ("llmsg.RezMultipleAttachmentsFromInv.Description",    "Description",      base.UNICODE)
 		},
 		
 		Decoder = function (buffer, offset, dataLength, tree, pinfo)
