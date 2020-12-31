@@ -266,6 +266,20 @@ function AddVector3ToTree(tree, messageNumber, fieldPrefix, buffer, offset)
 	return offset
 end
 
+function AddVector4ToTree(tree, messageNumber, fieldPrefix, buffer, offset)
+	local subtree = tree:add(llmsg_protocol, buffer(offset, 16), fieldPrefix)
+	local x = buffer(offset, 4):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "X"], buffer, offset,  4)
+	local y = buffer(offset, 4):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "Y"], buffer, offset,  4)
+	local z = buffer(offset, 4):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "Z"], buffer, offset,  4)
+	local w = buffer(offset, 4):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "W"], buffer, offset,  4)
+	subtree:append_text(string.format(": <%f, %f, %f, %f>", x, y, z, w))
+	return offset
+end
+
 -- Expected to always be unit quaternions, so w is not included
 function AddQuaternionToTree(tree, messageNumber, fieldPrefix, buffer, offset)
 	local subtree = tree:add(llmsg_protocol, buffer(offset, 12), fieldPrefix)
@@ -539,7 +553,7 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 			
@@ -712,7 +726,7 @@ Decoders =
 			local o = offset
 
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 
@@ -890,6 +904,57 @@ Decoders =
 		end
 	},
 
+	[0x12] =
+	{
+		Name = "SendXferPacket",
+		Fields =
+		{
+			Id              = ProtoField.uint64 ("llmsg.SendXferPacket.Id",                "Id"),
+			Packet          = ProtoField.uint32 ("llmsg.SendXferPacket.Packet",            "Packet"),
+			Data            = ProtoField.none   ("llmsg.SendXferPacket.Data",              "Data")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0x12
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Id,      buffer, o,  8)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Packet,  buffer, o,  4)
+			local len = buffer(o, 2):le_uint(); o = o + 2 --TODO: Supposed to be big endian!
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Data,    buffer, o,  len)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0x13] =
+	{
+		Name = "ConfirmXferPacket",
+		Fields =
+		{
+			Id              = ProtoField.uint64 ("llmsg.ConfirmXferPacket.Id",                "Id"),
+			Packet          = ProtoField.uint32 ("llmsg.ConfirmXferPacket.Packet",            "Packet")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0x13
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, 12), name)
+			local o = offset
+
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Id,      buffer, o,  8)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Packet,  buffer, o,  4)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0x14] =
 	{
 		Name = "AvatarAnimation",
@@ -933,6 +998,35 @@ Decoders =
 				o = AddFieldToTree    (avatarEventTree, Decoders[messageNumber].Fields.TypeData,  buffer, o,  len)
 			end
 
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0x16] =
+	{
+		Name = "CameraConstraint",
+		Fields =
+		{
+			PlaneX              = ProtoField.float  ("llmsg.CameraConstraint.PlaneX",                "PlaneX"),
+			PlaneY              = ProtoField.float  ("llmsg.CameraConstraint.PlaneY",                "PlaneY"),
+			PlaneZ              = ProtoField.float  ("llmsg.CameraConstraint.PlaneZ",                "PlaneZ"),
+			PlaneW              = ProtoField.float  ("llmsg.CameraConstraint.PlaneW",                "PlaneW")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0x16
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+
+			o = AddVector4ToTree (subtree, messageNumber,                 "Plane",                 buffer, o)
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
@@ -1002,6 +1096,39 @@ Decoders =
 		end
 	},
 
+	[0xff05] =
+	{
+		Name = "RequestObjectPropertiesFamily",
+		Fields =
+		{
+			AgentId       = ProtoField.guid   ("llmsg.RequestObjectPropertiesFamily.AgentId",                "AgentId"),
+			SessionId     = ProtoField.guid   ("llmsg.RequestObjectPropertiesFamily.SessionId",              "SessionId"),
+			RequestFlags  = ProtoField.uint32 ("llmsg.RequestObjectPropertiesFamily.RequestFlags",           "RequestFlags", base.HEX),
+			ObjectId      = ProtoField.guid   ("llmsg.RequestObjectPropertiesFamily.ObjectId",               "ObjectId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xff05
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,       buffer, o, 16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,     buffer, o, 16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.RequestFlags,  buffer, o,  4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.ObjectId,      buffer, o, 16)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xff06] =
 	{
 		Name = "CoarseLocationUpdate",
@@ -1026,6 +1153,67 @@ Decoders =
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.You,          buffer, o,  2)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Prey,         buffer, o,  2)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xff0a] =
+	{
+		Name = "ObjectPropertiesFamily",
+		Fields =
+		{
+			RequestFlags   = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.RequestFlags",   "RequestFlags",     base.HEX),
+			ObjectId       = ProtoField.guid   ("llmsg.ObjectPropertiesFamily.ObjectId",       "ObjectId"),
+			OwnerId        = ProtoField.guid   ("llmsg.ObjectPropertiesFamily.OwnerId",        "OwnerId"),
+			GroupId        = ProtoField.guid   ("llmsg.ObjectPropertiesFamily.GroupId",        "GroupId"),
+			BaseMask       = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.BaseMask",       "BaseMask",         base.HEX),
+			OwnerMask      = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.OwnerMask",      "OwnerMask",        base.HEX),
+			GroupMask      = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.GroupMask",      "GroupMask",        base.HEX),
+			EveryoneMask   = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.EveryoneMask",   "EveryoneMask",     base.HEX),
+			NextOwnerMask  = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.NextOwnerMask",  "NextOwnerMask",    base.HEX),
+			OwnershipCost  = ProtoField.int32  ("llmsg.ObjectPropertiesFamily.OwnershipCost",  "OwnershipCost"),
+			SaleType       = ProtoField.uint8  ("llmsg.ObjectPropertiesFamily.SaleType",       "SaleType"),
+			SalePrice      = ProtoField.int32  ("llmsg.ObjectPropertiesFamily.SalePrice",      "SalePrice"),
+			Category       = ProtoField.uint32 ("llmsg.ObjectPropertiesFamily.Category",       "Category"),
+			LastOwnerId    = ProtoField.guid   ("llmsg.ObjectPropertiesFamily.LastOwnerId",    "LastOwnerId"),
+			Name           = ProtoField.string ("llmsg.ObjectPropertiesFamily.TransactionId",  "Name",             base.UNICODE),
+			Description    = ProtoField.string ("llmsg.ObjectPropertiesFamily.TransactionId",  "Description",      base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xff0a
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.RequestFlags,       buffer, o,   4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.ObjectId,           buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.OwnerId,            buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.GroupId,            buffer, o,  16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.BaseMask,           buffer, o,   4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.OwnerMask,          buffer, o,   4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.GroupMask,          buffer, o,   4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.EveryoneMask,       buffer, o,   4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.NextOwnerMask,      buffer, o,   4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.OwnershipCost,      buffer, o,   4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SaleType,           buffer, o,   1)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.SalePrice,          buffer, o,   4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Category,           buffer, o,   4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.LastOwnerId,        buffer, o,  16)
+
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Name,          buffer, o, len)
+
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Description,   buffer, o, len)
+			
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
@@ -1095,6 +1283,37 @@ Decoders =
 		end
 	},
 
+	[0xff0f] =
+	{
+		Name = "PreloadSound",
+		Fields =
+		{
+			ObjectId  = ProtoField.guid  ("llmsg.PreloadSound.ObjectId",  "ObjectId"),
+			OwnerId   = ProtoField.guid  ("llmsg.PreloadSound.OwnerId",   "OwnerId"),
+			SoundId   = ProtoField.guid  ("llmsg.PreloadSound.SoundId",   "SoundId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xff0f
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)	
+			local o = offset
+
+			local nSounds = buffer(o, 1):uint(); o = o + 1
+			local soundsTree = subtree:add(llmsg_protocol, buffer(o, nSounds * 48), "Sounds", string.format(" (%d)", nSounds))
+			for i = 0, nSounds - 1, 1 do
+				local soundTree = soundsTree:add(llmsg_protocol, buffer(o, 48), "Sound")
+				o = AddFieldToTree    (soundTree, Decoders[messageNumber].Fields.ObjectId,     buffer, o, 16)
+				o = AddFieldToTree    (soundTree, Decoders[messageNumber].Fields.OwnerId,      buffer, o, 16)
+				o = AddFieldToTree    (soundTree, Decoders[messageNumber].Fields.SoundId,      buffer, o, 16)
+			end
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xff11] =
 	{
 		Name = "ViewerEffect",
@@ -1118,7 +1337,7 @@ Decoders =
 			local o = offset
 
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 
@@ -1221,7 +1440,7 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 			
@@ -1347,6 +1566,46 @@ Decoders =
 		end
 	},
 
+	[0xffff008b] =
+	{
+		Name = "ChatFromSimulator",
+		Fields =
+		{
+			FromName      = ProtoField.string ("llmsg.ChatFromSimulator.FromName",       "FromName",    base.UNICODE),
+			SourceId      = ProtoField.guid   ("llmsg.ChatFromSimulator.SourceId",       "SourceId"),
+			OwnerId       = ProtoField.guid   ("llmsg.ChatFromSimulator.OwnerId",        "OwnerId"),
+			SourceType    = ProtoField.uint8  ("llmsg.ChatFromSimulator.SourceType",     "SourceType"),
+			ChatType      = ProtoField.uint8  ("llmsg.ChatFromSimulator.ChatType",       "ChatType"),
+			Audible       = ProtoField.uint8  ("llmsg.ChatFromSimulator.Audible",        "Audible"),
+			PositionX     = ProtoField.float  ("llmsg.ChatFromSimulator.PositionX",      "PositionX"),
+			PositionY     = ProtoField.float  ("llmsg.ChatFromSimulator.PositionY",      "PositionY"),
+			PositionZ     = ProtoField.float  ("llmsg.ChatFromSimulator.PositionZ",      "PositionZ"),
+			Message       = ProtoField.string ("llmsg.ChatFromSimulator.Message",        "Message",     base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff008b
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree   (subtree, Decoders[messageNumber].Fields.FromName,     buffer, o,  len)
+			o = AddFieldToTree   (subtree, Decoders[messageNumber].Fields.SourceId,     buffer, o,   16)
+			o = AddFieldToTree   (subtree, Decoders[messageNumber].Fields.OwnerId,      buffer, o,   16)
+			o = AddFieldToTree   (subtree, Decoders[messageNumber].Fields.SourceType,   buffer, o,    1)
+			o = AddFieldToTree   (subtree, Decoders[messageNumber].Fields.ChatType,     buffer, o,    1)
+			o = AddFieldToTree   (subtree, Decoders[messageNumber].Fields.Audible,      buffer, o,    1)
+			o = AddVector3ToTree (subtree, messageNumber, "Position",                   buffer, o)
+			len = buffer(o, 2):le_uint(); o = o + 2 --TODO: Supposed to be big endian!
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.Message,        buffer, o,  len)
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xffff008c] =
 	{
 		Name = "SimStats",
@@ -1449,7 +1708,7 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 			
@@ -1583,7 +1842,7 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 
@@ -1625,7 +1884,7 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 
@@ -1659,6 +1918,276 @@ Decoders =
 		end
 	},
 
+	[0xffff00a9] =
+	{
+		Name = "AvatarPropertiesRequest",
+		Fields =
+		{
+			AgentId     = ProtoField.guid ("llmsg.AvatarPropertiesRequest.AgentId",    "AgentId"),
+			SessionId   = ProtoField.guid ("llmsg.AvatarPropertiesRequest.SessionId",  "SessionId"),
+			AvatarId    = ProtoField.guid ("llmsg.AvatarPropertiesRequest.AvatarId",   "AvatarId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00a9
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,        buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.SessionId,      buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AvatarId,       buffer, o,  16)
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00ab] =
+	{
+		Name = "AvatarPropertiesReply",
+		Fields =
+		{
+			AgentId        = ProtoField.guid   ("llmsg.AvatarPropertiesReply.AgentId",        "AgentId"),
+			AvatarId       = ProtoField.guid   ("llmsg.AvatarPropertiesReply.AvatarId",       "AvatarId"),
+
+			ImageId        = ProtoField.guid   ("llmsg.AvatarPropertiesReply.ImageId",        "ImageId"),
+			FLImageId      = ProtoField.guid   ("llmsg.AvatarPropertiesReply.FLImageId",      "FLImageId"),
+			PartnerId      = ProtoField.guid   ("llmsg.AvatarPropertiesReply.PartnerId",      "PartnerId"),
+			AboutText      = ProtoField.string ("llmsg.AvatarPropertiesReply.AboutText",      "AboutText",       base.UNICODE),
+			FLAboutText    = ProtoField.string ("llmsg.AvatarPropertiesReply.FLAboutText",    "FLAboutText",     base.UNICODE),
+			BornOn         = ProtoField.string ("llmsg.AvatarPropertiesReply.BornOn",         "BornOn",          base.UNICODE),
+			ProfileUrl     = ProtoField.string ("llmsg.AvatarPropertiesReply.ProfileUrl",     "ProfileUrl",      base.UNICODE),
+			CharterMember  = ProtoField.none   ("llmsg.AvatarPropertiesReply.CharterMember",  "CharterMember",   base.HEX),
+			Flags          = ProtoField.uint32 ("llmsg.AvatarPropertiesReply.Flags",          "Flags",           base.HEX)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00ab
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,         buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AvatarId,        buffer, o,  16)
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.ImageId,         buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.FLImageId,       buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.PartnerId,       buffer, o,  16)
+			local len = buffer(o, 2):le_uint(); o = o + 2 --TODO: Supposed to be big endian!
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AboutText,       buffer, o,  len)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.FLAboutText,     buffer, o,  len)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.BornOn,          buffer, o,  len)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.ProfileUrl,      buffer, o,  len)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.CharterMember,   buffer, o,  len, string.format(" (%d)", len))
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.Flags,           buffer, o,    4)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00ac] =
+	{
+		Name = "AvatarInterestsReply",
+		Fields =
+		{
+			AgentId        = ProtoField.guid   ("llmsg.AvatarInterestsReply.AgentId",          "AgentId"),
+			AvatarId       = ProtoField.guid   ("llmsg.AvatarInterestsReply.AvatarId",         "AvatarId"),
+
+			WantToMask     = ProtoField.uint32 ("llmsg.AvatarInterestsReply.WantToMask",       "WantToMask"),
+			WantToText     = ProtoField.string ("llmsg.AvatarInterestsReply.WantToText",       "WantToText",       base.UNICODE),
+			SkillsMask     = ProtoField.uint32 ("llmsg.AvatarInterestsReply.SkillsMask",       "SkillsMask"),
+			SkillsText     = ProtoField.string ("llmsg.AvatarInterestsReply.SkillsText",       "SkillsText",       base.UNICODE),
+			LanguagesText  = ProtoField.string ("llmsg.AvatarInterestsReply.LanguagesText",    "LanguagesText",    base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00ac
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,         buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AvatarId,        buffer, o,  16)
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.WantToMask,      buffer, o,  4)
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.WantToText,      buffer, o,  len)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.SkillsMask,      buffer, o,  4)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.SkillsText,      buffer, o,  len)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.LanguagesText,   buffer, o,  len)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00ad] =
+	{
+		Name = "AvatarGroupsReply",
+		Fields =
+		{
+			AgentId          = ProtoField.guid   ("llmsg.AvatarGroupsReply.AgentId",           "AgentId"),
+			AvatarId         = ProtoField.guid   ("llmsg.AvatarGroupsReply.AvatarId",          "AvatarId"),
+
+			GroupPowers      = ProtoField.uint64 ("llmsg.AvatarGroupsReply.GroupPowers",       "GroupPowers",      base.HEX),
+			AcceptNotices    = ProtoField.bool   ("llmsg.AvatarGroupsReply.AcceptNotices",     "AcceptNotices"),
+			GroupTitle       = ProtoField.string ("llmsg.AvatarGroupsReply.GroupTitle",        "GroupTitle",       base.UNICODE),
+			GroupId          = ProtoField.guid   ("llmsg.AvatarGroupsReply.GroupId",           "GroupId"),
+			GroupName        = ProtoField.string ("llmsg.AvatarGroupsReply.GroupName",         "GroupName",        base.UNICODE),
+			GroupInsigniaId  = ProtoField.guid   ("llmsg.AvatarGroupsReply.GroupInsigniaId",   "GroupInsigniaId"),
+
+			ListInProfile    = ProtoField.bool   ("llmsg.AvatarGroupsReply.ListInProfile",     "ListInProfile")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00ad
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,                 buffer, o,   16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AvatarId,                buffer, o,   16)
+
+			local nGroups = buffer(o, 1):uint(); o = o + 1
+			local groupsTree = subtree:add(llmsg_protocol, buffer(o), "Groups", string.format("(%d)", nGroups))
+			for i = 0, nGroups - 1, 1 do
+				local groupTree = groupsTree:add(llmsg_protocol, buffer(o), "Group")
+				o = AddFieldToTree (groupTree, Decoders[messageNumber].Fields.GroupPowers,     buffer, o,    8)
+				o = AddFieldToTree (groupTree, Decoders[messageNumber].Fields.AcceptNotices,   buffer, o,    1)
+				local len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree (groupTree, Decoders[messageNumber].Fields.GroupTitle,      buffer, o,  len)
+				o = AddFieldToTree (groupTree, Decoders[messageNumber].Fields.GroupId,         buffer, o,   16)
+				len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree (groupTree, Decoders[messageNumber].Fields.GroupName,       buffer, o,  len)
+				o = AddFieldToTree (groupTree, Decoders[messageNumber].Fields.GroupInsigniaId, buffer, o,   16)
+			end
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.ListInProfile,           buffer, o,    1)
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00b0] =
+	{
+		Name = "AvatarNotesReply",
+		Fields =
+		{
+			AgentId    = ProtoField.guid ("llmsg.AvatarNotesReply.AgentId",   "AgentId"),
+			TargetId   = ProtoField.guid ("llmsg.AvatarNotesReply.TargetId",  "TargetId"),
+			Notes      = ProtoField.string ("llmsg.AvatarNotesReply.Notes",   "Notes",     base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00b0
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,        buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.TargetId,       buffer, o,  16)
+			local len = buffer(o, 2):le_uint(); o = o + 2 --TODO: Supposed to be big endian!
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.Notes,       buffer, o,  len)
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00b2] =
+	{
+		Name = "AvatarPicksReply",
+		Fields =
+		{
+			AgentId    = ProtoField.guid   ("llmsg.AvatarPicksReply.AgentId",   "AgentId"),
+			TargetId   = ProtoField.guid   ("llmsg.AvatarPicksReply.TargetId",  "TargetId"),
+			PickId     = ProtoField.guid   ("llmsg.AvatarPicksReply.PickId",    "PickId"),
+			PickName   = ProtoField.string ("llmsg.AvatarPicksReply.PickName",  "PickName",     base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00b2
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,        buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.TargetId,       buffer, o,  16)
+			
+			local nPicks = buffer(o, 1):uint(); o = o + 1
+			local picksTree = subtree:add(llmsg_protocol, buffer(o), "Picks", string.format(" (%d)", nPicks))
+			for i = 0, nPicks - 1, 1 do
+				local pickTree = picksTree:add(llmsg_protocol, buffer(o), "Pick")
+				o = AddFieldToTree (pickTree, Decoders[messageNumber].Fields.PickId,    buffer, o,  16)
+				local len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree (pickTree, Decoders[messageNumber].Fields.PickName,  buffer, o,  len)
+			end
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff00bd] =
+	{
+		Name = "ScriptControlChange",
+		Fields =
+		{
+			TakeControls    = ProtoField.bool   ("llmsg.ScriptControlChange.TakeControls",  "TakeControls"),
+			Controls        = ProtoField.uint32 ("llmsg.ScriptControlChange.Controls",      "Controls",     base.HEX),
+			PassToAgent     = ProtoField.bool   ("llmsg.ScriptControlChange.PassToAgent",   "PassToAgent")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00bd
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			local nControls = buffer(o, 1):uint(); o = o + 1
+			local controlsTree = subtree:add(llmsg_protocol, buffer(o, nControls * 6), "Controls", string.format(" (%d)", nControls))
+			for i = 0, nControls - 1, 1 do
+				local controlTree = controlsTree:add(llmsg_protocol, buffer(o, 6), "Control")
+				o = AddFieldToTree (controlTree, Decoders[messageNumber].Fields.TakeControls,   buffer, o,   1)
+				o = AddFieldToTree (controlTree, Decoders[messageNumber].Fields.Controls,       buffer, o,   4)
+				o = AddFieldToTree (controlTree, Decoders[messageNumber].Fields.PassToAgent,    buffer, o,   1)
+			end
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xffff00c4] =
 	{
 		Name = "ParcelOverlay",
@@ -1675,7 +2204,7 @@ Decoders =
 			local o = offset
 
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, offset, dataLength)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 
@@ -1762,6 +2291,50 @@ Decoders =
 		end
 	},
 
+	[0xffff0105] =
+	{
+		Name = "GenericMessage",
+		Fields =
+		{
+			AgentId       = ProtoField.guid   ("llmsg.GenericMessage.AgentId",         "AgentId"),
+			SessionId     = ProtoField.guid   ("llmsg.GenericMessage.SessionId",       "SessionId"),
+			TransactionId = ProtoField.guid   ("llmsg.GenericMessage.TransactionId",   "TransactionId"),
+			Method        = ProtoField.string ("llmsg.GenericMessage.Method",          "Method",         base.UNICODE),
+			Invoice       = ProtoField.guid   ("llmsg.GenericMessage.Invoice",         "Invoice"),
+			Parameter     = ProtoField.string ("llmsg.GenericMessage.Parameter",       "Parameter",      base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff0105
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, dataLength), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,             buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.SessionId,           buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.TransactionId,       buffer, o,  16)
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.Method,              buffer, o, len)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.Invoice,             buffer, o,  16)
+			
+			local nParameters = buffer(o, 1):uint(); o = o + 1
+			local parameterTree = subtree:add(llmsg_protocol, buffer(o, dataLength - o), "Parameters", string.format("(%d)", nParameters))
+			for i = 0, nParameters - 1, 1 do
+				len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree (parameterTree, Decoders[messageNumber].Fields.Parameter, buffer, o, len)
+			end
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xffff0106] =
 	{
 		Name = "MuteListRequest",
@@ -1780,6 +2353,64 @@ Decoders =
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,    buffer, o, 16)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.MuteCRC,      buffer, o,  4)
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff0121] =
+	{
+		Name = "RequestTaskInventory",
+		Fields =
+		{
+			AgentId        = ProtoField.guid   ("llmsg.RequestTaskInventory.AgentId",        "AgentId"),
+			SessionId      = ProtoField.guid   ("llmsg.RequestTaskInventory.SessionId",      "SessionId"),
+			LocalId        = ProtoField.uint32 ("llmsg.RequestTaskInventory.LocalId",        "LocalId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff0121
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,       buffer, o, 16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,     buffer, o, 16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.LocalId,       buffer, o,  4)
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff0122] =
+	{
+		Name = "ReplyTaskInventory",
+		Fields =
+		{
+			TaskId   = ProtoField.guid   ("llmsg.ReplyTaskInventory.TaskId",     "TaskId"),
+			Serial   = ProtoField.int16  ("llmsg.ReplyTaskInventory.Serial",     "Serial"),
+			Filename = ProtoField.string ("llmsg.ReplyTaskInventory.Filename",   "Filename", base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff0122
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, dataLength), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TaskId,              buffer, o,  16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Serial,              buffer, o,   2)
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.Filename,               buffer, o, len)
+			
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
@@ -1837,7 +2468,7 @@ Decoders =
 		{
 			AgentId        = ProtoField.guid ("llmsg.MoneyBalanceRequest.AgentId",        "AgentId"),
 			SessionId      = ProtoField.guid ("llmsg.MoneyBalanceRequest.SessionId",      "SessionId"),
-			TransactionID  = ProtoField.guid ("llmsg.MoneyBalanceRequest.TransactionID",  "TransactionID")
+			TransactionId  = ProtoField.guid ("llmsg.MoneyBalanceRequest.TransactionId",  "TransactionId")
 		},
 		
 		Decoder = function (buffer, offset, dataLength, tree, pinfo)
@@ -1847,13 +2478,13 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, o, length - o)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 			
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,       buffer, o, 16)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,     buffer, o, 16)
-			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TransactionID, buffer, o, 16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TransactionId, buffer, o, 16)
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
@@ -1866,7 +2497,7 @@ Decoders =
 		Fields =
 		{
 			AgentId               = ProtoField.guid   ("llmsg.MoneyBalanceReply.AgentId",               "AgentId"),
-			TransactionID         = ProtoField.guid   ("llmsg.MoneyBalanceReply.TransactionID",         "TransactionID"),
+			TransactionId         = ProtoField.guid   ("llmsg.MoneyBalanceReply.TransactionId",         "TransactionId"),
 			TransactionSuccess    = ProtoField.bool   ("llmsg.MoneyBalanceReply.TransactionSuccess",    "TransactionSuccess"),
 			MoneyBalance          = ProtoField.int32  ("llmsg.MoneyBalanceReply.MoneyBalance",          "MoneyBalance"),
 			SquareMetersCredit    = ProtoField.int32  ("llmsg.MoneyBalanceReply.SquareMetersCredit",    "SquareMetersCredit"),
@@ -1889,12 +2520,12 @@ Decoders =
 			local o = offset
 			
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, o, length - o)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 			
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,               buffer, o, 16)
-			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TransactionID,         buffer, o, 16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TransactionId,         buffer, o, 16)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TransactionSuccess,    buffer, o,  1)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.MoneyBalance,          buffer, o,  4)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.SquareMetersCredit,    buffer, o,  4)
@@ -1983,6 +2614,119 @@ Decoders =
 		end
 	},
 
+	[0xffff015f] =
+	{
+		Name = "GroupProfileRequest",
+		Fields =
+		{
+			AgentId        = ProtoField.guid          ("llmsg.GroupProfileRequest.AgentId",       "AgentId"),
+			SessionId      = ProtoField.guid          ("llmsg.GroupProfileRequest.SessionId",     "SessionId"),
+			GroupId        = ProtoField.guid          ("llmsg.GroupProfileRequest.GroupId",       "GroupId"),
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff015f
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, 48), name)
+			local o = offset
+			
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.AgentId,             buffer, o, 16)
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.SessionId,           buffer, o, 16)
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.GroupId,             buffer, o, 16)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff0160] =
+	{
+		Name = "GroupProfileReply",
+		Fields =
+		{
+			AgentId              = ProtoField.guid   ("llmsg.GroupProfileReply.AgentId",               "AgentId"),
+
+			GroupId              = ProtoField.guid   ("llmsg.GroupProfileReply.GroupId",                "GroupId"),
+			Name                 = ProtoField.string ("llmsg.GroupProfileReply.Name",                   "Name",                 base.UNICODE),
+			Charter              = ProtoField.string ("llmsg.GroupProfileReply.Charter",                "Charter",              base.UNICODE),
+			ShowInList           = ProtoField.bool   ("llmsg.GroupProfileReply.ShowInList",             "ShowInList"),
+			MemberTitle          = ProtoField.string ("llmsg.GroupProfileReply.MemberTitle",            "MemberTitle",          base.UNICODE),
+			PowersMask           = ProtoField.uint64 ("llmsg.GroupProfileReply.PowersMask",             "PowersMask",           base.HEX),
+			InsigniaId           = ProtoField.guid   ("llmsg.GroupProfileReply.InsigniaId",             "InsigniaId"),
+			FounderId            = ProtoField.guid   ("llmsg.GroupProfileReply.FounderId",              "FounderId"),
+			MembershipFee        = ProtoField.int32  ("llmsg.GroupProfileReply.MembershipFee",          "MembershipFee"),
+			OpenEnrollment       = ProtoField.bool   ("llmsg.GroupProfileReply.OpenEnrollment",         "OpenEnrollment"),
+			Money                = ProtoField.int32  ("llmsg.GroupProfileReply.Money",                  "Money"),
+			GroupMembershipCount = ProtoField.int32  ("llmsg.GroupProfileReply.GroupMembershipCount",   "GroupMembershipCount"),
+			GroupRolesCount      = ProtoField.int32  ("llmsg.GroupProfileReply.GroupRolesCount",        "GroupRolesCount"),
+			AllowPublish         = ProtoField.bool   ("llmsg.GroupProfileReply.AllowPublish",           "AllowPublish"),
+			MaturePublish        = ProtoField.bool   ("llmsg.GroupProfileReply.MaturePublish",          "MaturePublish"),
+			OwnerRole            = ProtoField.guid   ("llmsg.GroupProfileReply.OwnerRole",              "OwnerRole")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff0160
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+	
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,              buffer, o,   16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.GroupId,              buffer, o,   16)
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Name,                 buffer, o,  len)
+			len = buffer(o, 2):le_uint(); o = o + 2 --TODO: Supposed to be big endian!
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Charter,              buffer, o,  len)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.ShowInList,           buffer, o,    1)
+			len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.MemberTitle,          buffer, o,  len)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.PowersMask,           buffer, o,    8)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.InsigniaId,           buffer, o,   16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.FounderId,            buffer, o,   16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.MembershipFee,        buffer, o,    4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.OpenEnrollment,       buffer, o,    1)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Money,                buffer, o,    4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.GroupMembershipCount, buffer, o,    4)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.GroupRolesCount,      buffer, o,    4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AllowPublish,         buffer, o,    1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.MaturePublish,        buffer, o,    1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.OwnerRole,            buffer, o,   16)
+	
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
+	[0xffff017f] =
+	{
+		Name = "LiveHelpGroupReply",
+		Fields =
+		{
+			RequestId      = ProtoField.guid   ("llmsg.LiveHelpGroupReply.RequestId",         "RequestId"),
+			AgentId        = ProtoField.guid   ("llmsg.LiveHelpGroupReply.AgentId",           "AgentId")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff017f
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.RequestId,       buffer, o,  16)
+			o = AddFieldToTree (subtree, Decoders[messageNumber].Fields.AgentId,         buffer, o,  16)
+
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xffff0182] =
 	{
 		Name = "AgentDataUpdateRequest",
@@ -2026,7 +2770,7 @@ Decoders =
 			local o = offset
 
 			if bitand(Header.Flags, 0x80) ~= 0 then
-				buffer = ExpandZeroCode(buffer, o, length - o)
+				buffer = ExpandZeroCode(buffer, o, dataLength)
 				o = 0
 			end
 	
@@ -2047,7 +2791,73 @@ Decoders =
 			return o
 		end
 	},
-	
+
+	[0xffff018c] =
+	{
+		Name = "RezMultipleAttachmentsFromInv",
+		Fields =
+		{
+			AgentId         = ProtoField.guid   ("llmsg.RezMultipleAttachmentsFromInv.AgentId",        "AgentId"),
+			SessionId       = ProtoField.guid   ("llmsg.RezMultipleAttachmentsFromInv.SessionId",      "SessionId"),
+
+			CompoundMsgId   = ProtoField.guid   ("llmsg.RezMultipleAttachmentsFromInv.CompoundMsgId",  "CompoundMsgId"),
+			TotalObjects    = ProtoField.uint8  ("llmsg.RezMultipleAttachmentsFromInv.TotalObjects",   "TotalObjects"),
+			FirstDetachAll  = ProtoField.bool   ("llmsg.RezMultipleAttachmentsFromInv.FirstDetachAll", "FirstDetachAll"),
+
+			ItemId          = ProtoField.guid   ("llmsg.RezMultipleAttachmentsFromInv.ItemId",         "ItemId"),
+			OwnerId         = ProtoField.guid   ("llmsg.RezMultipleAttachmentsFromInv.OwnerId",        "OwnerId"),
+			AttachmentPt    = ProtoField.uint8  ("llmsg.RezMultipleAttachmentsFromInv.AttachmentPt",   "AttachmentPt"),
+			ItemFlags       = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.ItemFlags",      "ItemFlags",        base.HEX),
+			GroupMask       = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.GroupMask",      "GroupMask",        base.HEX),
+			EveryoneMask    = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.EveryoneMask",   "EveryoneMask",     base.HEX),
+			NextOwnerMask   = ProtoField.uint32 ("llmsg.RezMultipleAttachmentsFromInv.NextOwnerMask",  "NextOwnerMask",    base.HEX),
+			Name            = ProtoField.string ("llmsg.RezMultipleAttachmentsFromInv.TransactionId",  "Name",             base.UNICODE),
+			Description     = ProtoField.string ("llmsg.RezMultipleAttachmentsFromInv.TransactionId",  "Description",      base.UNICODE)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff018c
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,            buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,          buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.CompoundMsgId,      buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.TotalObjects,       buffer, o,   1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.FirstDetachAll,     buffer, o,   1)
+			
+			local nItems = buffer(o, 1):uint(); o = o + 1
+			local itemsTree = subtree:add(llmsg_protocol, buffer(o), "Items", string.format(" (%d)", nItems))
+			for i = 0, nItems - 1, 1 do
+				local itemTree = itemsTree:add(llmsg_protocol, buffer(o), "Item")
+				
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.ItemId,        buffer, o,  16)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.OwnerId,       buffer, o,  16)
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.AttachmentPt,  buffer, o,   1)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.ItemFlags,     buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.GroupMask,     buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.EveryoneMask,  buffer, o,   4)
+				o = AddFieldToTree_le (itemTree, Decoders[messageNumber].Fields.NextOwnerMask, buffer, o,   4)
+
+				local len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.Name,          buffer, o, len)
+
+				local len = buffer(o, 1):uint(); o = o + 1
+				o = AddFieldToTree    (itemTree, Decoders[messageNumber].Fields.Description,   buffer, o, len)
+			end
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xfffffffa] =
 	{
 		Name = "SecuredTemplateChecksumRequest",
