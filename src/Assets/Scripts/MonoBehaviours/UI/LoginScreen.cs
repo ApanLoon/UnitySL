@@ -1,13 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class LoginScreen : MonoBehaviour
 {
+    public bool IsRandomLogActive = false;
     [SerializeField] protected TMP_Text LogText;
     [SerializeField] protected Scrollbar LogVerticalScrollbar;
 
@@ -63,6 +66,29 @@ public class LoginScreen : MonoBehaviour
 
         Timer += Time.deltaTime;
         TimerText.text = Timer.ToString("F", CultureInfo.InvariantCulture);
+
+        RandomLog();
+    }
+
+    protected float TimeToLog = 0f;
+    protected void RandomLog()
+    {
+        if (IsRandomLogActive == false)
+        {
+            return;
+        }
+
+        if (TimeToLog < Timer)
+        {
+            bool autoScroll = Mathf.Abs(LogVerticalScrollbar.value) < 0.1f;
+            LogText.text += $"{LogLevelToColour[Logger.LogLevel.Debug]}{Logger.LogLevel.Debug} {DateTime.Now:T}Random log AutoScroll={autoScroll}\n";
+            if (autoScroll)
+            {
+                LogVerticalScrollbar.value = 0f;
+            }
+            LogText.ForceMeshUpdate();
+            TimeToLog = Timer + Random.Range(0f, 1f);
+        }
     }
 
     protected void UpdateNames()
