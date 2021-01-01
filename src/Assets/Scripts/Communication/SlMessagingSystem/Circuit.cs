@@ -82,8 +82,12 @@ public class Circuit
     
     public void ReceiveData(byte[] buf)
     {
-        Logger.LogDebug("Circuit.ReceiveData");
         Message message = BinarySerializer.DeSerializeMessage(buf, 0);
+        if (message == null)
+        {
+            return;
+        }
+
         Logger.LogDebug($"Circuit.ReceiveData: {message}");
 
         switch (message)

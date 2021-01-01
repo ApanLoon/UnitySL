@@ -1,10 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
-using NUnit.Framework;
 
 public static class BinarySerializer
 {
@@ -41,7 +38,7 @@ public static class BinarySerializer
                 id = id << 16;
                 id += ((UInt32)buf[o++]) << 8;
                 id += ((UInt32)buf[o++]) << 0;
-                frequency = id < 0xfffffffa ? MessageFrequency.High : MessageFrequency.Fixed;
+                frequency = id < 0xfffffffa ? MessageFrequency.Low : MessageFrequency.Fixed;
             }
         }
 
@@ -61,7 +58,24 @@ public static class BinarySerializer
 
         if (Enum.IsDefined(typeof(MessageId), id) == false)
         {
-            Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id (0x{id:x8})");
+            string idString = "";
+            switch (frequency)
+            {
+                case MessageFrequency.High:
+                case MessageFrequency.Medium:
+                    idString = $"{frequency} {id & 0xff} (0x{id:x8})";
+                    break;
+
+                case MessageFrequency.Low:
+                    idString = $"{frequency} {id & 0xffff} (0x{id:x8})";
+                    break;
+
+                case MessageFrequency.Fixed:
+                    idString = $"{frequency} 0x{id:x8}";
+                    break;
+            }
+
+            Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id {idString}");
             return null;
         }
         MessageId messageId = (MessageId)id;
