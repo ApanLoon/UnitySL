@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-[RequireComponent(typeof(EventTrigger))]
 public class DragParent : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler
 {
     public float SnapDistance = 20f;
@@ -15,16 +14,7 @@ public class DragParent : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDr
         Canvas = GetComponentInParent<Canvas>();
         CanvasTransform = Canvas.GetComponent<RectTransform>();
     }
-
-    public void OnPointerEnter()
-    {
-        CursorManager.Instance.SetCursorMode(CursorManager.CursorMode.Move);
-    }
-    public void OnPointerExit()
-    {
-        CursorManager.Instance.SetCursorMode(CursorManager.CursorMode.Normal);
-    }
-
+    
     public void OnDrag(PointerEventData eventData)
     {
         ParentTransform.anchoredPosition += eventData.delta / Canvas.scaleFactor;
@@ -32,7 +22,6 @@ public class DragParent : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDr
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        
     }
 
     public void OnEndDrag(PointerEventData eventData)

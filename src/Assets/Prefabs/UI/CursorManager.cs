@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
 
 public class CursorManager : MonoBehaviour
 {
     public static CursorManager Instance;
 
-    public enum CursorMode
+    public enum CursorType
     {
         Normal,
         Alt,
@@ -24,7 +22,7 @@ public class CursorManager : MonoBehaviour
     [SerializeField] protected Sprite[] CursorSprites;
     protected Texture2D[] ConvertedTextures;
 
-    public CursorMode CurrentMode { get; protected set; }
+    public CursorType CurrentType { get; protected set; }
 
     private void Awake()
     {
@@ -39,7 +37,7 @@ public class CursorManager : MonoBehaviour
 
         ConvertSprites();
 
-        SetCursorMode(CursorMode.Normal);
+        SetCursorMode(CursorType.Normal);
     }
 
     protected void ConvertSprites()
@@ -57,13 +55,13 @@ public class CursorManager : MonoBehaviour
         }
     }
 
-    public void SetCursorMode(CursorMode mode)
+    public void SetCursorMode(CursorType type)
     {
-        CurrentMode = mode;
-        int i = (int)mode;
+        CurrentType = type;
+        int i = (int)type;
         if (ConvertedTextures.Length <= i && ConvertedTextures[i] != null)
         {
-            Debug.LogError($"CursorManager: No sprite for mode {mode}.");
+            Debug.LogError($"CursorManager: No sprite for mode {type}.");
             return;
         }
 
@@ -72,6 +70,6 @@ public class CursorManager : MonoBehaviour
         Vector2 pivot = sprite.pivot;
         pivot.y = sprite.rect.height - pivot.y;
         Texture2D texture = ConvertedTextures[i];
-        Cursor.SetCursor(texture, pivot, UnityEngine.CursorMode.ForceSoftware);
+        Cursor.SetCursor(texture, pivot, CursorMode.ForceSoftware);
     }
 }

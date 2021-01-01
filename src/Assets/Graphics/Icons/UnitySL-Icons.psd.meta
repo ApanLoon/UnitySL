@@ -11,6 +11,12 @@ TextureImporter:
   - first:
       213: 849352182130278598
     second: DebugLog
+  - first:
+      213: 1526153023865434014
+    second: Gradient-50-100
+  - first:
+      213: -6385594007405529434
+    second: Gradient-100-50
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -154,6 +160,48 @@ TextureImporter:
       bones: []
       spriteID: 6c004114f4189cb00800000000000000
       internalID: 849352182130278598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Gradient-50-100
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 984
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e9f236cd61cfd2510800000000000000
+      internalID: 1526153023865434014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Gradient-100-50
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 984
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a6fab42510d167a0800000000000000
+      internalID: -6385594007405529434
       vertices: []
       indices: 
       edges: []
