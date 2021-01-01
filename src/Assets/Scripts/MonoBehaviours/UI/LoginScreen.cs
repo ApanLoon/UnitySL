@@ -10,10 +10,6 @@ using Random = UnityEngine.Random;
 
 public class LoginScreen : MonoBehaviour
 {
-    public bool IsRandomLogActive = false;
-    [SerializeField] protected TMP_Text LogText;
-    [SerializeField] protected Scrollbar LogVerticalScrollbar;
-
     [SerializeField] protected TMP_Text TimerText;
 
     [SerializeField] protected TMP_InputField NameText;
@@ -29,27 +25,8 @@ public class LoginScreen : MonoBehaviour
 
     protected float Timer = 0f;
 
-    protected Dictionary<Logger.LogLevel, string> LogLevelToColour = new Dictionary<Logger.LogLevel, string>()
-    {
-        { Logger.LogLevel.Debug, "<#777777>" },
-        { Logger.LogLevel.Info, "<color=\"green\">" },
-        { Logger.LogLevel.Warning, "<color=\"yellow\">" },
-        { Logger.LogLevel.Error, "<color=\"red\">" }
-    };
-
     private void Start()
     {
-        Logger.OnLog += (level, message) =>
-        {
-            bool autoScroll = Mathf.Abs(LogVerticalScrollbar.value) < 0.01f;
-            LogText.text += $"{LogLevelToColour[level]}{level} {message}";
-            LogText.ForceMeshUpdate();
-            if (autoScroll)
-            {
-                LogVerticalScrollbar.value = 0f;
-            }
-        };
-
         SaveNameToggle.isOn     = PlayerPrefs.HasKey(SaveNameSetting)     ? bool.Parse(PlayerPrefs.GetString(SaveNameSetting)) : true;
         SavePasswordToggle.isOn = PlayerPrefs.HasKey(SavePasswordSetting) ? bool.Parse(PlayerPrefs.GetString(SavePasswordSetting)) : true;
 
@@ -66,29 +43,6 @@ public class LoginScreen : MonoBehaviour
 
         Timer += Time.deltaTime;
         TimerText.text = Timer.ToString("F", CultureInfo.InvariantCulture);
-
-        RandomLog();
-    }
-
-    protected float TimeToLog = 0f;
-    protected void RandomLog()
-    {
-        if (IsRandomLogActive == false)
-        {
-            return;
-        }
-
-        if (TimeToLog < Timer)
-        {
-            bool autoScroll = Mathf.Abs(LogVerticalScrollbar.value) < 0.1f;
-            LogText.text += $"{LogLevelToColour[Logger.LogLevel.Debug]}{Logger.LogLevel.Debug} {DateTime.Now:T}Random log AutoScroll={autoScroll}\n";
-            if (autoScroll)
-            {
-                LogVerticalScrollbar.value = 0f;
-            }
-            LogText.ForceMeshUpdate();
-            TimeToLog = Timer + Random.Range(0f, 1f);
-        }
     }
 
     protected void UpdateNames()

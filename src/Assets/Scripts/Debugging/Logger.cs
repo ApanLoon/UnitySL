@@ -21,24 +21,24 @@ public class Logger
     public static void LogDebug(string s)
     {
         Debug.Log(s);
-        RaiseOnLog(LogLevel.Debug, $"{s}\n");
+        RaiseOnLog(LogLevel.Debug, s);
     }
 
     public static void LogInfo(string s)
     {
         Debug.Log(s);
-        RaiseOnLog(LogLevel.Info, $"{s}\n");
+        RaiseOnLog(LogLevel.Info, s);
     }
 
     public static void LogWarning(string s)
     {
         Debug.LogWarning(s);
-        RaiseOnLog(LogLevel.Warning, $"{s}\n");
+        RaiseOnLog(LogLevel.Warning, s);
     }
 
     public static void LogError(string s)
     {
         Debug.LogError(s);
-        RaiseOnLog(LogLevel.Error, $"{s}\n");
+        RaiseOnLog(LogLevel.Error, s);
     }
 }
