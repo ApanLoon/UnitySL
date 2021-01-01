@@ -52,7 +52,6 @@ public class CursorManager : MonoBehaviour
             Rect rect = sprite.rect;
             Texture2D texture = sprite.texture;
             ConvertedTextures[i] = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGBA32, false);
-            ConvertedTextures[i].alphaIsTransparency = true;
             ConvertedTextures[i].SetPixels(texture.GetPixels((int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height));
             ConvertedTextures[i].Apply();
         }
