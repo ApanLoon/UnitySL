@@ -8,6 +8,8 @@ using Random = UnityEngine.Random;
 public class DebugLog : MonoBehaviour
 {
     public bool IsRandomLogActive = false;
+    [Tooltip("Truncate the log at the next newline if it is longer than this to keep the framerate from exploding. 0 means do not truncate.")]
+    [SerializeField] private int MaxLogLength = 10000;
 
     [Header("Colour Settings")]
     [SerializeField] protected Color DebugColour   = new Color(0.467f, 0.467f, 0.467f, 1.0f);
@@ -63,6 +65,18 @@ public class DebugLog : MonoBehaviour
     {
         bool autoScroll = Mathf.Abs(LogVerticalScrollbar.value) < 0.1f;
         LogText.text += $"{LogLevelToColour[logLevel]}{DateTime.Now:T} {logLevel} {message}\n";
+
+        //TODO: Ugly truncation:
+        if (MaxLogLength > 0 && LogText.text.Length > MaxLogLength)
+        {
+            int start = LogText.text.Length - MaxLogLength;
+            while (start < LogText.text.Length && LogText.text[start] != '\n')
+            {
+                start++;
+            }
+            LogText.text = LogText.text.Substring(start);
+        }
+
         if (autoScroll)
         {
             LogHorizontalScrollbar.value = 0f;
