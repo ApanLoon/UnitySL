@@ -95,6 +95,14 @@ public class Region
 
         //TODO: Add RegionInfo4 when I know what it is
 
+        string s = "";
+        for (int i = 0; i < 4; i++)
+        {
+            s += $"\nTerrainBase{i}:   http://asset-cdn.glb.agni.lindenlab.com/?texture_id={CurrentRegion.TerrainBase[i]}";
+            s += $"\nTerrainDetail{i}: http://asset-cdn.glb.agni.lindenlab.com/?texture_id={CurrentRegion.TerrainDetail[i]}";
+        }
+        Logger.LogDebug(s);
+
         EventManager.Instance.RaiseOnRegionDataChanged(CurrentRegion);
     }
 }

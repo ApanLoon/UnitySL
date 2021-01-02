@@ -245,7 +245,10 @@ public class Login
 
         #endregion Region
 
-
+        if (responseData.Has("seed_capability"))
+        {
+            Logger.LogDebug($"seed_capability={responseData["seed_capability"].AsString}");
+        }
 
         // TODO: Parse more things, see llstartup.cpp line 3439 and onwards
 
