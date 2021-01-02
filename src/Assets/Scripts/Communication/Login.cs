@@ -208,7 +208,7 @@ public class Login
             // TODO: Decode "[r0.75787899999999996936,r0.65239599999999997593,r0]"
         }
 
-        EventManager.Instance.RaiseOnAOnAgentDataChanged(agent);
+        EventManager.Instance.RaiseOnAgentDataChanged(agent);
         #endregion Agent
 
         #region Region

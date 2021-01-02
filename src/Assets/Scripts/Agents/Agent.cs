@@ -43,11 +43,28 @@ public class Agent :IDisposable
     public UInt64 GroupPowers { get; set; }
 
     public Vector3 Position { get; set; }
+    public Vector3 LookAt { get; set; }
 
     public Agent(Guid id)
     {
         Id = id;
         EventManager.Instance.OnAgentDataUpdateMessage += OnAgentDataUpdateMessage;
+        EventManager.Instance.OnAgentMovementCompleteMessage += OnAgentMovementCompleteMessage;
+    }
+
+    protected void OnAgentMovementCompleteMessage(AgentMovementCompleteMessage message)
+    {
+        if (message.AgentId != Id)
+        {
+            return;
+        }
+
+        Position = message.Position;
+        LookAt = message.LookAt;
+
+        //TODO: What to do with the rest of the info in this message?
+
+        EventManager.Instance.RaiseOnAgentMoved(this);
     }
 
     protected void OnAgentDataUpdateMessage(AgentDataUpdateMessage message)
@@ -64,7 +81,7 @@ public class Agent :IDisposable
         GroupPowers = message.GroupPowers;
         GroupName = message.GroupName;
 
-        EventManager.Instance.RaiseOnAOnAgentDataChanged(this);
+        EventManager.Instance.RaiseOnAgentDataChanged(this);
     }
 
     public void Dispose()

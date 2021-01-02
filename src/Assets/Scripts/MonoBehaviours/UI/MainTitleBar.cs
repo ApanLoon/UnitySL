@@ -14,6 +14,7 @@ public class MainTitleBar : MonoBehaviour
         PositionText.text = "";
         EventManager.Instance.OnAgentDataChanged += OnAgentDataChanged;
         EventManager.Instance.OnRegionDataChanged += OnRegionDataChanged;
+        EventManager.Instance.OnAgentMoved += OnAgentMoved;
     }
 
     protected void OnAgentDataChanged(Agent agent)
@@ -34,6 +35,16 @@ public class MainTitleBar : MonoBehaviour
         }
 
         RegionName.text = $"{region.Name}";
+    }
+
+    protected void OnAgentMoved(Agent agent)
+    {
+        if (agent != Agent.CurrentPlayer)
+        {
+            return;
+        }
+
+        PositionText.text = $"{agent.Position}";
     }
 
 }

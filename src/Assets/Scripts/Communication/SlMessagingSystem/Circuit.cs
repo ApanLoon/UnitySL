@@ -106,6 +106,10 @@ public class Circuit
                 EventManager.Instance.RaiseOnAgentDataUpdateMessage(agentDataUpdateMessage);
                 break;
 
+            case AgentMovementCompleteMessage agentMovementCompleteMessage:
+                EventManager.Instance.RaiseOnAgentMovementCompleteMessage(agentMovementCompleteMessage);
+                break;
+
             case RegionHandshakeMessage regionHandshakeMessage:
                 EventManager.Instance.RaiseOnRegionHandshakeMessage(regionHandshakeMessage);
                 break;

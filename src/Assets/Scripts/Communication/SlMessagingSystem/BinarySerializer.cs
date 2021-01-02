@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using UnityEngine;
 
 public static class BinarySerializer
 {
@@ -210,6 +211,28 @@ public static class BinarySerializer
                     m.RegionInfo4.Add(info);
                 }
 
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.AgentMovementCompleteMessage, // 0xffff00fa
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                AgentMovementCompleteMessage m = new AgentMovementCompleteMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+                string s;
+
+                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
+                o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
+                m.Position = DeSerializeVector3 (buf, ref o, length);
+                m.LookAt   = DeSerializeVector3 (buf, ref o, length);
+                m.RegionHandle = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
+                m.TimeStamp = DeSerializeDateTime(buf, ref o, length);
+                o = DeSerialize(out s, 2,    buf, o, length); m.ChannelVersion = s;
+                
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
         },
@@ -453,6 +476,21 @@ public static class BinarySerializer
     }
     #endregion String
 
+    #region DateTime
+
+    public static DateTime DeSerializeDateTime(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeDateTime: Not enough bytes in buffer.");
+        }
+
+        DateTime v = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc); // UNIX Epoch
+        return v.AddSeconds(DeSerializeUInt32_Le(buffer, ref offset, length));
+    }
+    
+    #endregion DateTime
+
     #region Guid
     public static int GetSerializedLength(Guid v)
     {
@@ -517,6 +555,24 @@ public static class BinarySerializer
     }
     #endregion Guid
 
+    #region Vector3
+
+    public static Vector3 DeSerializeVector3(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeVector3: Not enough bytes in buffer.");
+        }
+
+        Vector3 v = new Vector3 // Convert handedness:
+        {
+            x = DeSerializeFloat_Le(buffer, ref offset, length),
+            z = DeSerializeFloat_Le(buffer, ref offset, length),
+            y = DeSerializeFloat_Le(buffer, ref offset, length)
+        };
+        return v;
+    }
+    #endregion Vector3
     #endregion BasicTypes
 
     #region Acks
