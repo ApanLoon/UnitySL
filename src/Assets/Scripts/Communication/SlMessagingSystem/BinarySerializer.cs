@@ -6,6 +6,8 @@ using System.Text;
 
 public static class BinarySerializer
 {
+    #region Messages
+
     #region Message
     public static Message DeSerializeMessage(byte[] buf, int offset)
     {
@@ -57,13 +59,21 @@ public static class BinarySerializer
             }
         }
 
-        DeSerializerResult r = DeserializeData(buf, ref o, buf.Length - ackLength, frequency, flags, sequenceNumber, extraHeader, id);
-        o = r.Offset;
+        byte[] dataBuffer = buf;
+        int dataStart = o;
+        int dataLen = buf.Length - ackLength;
+        if ((flags & PacketFlags.ZeroCode) != 0)
+        {
+            dataBuffer = BinarySerializer.ExpandZerocode(buf, o, dataLen - o);
+            dataStart = 0;
+            dataLen = dataBuffer.Length;
+        }
+        DeSerializerResult r = DeserializeData(dataBuffer, ref dataStart, dataLen, frequency, flags, sequenceNumber, extraHeader, id);
 
         if (r.Message != null && acks.Count != 0)
         {
             r.Message.Acks = acks;
-            o = SerializeAcks(acks, buf, o, buf.Length - o);
+            SerializeAcks(acks, buf, o, buf.Length - o);
         }
 
         return r.Message;
@@ -116,6 +126,7 @@ public static class BinarySerializer
         public int Offset { get; set; }
         public Message Message { get; set; }
     }
+    #endregion Message
 
     public static Dictionary<MessageId, Func<byte[], int, int, PacketFlags, UInt32, byte[], MessageFrequency, MessageId, DeSerializerResult>> MessageDeSerializers = new Dictionary<MessageId, Func<byte[], int, int, PacketFlags, uint, byte[], MessageFrequency, MessageId, DeSerializerResult>>()
     {
@@ -140,6 +151,64 @@ public static class BinarySerializer
                 Guid guid;
                 o = DeSerialize(out guid, buf, o, length); m.SessionId = guid;
                 o = DeSerialize(out guid, buf, o, length); m.AgentId = guid;
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.RegionHandshake, // 0xffff0094
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                RegionHandshakeMessage m = new RegionHandshakeMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                string s;
+                Guid guid;
+
+                m.RegionFlags = DeSerializeUInt32_Le (buf, ref o, length);
+                m.SimAccess = buf[o++];
+                o = DeSerialize(out s, 1, buf, o, length); m.SimName = s;
+                o = DeSerialize(out guid, buf, o, length); m.SimOwner = guid;
+                m.IsEstateManager = buf[o++] != 0;
+                m.WaterHeight = DeSerializeFloat_Le(buf, ref o, length);
+                m.BillableFactor = DeSerializeFloat_Le(buf, ref o, length);
+                o = DeSerialize(out guid, buf, o, length); m.CacheId = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainBase0 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainBase1 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainBase2 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainBase3 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail0 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail1 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail2 = guid;
+                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail3 = guid;
+                m.TerrainStartHeight00 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainStartHeight01 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainStartHeight10 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainStartHeight11 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainHeightRange00 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainHeightRange01 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainHeightRange10 = DeSerializeFloat_Le(buf, ref o, length);
+                m.TerrainHeightRange11 = DeSerializeFloat_Le(buf, ref o, length);
+
+                o = DeSerialize(out guid, buf, o, length); m.RegionId = guid;
+
+                m.CpuClassId = DeSerializeInt32_Le (buf, ref o, length);
+                m.CpuRatio = DeSerializeInt32_Le (buf, ref o, length);
+                o = DeSerialize(out s, 1, buf, o, length); m.ColoName = s;
+                o = DeSerialize(out s, 1, buf, o, length); m.ProductSku = s;
+                o = DeSerialize(out s, 1, buf, o, length); m.ProductName = s;
+
+                int n = buf[o++];
+                for (int i = 0; i < n; i++)
+                {
+                    RegionInfo4 info = new RegionInfo4()
+                    {
+                        RegionFlagsExtended = DeSerializeUInt32_Le(buf, ref o, length),
+                        RegionProtocols = DeSerializeUInt32_Le(buf, ref o, length)
+                    };
+                    m.RegionInfo4.Add(info);
+                }
 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
@@ -202,7 +271,6 @@ public static class BinarySerializer
         }
 
     };
-
     #endregion Messages
 
     #region BasicTypes
@@ -301,6 +369,65 @@ public static class BinarySerializer
     }
     #endregion UInt64
 
+    #region Int32
+    public static int GetSerializedLength(Int32 v)
+    {
+        return 4;
+    }
+    public static int Serialize(Int32 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        // Little endian
+        buffer[o++] = (byte)(v >> 0);
+        buffer[o++] = (byte)(v >> 8);
+        buffer[o++] = (byte)(v >> 16);
+        buffer[o++] = (byte)(v >> 24);
+        return o;
+    }
+
+    public static Int32 DeSerializeInt32_Le(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeInt32_Le: Not enough bytes in buffer.");
+        }
+
+        return (Int32)(((UInt32)buffer[offset++] << 0)
+                     + ((UInt32)buffer[offset++] << 8)
+                     + ((UInt32)buffer[offset++] << 16)
+                     + ((UInt32)buffer[offset++] << 24));
+    }
+    #endregion Int32
+
+    #region Float
+    public static int GetSerializedLength(float v)
+    {
+        return 4;
+    }
+    public static int Serialize(float v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        byte[] b = BitConverter.GetBytes(v);
+        // Little endian
+        buffer[o++] = b[0]; //TODO: Verify byte order!
+        buffer[o++] = b[1];
+        buffer[o++] = b[2];
+        buffer[o++] = b[3];
+        return o;
+    }
+
+    public static float DeSerializeFloat_Le(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeFloat_Le: Not enough bytes in buffer.");
+        }
+        float v = BitConverter.ToSingle(buffer, offset); // TODO: Is the byte order guaranteed?
+        offset += 4;
+        return v;
+    }
+    #endregion Float
+
     #region String
     public static int DeSerialize(out string s, uint lengthCount, byte[] buffer, int offset, int length)
     {
@@ -390,6 +517,8 @@ public static class BinarySerializer
     }
     #endregion Guid
 
+    #endregion BasicTypes
+
     #region Acks
     public static int SerializeAcks(List<UInt32> acks, byte[] buffer, int offset, int length)
     {
@@ -414,6 +543,65 @@ public static class BinarySerializer
         return o;
     }
     #endregion Acks
+    
+    #region ZeroCode
+    public static byte[] ExpandZerocode(byte[] src, int start, int length)
+    {
+        // Count:
+        int destIndex = 0;
+        int srcIndex = start;
+        while (srcIndex < start + length)
+        {
+            byte b = src[srcIndex++];
+            if (b != 0)
+            {
+                destIndex++;
+            }
+            else
+            {
+                int repeatCount = 0;
+                b = src[srcIndex++];
+                while (b == 0)
+                {
+                    repeatCount += 256;
+                    b = src[srcIndex++];
+                }
+                repeatCount += b;
 
-    #endregion BasicTypes
+                destIndex += repeatCount;
+            }
+        }
+
+        // Expand:
+        byte[] dest = new byte[destIndex];
+        destIndex = 0;
+        srcIndex = start;
+        while (srcIndex < start + length)
+        {
+            byte b = src[srcIndex++];
+            if (b != 0)
+            {
+                dest[destIndex++] = b;
+            }
+            else
+            {
+                int repeatCount = 0;
+                b = src[srcIndex++];
+                while (b == 0)
+                {
+                    repeatCount += 256;
+                    b = src[srcIndex++];
+                }
+                repeatCount += b;
+
+                for (int i = 0; i < repeatCount; i++)
+                {
+                    dest[destIndex++] = 0;
+                }
+            }
+        }
+
+        return dest;
+    }
+    #endregion ZeroCode
 }

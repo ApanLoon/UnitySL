@@ -27,8 +27,6 @@ public class Login
     protected Guid SessionId { get; set; }
     protected Guid AgentId { get; set; }
 
-    protected Circuit InitialSimCircuit { get; set; }
-
     public void Initialise(string machineId,
                            string serialNumber,
                            string viewerVersion,
@@ -106,9 +104,9 @@ public class Login
         {
             // Go to state STATE_WORLD_INIT
 
-            await InitialSimCircuit.SendUseCircuitCode(CircuitCode, SessionId, AgentId);
+            await Region.CurrentRegion.Circuit.SendUseCircuitCode(CircuitCode, SessionId, AgentId);
             Logger.LogInfo("UseCircuitCode was acked.");
-            await InitialSimCircuit.SendCompleteAgentMovement(AgentId, SessionId, CircuitCode);
+            await Region.CurrentRegion.Circuit.SendCompleteAgentMovement(AgentId, SessionId, CircuitCode);
             Logger.LogInfo("CompleteAgentMovement was acked.");
 
         }
@@ -186,6 +184,18 @@ public class Login
         }
         agent.DisplayName = displayName;
 
+        RegionMaturityLevel regionMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
+        if (responseData.Has("agent_access_max"))
+        {
+            Enum.TryParse<RegionMaturityLevel>(responseData["agent_access_max"].AsString, out regionMaturityLevel);
+        }
+
+        RegionMaturityLevel preferredMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
+        if (responseData.Has("agent_region_access"))
+        {
+            Enum.TryParse<RegionMaturityLevel>(responseData["agent_region_access"].AsString, out preferredMaturityLevel);
+        }
+
         string agentStartLocation = "";
         if (responseData.Has("start_location"))
         {
@@ -202,18 +212,15 @@ public class Login
         #endregion Agent
 
         #region Region
-        RegionMaturityLevel regionMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
-        if (responseData.Has("agent_access_max"))
-        {
-            Enum.TryParse<RegionMaturityLevel>(responseData["agent_access_max"].AsString, out regionMaturityLevel);
-        }
+        Region region = new Region();
+        Region.SetCurrentRegion(region);
 
-        RegionMaturityLevel preferredMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
-        if (responseData.Has("agent_region_access"))
+        if (responseData.Has("region_x") && responseData.Has("region_y"))
         {
-            Enum.TryParse<RegionMaturityLevel>(responseData["agent_region_access"].AsString, out preferredMaturityLevel);
+            UInt32 x = UInt32.Parse(responseData["region_x"].AsString);
+            UInt32 y = UInt32.Parse(responseData["region_y"].AsString);
+            region.Handle = new RegionHandle (x, y);
         }
-        #endregion Region
 
         CircuitCode = 0;
         string simIp = "";
@@ -234,16 +241,11 @@ public class Login
         {
             return false;
         }
+        region.Circuit = SlMessageSystem.Instance.EnableCircuit(simIp, simPort);
 
-        InitialSimCircuit = SlMessageSystem.Instance.EnableCircuit(simIp, simPort);
-        
-        UInt64 simHandle;
-        if (responseData.Has("region_x") && responseData.Has("region_y"))
-        {
-            UInt32 x = UInt32.Parse(responseData["region_x"].AsString);
-            UInt32 y = UInt32.Parse(responseData["region_y"].AsString);
-            simHandle = RegionHandle.Create(x, y);
-        }
+        #endregion Region
+
+
 
         // TODO: Parse more things, see llstartup.cpp line 3439 and onwards
 

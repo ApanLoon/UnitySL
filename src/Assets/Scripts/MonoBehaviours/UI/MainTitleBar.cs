@@ -13,6 +13,7 @@ public class MainTitleBar : MonoBehaviour
         RegionName.text = "";
         PositionText.text = "";
         EventManager.Instance.OnAgentDataChanged += OnAgentDataChanged;
+        EventManager.Instance.OnRegionDataChanged += OnRegionDataChanged;
     }
 
     protected void OnAgentDataChanged(Agent agent)
@@ -25,4 +26,14 @@ public class MainTitleBar : MonoBehaviour
         PlayerName.text = $"{agent.DisplayName} ({agent.FirstName} {agent.LastName})";
 
     }
+    protected void OnRegionDataChanged(Region region)
+    {
+        if (region.Id != Region.CurrentRegion?.Id)
+        {
+            return;
+        }
+
+        RegionName.text = $"{region.Name}";
+    }
+
 }

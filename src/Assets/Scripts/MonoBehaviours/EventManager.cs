@@ -23,13 +23,30 @@ public class EventManager : MonoBehaviour
 
     public void RaiseOnAOnAgentDataChanged(Agent agent)
     {
-        OnAgentDataChanged?.Invoke(agent);
+        ThreadManager.ExecuteOnMainThread(() => OnAgentDataChanged?.Invoke(agent));
     }
 
     public event Action<AgentDataUpdateMessage> OnAgentDataUpdateMessage;
     public void RaiseOnAgentDataUpdateMessage(AgentDataUpdateMessage message)
     {
-        OnAgentDataUpdateMessage?.Invoke(message);
+        ThreadManager.ExecuteOnMainThread(() => OnAgentDataUpdateMessage?.Invoke(message));
     }
     #endregion Agent
+
+    #region Region
+    public event Action<Region> OnRegionDataChanged;
+
+    public void RaiseOnRegionDataChanged(Region region)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnRegionDataChanged?.Invoke(region));
+    }
+
+    public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
+
+    public void RaiseOnRegionHandshakeMessage(RegionHandshakeMessage message)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnRegionHandshakeMessage?.Invoke(message));
+    }
+
+    #endregion Region
 }

@@ -105,6 +105,10 @@ public class Circuit
             case AgentDataUpdateMessage agentDataUpdateMessage:
                 EventManager.Instance.RaiseOnAgentDataUpdateMessage(agentDataUpdateMessage);
                 break;
+
+            case RegionHandshakeMessage regionHandshakeMessage:
+                EventManager.Instance.RaiseOnRegionHandshakeMessage(regionHandshakeMessage);
+                break;
         }
 
         if (message != null && (message.Flags & PacketFlags.Ack) != 0)
