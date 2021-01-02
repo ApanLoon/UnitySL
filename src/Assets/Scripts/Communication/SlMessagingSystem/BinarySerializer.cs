@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 
 public static class BinarySerializer
 {
@@ -56,6 +57,27 @@ public static class BinarySerializer
             }
         }
 
+        DeSerializerResult r = DeserializeData(buf, ref o, buf.Length - ackLength, frequency, flags, sequenceNumber, extraHeader, id);
+        o = r.Offset;
+
+        if (r.Message != null && acks.Count != 0)
+        {
+            r.Message.Acks = acks;
+            o = SerializeAcks(acks, buf, o, buf.Length - o);
+        }
+
+        return r.Message;
+    }
+
+    private static DeSerializerResult DeserializeData (byte[]           buf,
+                                                       ref int          o,
+                                                       int              length,
+                                                       MessageFrequency frequency,
+                                                       PacketFlags      flags,
+                                                       uint             sequenceNumber,
+                                                       byte[]           extraHeader,
+                                                       UInt32           id)
+    {
         if (Enum.IsDefined(typeof(MessageId), id) == false)
         {
             string idString = "";
@@ -76,25 +98,17 @@ public static class BinarySerializer
             }
 
             Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id {idString}");
-            return null;
+            return new DeSerializerResult(){Message = null, Offset = o};
         }
-        MessageId messageId = (MessageId)id;
+
+        MessageId messageId = (MessageId) id;
         if (MessageDeSerializers.ContainsKey(messageId) == false)
         {
             Logger.LogError($"BinarySerializer.DeSerializeMessage: No de-serializer for message id ({messageId})");
-            return null;
+            return new DeSerializerResult() { Message = null, Offset = o };
         }
 
-        DeSerializerResult r = MessageDeSerializers[messageId](buf, o, buf.Length - ackLength, flags, sequenceNumber, extraHeader, frequency, messageId);
-        o = r.Offset;
-
-        if (r.Message != null && acks.Count != 0)
-        {
-            r.Message.Acks = acks;
-            o = SerializeAcks(acks, buf, o, buf.Length - o);
-        }
-
-        return r.Message;
+        return MessageDeSerializers[messageId](buf, o, length, flags, sequenceNumber, extraHeader, frequency, messageId);
     }
 
     public class DeSerializerResult
@@ -106,6 +120,16 @@ public static class BinarySerializer
     public static Dictionary<MessageId, Func<byte[], int, int, PacketFlags, UInt32, byte[], MessageFrequency, MessageId, DeSerializerResult>> MessageDeSerializers = new Dictionary<MessageId, Func<byte[], int, int, PacketFlags, uint, byte[], MessageFrequency, MessageId, DeSerializerResult>>()
     {
         {
+            MessageId.Wrapper, // 0xffff0001
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                int o = offset;
+                UInt32 i = 0xffff0000 + buf[o++];
+                return DeserializeData(buf, ref o, length, frequency, flags, sequenceNumber, extraHeader, i);
+            }
+        },
+
+        {
             MessageId.UseCircuitCode, // 0xffff0003
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
@@ -116,6 +140,28 @@ public static class BinarySerializer
                 Guid guid;
                 o = DeSerialize(out guid, buf, o, length); m.SessionId = guid;
                 o = DeSerialize(out guid, buf, o, length); m.AgentId = guid;
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.AgentDataUpdate, // 0xffff0183
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                AgentDataUpdateMessage m = new AgentDataUpdateMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+                string s;
+
+                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
+                o = DeSerialize(out s, 1,    buf, o, length); m.FirstName = s;
+                o = DeSerialize(out s, 1,    buf, o, length); m.LastName = s;
+                o = DeSerialize(out s, 1,    buf, o, length); m.GroupTitle = s;
+                o = DeSerialize(out guid,             buf, o, length); m.ActiveGroupId = guid;
+                m.GroupPowers = DeSerializeUInt64_Le (buf, ref o, length);
+                o = DeSerialize(out s, 1,    buf, o, length); m.GroupName = s;
 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
@@ -160,6 +206,8 @@ public static class BinarySerializer
     #endregion Messages
 
     #region BasicTypes
+
+    #region UInt16
     public static int GetSerializedLength(UInt16 v)
     {
         return 2;
@@ -172,6 +220,18 @@ public static class BinarySerializer
         buffer[o++] = (byte)(v >> 8);
         return o;
     }
+
+    public static UInt16 DeSerializeUInt16_Le(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 2)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt16_Le: Not enough bytes in buffer.");
+        }
+
+        return (UInt16)((buffer[offset++] << 0)
+                        + (buffer[offset++] << 8));
+    }
+    #endregion UInt16
 
     #region UInt32
     public static int GetSerializedLength(UInt32 v)
@@ -196,13 +256,77 @@ public static class BinarySerializer
             throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt32_Le: Not enough bytes in buffer.");
         }
 
-        return   ((UInt32) buffer[offset++] << 0)
-               + ((UInt32) buffer[offset++] << 8)
-               + ((UInt32) buffer[offset++] << 16)
-               + ((UInt32) buffer[offset++] << 24);
+        return (UInt32) ((UInt32) buffer[offset++] << 0)
+                      + ((UInt32) buffer[offset++] << 8)
+                      + ((UInt32) buffer[offset++] << 16)
+                      + ((UInt32) buffer[offset++] << 24);
     }
     #endregion UInt32
 
+    #region UInt64
+    public static int GetSerializedLength(UInt64 v)
+    {
+        return 8;
+    }
+    public static int Serialize(UInt64 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        // Little endian
+        buffer[o++] = (byte)(v >>  0);
+        buffer[o++] = (byte)(v >>  8);
+        buffer[o++] = (byte)(v >> 16);
+        buffer[o++] = (byte)(v >> 24);
+        buffer[o++] = (byte)(v >> 32);
+        buffer[o++] = (byte)(v >> 40);
+        buffer[o++] = (byte)(v >> 48);
+        buffer[o++] = (byte)(v >> 56);
+        return o;
+    }
+
+    public static UInt64 DeSerializeUInt64_Le(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 8)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt64_Le: Not enough bytes in buffer.");
+        }
+
+        return (UInt64)((UInt64)buffer[offset++] << 0)
+                     + ((UInt64)buffer[offset++] << 8)
+                     + ((UInt64)buffer[offset++] << 16)
+                     + ((UInt64)buffer[offset++] << 24)
+                     + ((UInt64)buffer[offset++] << 32)
+                     + ((UInt64)buffer[offset++] << 40)
+                     + ((UInt64)buffer[offset++] << 48)
+                     + ((UInt64)buffer[offset++] << 56);
+    }
+    #endregion UInt64
+
+    #region String
+    public static int DeSerialize(out string s, uint lengthCount, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        int len;
+        switch (lengthCount)
+        {
+            case 1:
+                len = buffer[o++];
+                break;
+
+            case 2:
+                len = DeSerializeUInt16_Le(buffer, ref o, length);
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(lengthCount), lengthCount, "Valid values are 1 and 2");
+        }
+
+        s = Encoding.UTF8.GetString(buffer, o, len).Replace("\0", "");
+        o += len;
+        return o;
+    }
+    #endregion String
+
+    #region Guid
     public static int GetSerializedLength(Guid v)
     {
         return 16;
@@ -264,7 +388,9 @@ public static class BinarySerializer
         guid = new Guid(buf);
         return o;
     }
+    #endregion Guid
 
+    #region Acks
     public static int SerializeAcks(List<UInt32> acks, byte[] buffer, int offset, int length)
     {
         int o = offset;
@@ -287,6 +413,7 @@ public static class BinarySerializer
         buffer[o++] = nAcks;
         return o;
     }
+    #endregion Acks
 
     #endregion BasicTypes
 }

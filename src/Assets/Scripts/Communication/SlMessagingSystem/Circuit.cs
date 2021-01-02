@@ -88,7 +88,7 @@ public class Circuit
             return;
         }
 
-        Logger.LogDebug($"Circuit.ReceiveData: {message}");
+        Logger.LogInfo($"Circuit.ReceiveData: {message}");
 
         switch (message)
         {

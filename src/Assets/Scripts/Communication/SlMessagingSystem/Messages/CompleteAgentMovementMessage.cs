@@ -53,4 +53,9 @@ public class CompleteAgentMovementMessage : Message
 
         return o - offset;
     }
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: AgentId={AgentId}, SessionId=\"{SessionId}\", CircuitCode=\"{CircuitCode}\"";
+    }
 }

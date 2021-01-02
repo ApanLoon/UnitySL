@@ -65,4 +65,9 @@ public class OpenCircuitMessage : Message
 
         return o - offset;
     }
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: Address={Address}, Port=\"{Port}\"";
+    }
 }
