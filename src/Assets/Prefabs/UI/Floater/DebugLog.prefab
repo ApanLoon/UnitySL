@@ -695,7 +695,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 30
   m_Viewport: {fileID: 270741074}
   m_HorizontalScrollbar: {fileID: 395549922}
   m_VerticalScrollbar: {fileID: 319100069}
@@ -952,6 +952,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsRandomLogActive: 0
+  MaxLogLength: 10000
+  DebugColour: {r: 0.467, g: 0.467, b: 0.467, a: 1}
+  InfoColour: {r: 0, g: 1, b: 0, a: 1}
+  WarningColour: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  ErrorColour: {r: 1, g: 0, b: 0, a: 1}
   LogText: {fileID: 1901994427}
   LogHorizontalScrollbar: {fileID: 395549922}
   LogVerticalScrollbar: {fileID: 319100069}
@@ -1055,7 +1060,7 @@ PrefabInstance:
     - target: {fileID: 9179752567565601701, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
       propertyPath: m_Name
-      value: DebugLog Variant
+      value: DebugLog
       objectReference: {fileID: 0}
     - target: {fileID: 9179752567565601702, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
