@@ -101,6 +101,10 @@ public class Circuit
                     }
                 }
                 break;
+
+            case AgentDataUpdateMessage agentDataUpdateMessage:
+                EventManager.Instance.RaiseOnAgentDataUpdateMessage(agentDataUpdateMessage);
+                break;
         }
 
         if (message != null && (message.Flags & PacketFlags.Ack) != 0)

@@ -123,6 +123,17 @@ public class Login
         // TODO: Parse benefits
         // TODO: Parse "udp_blacklist"
 
+        SessionId = Guid.Empty;
+        if (responseData.Has("session_id"))
+        {
+            SessionId = Guid.Parse(responseData["session_id"].AsString);
+        }
+        if (SessionId == Guid.Empty)
+        {
+            return false;
+        }
+
+        #region Agent
         AgentId = Guid.Empty;
         if (responseData.Has("agent_id"))
         {
@@ -133,16 +144,11 @@ public class Login
             return false;
         }
 
-        SessionId = Guid.Empty;
-        if (responseData.Has("session_id"))
-        {
-            SessionId = Guid.Parse(responseData["session_id"].AsString);
-        }
-        if (SessionId == Guid.Empty)
-        {
-            return false;
-        }
+        Agent agent = new Agent(AgentId);
+        Agent.SetCurrentPlayer(agent);
+
         // TODO: Send agentId and agentSessionId to the LLUrlEntryParcel
+
 
         Guid agentSecureSessionId = Guid.Empty;
         if (responseData.Has("secure_session_id"))
@@ -154,16 +160,17 @@ public class Login
         if (responseData.Has("first_name"))
         {
             agentUserName = responseData["first_name"].AsString.Replace('"', ' ').Trim(); // NOTE: login.cgi sends " to force names that look like numbers into strings
+            agent.FirstName = agentUserName;
         }
         if (responseData.Has("last_name"))
         {
             string lastName = responseData["last_name"].AsString.Replace('"', ' ').Trim(); // NOTE: login.cgi sends " to force names that look like numbers into strings
+            agent.LastName = lastName;
             if (lastName != "Resident")
             {
                 agentUserName += $" {lastName}";
             }
         }
-
         string displayName = "";
         if (responseData.Has("display_name"))
         {
@@ -177,7 +184,24 @@ public class Login
         {
             // TODO: Construct display name from request credentials
         }
+        agent.DisplayName = displayName;
 
+        string agentStartLocation = "";
+        if (responseData.Has("start_location"))
+        {
+            agentStartLocation = responseData["start_location"].AsString;
+        }
+
+        Vector3 agentStartLookAt = Vector3.forward;
+        if (responseData.Has("look_at"))
+        {
+            // TODO: Decode "[r0.75787899999999996936,r0.65239599999999997593,r0]"
+        }
+
+        EventManager.Instance.RaiseOnAOnAgentDataChanged(agent);
+        #endregion Agent
+
+        #region Region
         RegionMaturityLevel regionMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
         if (responseData.Has("agent_access_max"))
         {
@@ -189,12 +213,7 @@ public class Login
         {
             Enum.TryParse<RegionMaturityLevel>(responseData["agent_region_access"].AsString, out preferredMaturityLevel);
         }
-
-        string agentStartLocation = "";
-        if (responseData.Has("start_location"))
-        {
-            agentStartLocation = responseData["start_location"].AsString;
-        }
+        #endregion Region
 
         CircuitCode = 0;
         string simIp = "";
@@ -224,12 +243,6 @@ public class Login
             UInt32 x = UInt32.Parse(responseData["region_x"].AsString);
             UInt32 y = UInt32.Parse(responseData["region_y"].AsString);
             simHandle = RegionHandle.Create(x, y);
-        }
-
-        Vector3 agentStartLookAt = Vector3.forward;
-        if (responseData.Has("look_at"))
-        {
-            // TODO: Decode "[r0.75787899999999996936,r0.65239599999999997593,r0]"
         }
 
         // TODO: Parse more things, see llstartup.cpp line 3439 and onwards
