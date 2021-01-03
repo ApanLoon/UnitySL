@@ -228,6 +228,17 @@ function StatIdToString(statId)
 	return "UNKNOWN"
 end
 
+function ThrottleIndexToString(index)
+    if index == 0 then return "Resend" end
+	if index == 1 then return "Land" end
+	if index == 2 then return "Wind" end
+	if index == 3 then return "Cloud" end
+	if index == 4 then return "Task" end
+	if index == 5 then return "Texture" end
+	if index == 6 then return "Asset" end
+	return "Unknown"
+end
+
 function GuidToString(buffer)
 	local a = buffer(0, 4)
 	local b = buffer(4, 2)
@@ -1468,7 +1479,7 @@ Decoders =
 			SessionId      = ProtoField.guid   ("llmsg.AgentThrottle.SessionId",      "SessionId"),
 			CircuitCode    = ProtoField.uint32 ("llmsg.AgentThrottle.CircuitCode",    "CircuitCode",       base.HEX),
 			GenCounter     = ProtoField.uint32 ("llmsg.AgentThrottle.GenCounter",     "GenCounter",        base.HEX),
-			Throttle       = ProtoField.uint32 ("llmsg.AgentThrottle.Throttle",       "Throttle",          base.DEC)
+			Throttle       = ProtoField.float  ("llmsg.AgentThrottle.Throttle",       "Throttle")
 		},
 		
 		Decoder = function (buffer, offset, dataLength, tree, pinfo)
@@ -1476,15 +1487,22 @@ Decoders =
 			local name = Decoders[messageNumber].Name
 			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
 			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,    buffer, o, 16)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.CircuitCode,  buffer, o,  4)
 			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.GenCounter,   buffer, o,  4)
 			
 			local nThrottles = buffer(o, 1):uint(); o = o + 1
+			nThrottles = nThrottles / 4;
 			local throttleTree = subtree:add(llmsg_protocol, buffer(offset), "Throttles", string.format("(%d)", nThrottles))
 			for i = 0, nThrottles - 1, 1 do
-				o = AddFieldToTree (throttleTree, Decoders[messageNumber].Fields.Throttle, buffer, o,  1)
+				o = AddFieldToTree_le (throttleTree, Decoders[messageNumber].Fields.Throttle, buffer, o,  4, string.format(" bps (%s)", ThrottleIndexToString(i)))
 			end
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
