@@ -109,5 +109,6 @@ public class Region
 
         await CurrentRegion.Circuit.SendRegionHandshakeReply(Login.Instance.AgentId, Login.Instance.SessionId, 5);  // TODO: What are these flags?
         await CurrentRegion.Circuit.SendAgentThrottle();
+        await CurrentRegion.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should not be called from here and the dimensions should take the title and status bars into account.
     }
 }

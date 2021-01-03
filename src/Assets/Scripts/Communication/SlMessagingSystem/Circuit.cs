@@ -125,6 +125,16 @@ public class Circuit : IDisposable
         AgentThrottleMessage message = new AgentThrottleMessage(agentId, sessionId, circuitCode, 0, resend, land, wind, cloud, task, texture, asset);
         await SendReliable(message);
     }
+    public async Task SendAgentHeightWidth(UInt16 height, UInt16 width)
+    {
+        Guid agentId = Login.Instance.AgentId;
+        Guid sessionId = Login.Instance.SessionId;
+        UInt32 circuitCode = Login.Instance.CircuitCode;
+        Logger.LogDebug($"Circuit.SendAgentHeightWidth({agentId}, {sessionId}): Sending to {Address}:{Port}");
+
+        AgentHeightWidthMessage message = new AgentHeightWidthMessage(agentId, sessionId, circuitCode, 0, height, width);
+        await SendReliable(message);
+    }
 
     public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, UInt32 flags)
     {

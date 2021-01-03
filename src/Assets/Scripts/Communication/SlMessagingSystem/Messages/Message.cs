@@ -9,6 +9,7 @@ public enum MessageId : UInt32
     Wrapper                      = 0xffff0001,
     UseCircuitCode               = 0xffff0003,
     AgentThrottle                = 0xffff0051,
+    AgentHeightWidth             = 0xffff0053,
     RegionHandshake              = 0xffff0094,
     RegionHandshakeReply         = 0xffff0095,
     CompleteAgentMovement        = 0xffff00f9,
