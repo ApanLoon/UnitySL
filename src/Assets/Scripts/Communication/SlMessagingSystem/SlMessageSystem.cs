@@ -78,7 +78,14 @@ public class SlMessageSystem : IDisposable
         public byte[] MessageBytes { get; set; }
     }
 
+    protected class IncomingMessage
+    {
+        public IPEndPoint EndPoint { get; set; }
+        public byte[] MessageBytes { get; set; }
+    }
+
     protected Queue<OutgoingMessage> OutGoingMessages = new Queue<OutgoingMessage>(); // ConcurrentQueue?
+    protected Queue<IncomingMessage> IncomingMessages = new Queue<IncomingMessage>(); // ConcurrentQueue?
 
     protected class UdpState
     {
@@ -128,7 +135,7 @@ public class SlMessageSystem : IDisposable
         UdpClient.BeginReceive(ReceiveData, state);
         while (ct.IsCancellationRequested == false)
         {
-            while (OutGoingMessages.Count > 0 && ct.IsCancellationRequested == false)
+            if (OutGoingMessages.Count > 0)
             {
                 try
                 {
@@ -141,22 +148,14 @@ public class SlMessageSystem : IDisposable
                 }
             }
 
-            //try
-            //{
-            //    //Byte[] data = UdpClient.Receive(ref endPoint);
-            //    //Logger.LogDebug("Message: " + BitConverter.ToString(data));
-            //}
-            //catch (SocketException ex)
-            //{
-            //    if (ex.ErrorCode != 10060)
-            //    {
-            //        //Logger.LogDebug("a more serious error " + ex.ErrorCode);
-            //    }
-            //    else
-            //    {
-            //        //Logger.LogDebug("expected timeout error");
-            //    }
-            //}
+            if (IncomingMessages.Count > 0)
+            {
+                IncomingMessage im = IncomingMessages.Dequeue();
+                if (CircuitByEndPoint.ContainsKey(im.EndPoint))
+                {
+                    await CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
+                }
+            }
 
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted
         }
@@ -203,14 +202,11 @@ public class SlMessageSystem : IDisposable
         try
         {
             UdpState state = (UdpState) ar.AsyncState;
-            IPEndPoint EndPoint = null;
-            byte[] buf = state.Client.EndReceive(ar, ref EndPoint);
+            IPEndPoint endPoint = null;
+            byte[] buf = state.Client.EndReceive(ar, ref endPoint);
             state.Client.BeginReceive(ReceiveData, state);
 
-            if (CircuitByEndPoint.ContainsKey(EndPoint))
-            {
-                CircuitByEndPoint[EndPoint].ReceiveData(buf);
-            }
+            IncomingMessages.Enqueue(new IncomingMessage{EndPoint = endPoint, MessageBytes = buf});
         }
         catch (ObjectDisposedException e)
         {

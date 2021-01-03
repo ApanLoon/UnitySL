@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public enum MessageId : UInt32
 {
+    StartPingCheck               = 0x00000001,
+    CompletePingCheck            = 0x00000002,
+
     Wrapper                      = 0xffff0001,
     UseCircuitCode               = 0xffff0003,
     RegionHandshake              = 0xffff0094,

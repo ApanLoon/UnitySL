@@ -140,6 +140,20 @@ public static class BinarySerializer
     public static Dictionary<MessageId, Func<byte[], int, int, PacketFlags, UInt32, byte[], MessageFrequency, MessageId, DeSerializerResult>> MessageDeSerializers = new Dictionary<MessageId, Func<byte[], int, int, PacketFlags, uint, byte[], MessageFrequency, MessageId, DeSerializerResult>>()
     {
         {
+            MessageId.StartPingCheck, // 0x00000001
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                StartPingCheckMessage m = new StartPingCheckMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                m.PingId = buf[o++]; 
+                m.OldestUnchecked = DeSerializeUInt32_Le (buf, ref o, buf.Length);
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.Wrapper, // 0xffff0001
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {

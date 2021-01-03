@@ -171,7 +171,7 @@ public class Circuit : IDisposable
         }
     }
     
-    public void ReceiveData(byte[] buf)
+    public async Task ReceiveData(byte[] buf)
     {
         Message message = BinarySerializer.DeSerializeMessage(buf, 0);
         if (message == null)
@@ -183,6 +183,11 @@ public class Circuit : IDisposable
 
         switch (message)
         {
+            case StartPingCheckMessage startPingCheckMessage:
+                CompletePingCheckMessage completePingCheckMessage = new CompletePingCheckMessage(startPingCheckMessage.PingId);
+                await Send(completePingCheckMessage);
+                break;
+
             case PacketAckMessage packetAckMessage:
                 foreach (UInt32 ack in packetAckMessage.PacketAcks)
                 {
