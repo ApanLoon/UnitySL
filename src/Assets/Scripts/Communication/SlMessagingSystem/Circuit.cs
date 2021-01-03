@@ -80,7 +80,6 @@ public class Circuit : IDisposable
     #endregion Thread
 
     protected DateTime LastSendTime;
-
     public IPEndPoint RemoteEndPoint { get; set; }
     public IPAddress Address { get; }
     public int Port { get; }
@@ -106,6 +105,24 @@ public class Circuit : IDisposable
         Logger.LogDebug($"Circuit.SendCompleteAgentMovement({agentId}, {sessionId}, {circuitCode:x8}): Sending to {Address}:{Port}");
 
         CompleteAgentMovementMessage message = new CompleteAgentMovementMessage(agentId, sessionId, circuitCode);
+        await SendReliable(message);
+    }
+
+    public async Task SendAgentThrottle()
+    {
+        Guid agentId = Login.Instance.AgentId;
+        Guid sessionId = Login.Instance.SessionId;
+        UInt32 circuitCode = Login.Instance.CircuitCode;
+        float resend = 100 * 1024f; // TODO: Make these configurable
+        float land = 100 * 1024f;
+        float wind = 20 * 1024f;
+        float cloud = 20 * 1024f;
+        float task = 310 * 1024f;
+        float texture = 310 * 1024f; 
+        float asset = 140 * 1024f;
+        Logger.LogDebug($"Circuit.SendAgentThrottle({agentId}, {sessionId}): Sending to {Address}:{Port}");
+
+        AgentThrottleMessage message = new AgentThrottleMessage(agentId, sessionId, circuitCode, 0, resend, land, wind, cloud, task, texture, asset);
         await SendReliable(message);
     }
 

@@ -108,5 +108,6 @@ public class Region
         // TODO: Load cache for the region, but should it be here?
 
         await CurrentRegion.Circuit.SendRegionHandshakeReply(Login.Instance.AgentId, Login.Instance.SessionId, 5);  // TODO: What are these flags?
+        await CurrentRegion.Circuit.SendAgentThrottle();
     }
 }
