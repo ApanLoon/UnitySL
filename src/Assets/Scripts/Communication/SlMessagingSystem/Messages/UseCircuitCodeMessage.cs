@@ -46,7 +46,7 @@ public class UseCircuitCodeMessage : Message
         int o = offset;
         o += base.Serialize(buffer, offset, length);
 
-        o = BinarySerializer.Serialize(CircuitCode, buffer, o, length);
+        o = BinarySerializer.Serialize_Le(CircuitCode, buffer, o, length);
         o = BinarySerializer.Serialize(SessionId, buffer, o, length);
         o = BinarySerializer.Serialize(AgentId, buffer, o, length);
 

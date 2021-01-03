@@ -49,7 +49,7 @@ public class CompleteAgentMovementMessage : Message
 
         o = BinarySerializer.Serialize(AgentId, buffer, o, length);
         o = BinarySerializer.Serialize(SessionId, buffer, o, length);
-        o = BinarySerializer.Serialize(CircuitCode, buffer, o, length);
+        o = BinarySerializer.Serialize_Le(CircuitCode, buffer, o, length);
 
         return o - offset;
     }

@@ -71,11 +71,19 @@ public static class BinarySerializer
         }
         DeSerializerResult r = DeserializeData(dataBuffer, ref dataStart, dataLen, frequency, flags, sequenceNumber, extraHeader, id);
 
-        if (r.Message != null && acks.Count != 0)
+        if (r.Message == null)
         {
-            r.Message.Acks = acks;
-            SerializeAcks(acks, buf, o, buf.Length - o);
+            // Create a dummy message so that we parse the acks as well as ack this message if it is reliable.
+            r.Message = new Message
+            {
+                Flags = flags,
+                SequenceNumber = sequenceNumber,
+                ExtraHeader = extraHeader,
+                Frequency = frequency
+            };
         }
+
+        r.Message.Acks = acks;
 
         return r.Message;
     }
@@ -303,15 +311,31 @@ public static class BinarySerializer
     {
         return 2;
     }
-    public static int Serialize(UInt16 v, byte[] buffer, int offset, int length)
+    public static int Serialize_Le(UInt16 v, byte[] buffer, int offset, int length)
     {
         int o = offset;
-        // Little endian
         buffer[o++] = (byte)(v >> 0);
         buffer[o++] = (byte)(v >> 8);
         return o;
     }
+    public static int Serialize_Be(UInt16 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = (byte)(v >> 8);
+        buffer[o++] = (byte)(v >> 0);
+        return o;
+    }
 
+    public static UInt16 DeSerializeUInt16_Be(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 2)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt16_Be: Not enough bytes in buffer.");
+        }
+
+        return (UInt16)((buffer[offset++] << 8)
+                      + (buffer[offset++] << 0));
+    }
     public static UInt16 DeSerializeUInt16_Le(byte[] buffer, ref int offset, int length)
     {
         if (length - offset < 2)
@@ -329,7 +353,7 @@ public static class BinarySerializer
     {
         return 4;
     }
-    public static int Serialize(UInt32 v, byte[] buffer, int offset, int length)
+    public static int Serialize_Le(UInt32 v, byte[] buffer, int offset, int length)
     {
         int o = offset;
         // Little endian
@@ -339,7 +363,28 @@ public static class BinarySerializer
         buffer[o++] = (byte)(v >> 24);
         return o;
     }
+    public static int Serialize_Be(UInt32 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = (byte)(v >> 24);
+        buffer[o++] = (byte)(v >> 16);
+        buffer[o++] = (byte)(v >>  8);
+        buffer[o++] = (byte)(v >>  0);
+        return o;
+    }
 
+    public static UInt32 DeSerializeUInt32_Be(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt32_Be: Not enough bytes in buffer.");
+        }
+
+        return (UInt32) ((UInt32) buffer[offset++] << 24)
+                      + ((UInt32) buffer[offset++] << 16)
+                      + ((UInt32) buffer[offset++] <<  8)
+                      + ((UInt32) buffer[offset++] <<  0);
+    }
     public static UInt32 DeSerializeUInt32_Le(byte[] buffer, ref int offset, int length)
     {
         if (length - offset < 4)
@@ -347,10 +392,10 @@ public static class BinarySerializer
             throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt32_Le: Not enough bytes in buffer.");
         }
 
-        return (UInt32) ((UInt32) buffer[offset++] << 0)
-                      + ((UInt32) buffer[offset++] << 8)
-                      + ((UInt32) buffer[offset++] << 16)
-                      + ((UInt32) buffer[offset++] << 24);
+        return (UInt32)((UInt32)buffer[offset++] << 0)
+               + ((UInt32)buffer[offset++] << 8)
+               + ((UInt32)buffer[offset++] << 16)
+               + ((UInt32)buffer[offset++] << 24);
     }
     #endregion UInt32
 
@@ -359,10 +404,9 @@ public static class BinarySerializer
     {
         return 8;
     }
-    public static int Serialize(UInt64 v, byte[] buffer, int offset, int length)
+    public static int Serialize_Le(UInt64 v, byte[] buffer, int offset, int length)
     {
         int o = offset;
-        // Little endian
         buffer[o++] = (byte)(v >>  0);
         buffer[o++] = (byte)(v >>  8);
         buffer[o++] = (byte)(v >> 16);
@@ -373,7 +417,36 @@ public static class BinarySerializer
         buffer[o++] = (byte)(v >> 56);
         return o;
     }
+    public static int Serialize_Be(UInt64 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = (byte)(v >> 56);
+        buffer[o++] = (byte)(v >> 48);
+        buffer[o++] = (byte)(v >> 40);
+        buffer[o++] = (byte)(v >> 32);
+        buffer[o++] = (byte)(v >> 24);
+        buffer[o++] = (byte)(v >> 16);
+        buffer[o++] = (byte)(v >>  8);
+        buffer[o++] = (byte)(v >>  0);
+        return o;
+    }
 
+    public static UInt64 DeSerializeUInt64_Be(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 8)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt64_Be: Not enough bytes in buffer.");
+        }
+
+        return (UInt64)((UInt64)buffer[offset++] << 56)
+                     + ((UInt64)buffer[offset++] << 48)
+                     + ((UInt64)buffer[offset++] << 40)
+                     + ((UInt64)buffer[offset++] << 32)
+                     + ((UInt64)buffer[offset++] << 24)
+                     + ((UInt64)buffer[offset++] << 16)
+                     + ((UInt64)buffer[offset++] <<  8)
+                     + ((UInt64)buffer[offset++] <<  0);
+    }
     public static UInt64 DeSerializeUInt64_Le(byte[] buffer, ref int offset, int length)
     {
         if (length - offset < 8)
@@ -382,13 +455,13 @@ public static class BinarySerializer
         }
 
         return (UInt64)((UInt64)buffer[offset++] << 0)
-                     + ((UInt64)buffer[offset++] << 8)
-                     + ((UInt64)buffer[offset++] << 16)
-                     + ((UInt64)buffer[offset++] << 24)
-                     + ((UInt64)buffer[offset++] << 32)
-                     + ((UInt64)buffer[offset++] << 40)
-                     + ((UInt64)buffer[offset++] << 48)
-                     + ((UInt64)buffer[offset++] << 56);
+               + ((UInt64)buffer[offset++] << 8)
+               + ((UInt64)buffer[offset++] << 16)
+               + ((UInt64)buffer[offset++] << 24)
+               + ((UInt64)buffer[offset++] << 32)
+               + ((UInt64)buffer[offset++] << 40)
+               + ((UInt64)buffer[offset++] << 48)
+               + ((UInt64)buffer[offset++] << 56);
     }
     #endregion UInt64
 
@@ -397,10 +470,18 @@ public static class BinarySerializer
     {
         return 4;
     }
-    public static int Serialize(Int32 v, byte[] buffer, int offset, int length)
+    public static int Serialize_Be(Int32 v, byte[] buffer, int offset, int length)
     {
         int o = offset;
-        // Little endian
+        buffer[o++] = (byte)(v >> 24);
+        buffer[o++] = (byte)(v >> 16);
+        buffer[o++] = (byte)(v >>  8);
+        buffer[o++] = (byte)(v >>  0);
+        return o;
+    }
+    public static int Serialize_Le(Int32 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
         buffer[o++] = (byte)(v >> 0);
         buffer[o++] = (byte)(v >> 8);
         buffer[o++] = (byte)(v >> 16);
@@ -408,6 +489,18 @@ public static class BinarySerializer
         return o;
     }
 
+    public static Int32 DeSerializeInt32_Be(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeInt32_Be: Not enough bytes in buffer.");
+        }
+
+        return (Int32)(((UInt32)buffer[offset++] << 24)
+                     + ((UInt32)buffer[offset++] << 16)
+                     + ((UInt32)buffer[offset++] <<  8)
+                     + ((UInt32)buffer[offset++] <<  0));
+    }
     public static Int32 DeSerializeInt32_Le(byte[] buffer, ref int offset, int length)
     {
         if (length - offset < 4)
@@ -416,9 +509,9 @@ public static class BinarySerializer
         }
 
         return (Int32)(((UInt32)buffer[offset++] << 0)
-                     + ((UInt32)buffer[offset++] << 8)
-                     + ((UInt32)buffer[offset++] << 16)
-                     + ((UInt32)buffer[offset++] << 24));
+                       + ((UInt32)buffer[offset++] << 8)
+                       + ((UInt32)buffer[offset++] << 16)
+                       + ((UInt32)buffer[offset++] << 24));
     }
     #endregion Int32
 
@@ -427,15 +520,24 @@ public static class BinarySerializer
     {
         return 4;
     }
-    public static int Serialize(float v, byte[] buffer, int offset, int length)
+    public static int Serialize_Le(float v, byte[] buffer, int offset, int length)
     {
         int o = offset;
         byte[] b = BitConverter.GetBytes(v);
-        // Little endian
         buffer[o++] = b[0]; //TODO: Verify byte order!
         buffer[o++] = b[1];
         buffer[o++] = b[2];
         buffer[o++] = b[3];
+        return o;
+    }
+    public static int Serialize_Be(float v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        byte[] b = BitConverter.GetBytes(v);
+        buffer[o++] = b[3]; 
+        buffer[o++] = b[2];
+        buffer[o++] = b[1];
+        buffer[o++] = b[0];
         return o;
     }
 
@@ -576,27 +678,40 @@ public static class BinarySerializer
     #endregion BasicTypes
 
     #region Acks
-    public static int SerializeAcks(List<UInt32> acks, byte[] buffer, int offset, int length)
-    {
-        int o = offset;
 
+    /// <summary>
+    /// Serializes any acked serial numbers at the end of the buffer
+    /// </summary>
+    /// <param name="acks"></param>
+    /// <param name="buffer"></param>
+    public static void SerializeAcks(List<UInt32> acks, byte[] buffer)
+    {
         int i = acks.Count;
+        if (i == 0)
+        {
+            return;
+        }
+
         if (i > 255)
         {
             throw new ArgumentOutOfRangeException("BinarySerializer.SerializeAcks: Too many acks in list. Max is 255.");
         }
+
+        int length = buffer.Length;
+        int o = length - (4 * i + 1);
+        if (o < 0)
+        {
+            throw new ArgumentOutOfRangeException("BinarySerializer.SerializeAcks: Not enough bytes in the buffer.");
+        }
+
         byte nAcks = (byte)i;
         for (i = 0; i < nAcks; i++)
         {
             UInt32 ack = acks[i];
-            buffer[o++] = (byte)(ack >> 0);
-            buffer[o++] = (byte)(ack >> 8);
-            buffer[o++] = (byte)(ack >> 16);
-            buffer[o++] = (byte)(ack >> 24);
+            o = Serialize_Be(ack, buffer, o, length);
         }
 
         buffer[o++] = nAcks;
-        return o;
     }
     #endregion Acks
     

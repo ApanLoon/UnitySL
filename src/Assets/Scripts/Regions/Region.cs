@@ -48,7 +48,7 @@ public class Region
 
     public Circuit Circuit { get; set; }
 
-    protected static void OnRegionHandshakeMessage(RegionHandshakeMessage message)
+    protected static async void OnRegionHandshakeMessage(RegionHandshakeMessage message)
     {
         if (CurrentRegion == null)
         {
@@ -104,5 +104,9 @@ public class Region
         Logger.LogDebug(s);
 
         EventManager.Instance.RaiseOnRegionDataChanged(CurrentRegion);
+
+        // TODO: Load cache for the region, but should it be here?
+
+        await CurrentRegion.Circuit.SendRegionHandshakeReply(Login.Instance.AgentId, Login.Instance.SessionId, 5);  // TODO: What are these flags?
     }
 }

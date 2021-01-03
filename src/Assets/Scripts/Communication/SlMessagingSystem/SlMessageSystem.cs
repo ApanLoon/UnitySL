@@ -75,7 +75,7 @@ public class SlMessageSystem : IDisposable
     protected class OutgoingMessage
     {
         public Circuit Circuit { get; set; }
-        public Message Message { get; set; }
+        public byte[] MessageBytes { get; set; }
     }
 
     protected Queue<OutgoingMessage> OutGoingMessages = new Queue<OutgoingMessage>(); // ConcurrentQueue?
@@ -104,6 +104,11 @@ public class SlMessageSystem : IDisposable
         Logger.LogDebug("SlMessageSystem.Stop");
         _cts.Cancel();
 
+        foreach (Circuit circuit in CircuitByEndPoint.Values)
+        {
+            circuit.Stop();
+        }
+
         _cts.Dispose();
         UdpClient.Close();
         UdpClient?.Dispose();
@@ -128,9 +133,7 @@ public class SlMessageSystem : IDisposable
                 try
                 {
                     OutgoingMessage om = OutGoingMessages.Dequeue();
-                    byte[] buffer = new byte[om.Message.GetSerializedLength()];
-                    om.Message.Serialize(buffer, 0, buffer.Length);
-                    await Send(buffer, om.Circuit);
+                    await Send(om.MessageBytes, om.Circuit);
                 }
                 catch (Exception e)
                 {
@@ -183,15 +186,15 @@ public class SlMessageSystem : IDisposable
         return circuit;
     }
 
-    public void EnqueueMessage(Circuit circuit, Message message)
+    public void EnqueueMessage(Circuit circuit, byte[] messageBytes)
     {
-        OutGoingMessages.Enqueue(new OutgoingMessage(){Circuit = circuit, Message = message});
+        OutGoingMessages.Enqueue(new OutgoingMessage(){Circuit = circuit, MessageBytes = messageBytes });
     }
 
 
     protected async Task Send(byte[] buffer, Circuit circuit)
     {
-        Logger.LogDebug($"SlMessageSystem.Send: Sending {buffer.Length} bytes...");
+        //Logger.LogDebug($"SlMessageSystem.Send: Sending {buffer.Length} bytes...");
         await UdpClient.SendAsync(buffer, buffer.Length, circuit.RemoteEndPoint);
     }
     

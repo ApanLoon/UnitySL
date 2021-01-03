@@ -23,9 +23,9 @@ public class Login
     protected string ViewerChannel { get; set; } = "Second Life Unity";
     protected string HostId { get; set; } = "APA";
 
-    protected UInt32 CircuitCode { get; set; }
-    protected Guid SessionId { get; set; }
-    protected Guid AgentId { get; set; }
+    public UInt32 CircuitCode { get; protected set; }
+    public Guid SessionId { get; protected set; }
+    public Guid AgentId { get; protected set; }
 
     public void Initialise(string machineId,
                            string serialNumber,

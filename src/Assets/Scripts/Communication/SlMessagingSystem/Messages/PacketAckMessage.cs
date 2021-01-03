@@ -29,8 +29,33 @@ public class PacketAckMessage : Message
         Id = id;
     }
 
-    public void AddAck(UInt32 ack)
+    public void AddPacketAck(UInt32 sequenceNumber)
     {
-        PacketAcks.Add(ack);
+        if (PacketAcks.Count >= 255)
+        {
+            throw new Exception("PacketAckMessasge: Too many acks in a single message. Max is 255.");
+        }
+        PacketAcks.Add(sequenceNumber);
     }
+
+    #region Serialize
+    public override int GetSerializedLength()
+    {
+        return base.GetSerializedLength()
+               + 1 // Count
+               + 4 * PacketAcks.Count;
+    }
+    public override int Serialize(byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        o += base.Serialize(buffer, offset, length);
+
+        buffer[o++] = (byte)PacketAcks.Count;
+        foreach (UInt32 sequenceNumber in PacketAcks)
+        {
+            o = BinarySerializer.Serialize_Le(sequenceNumber, buffer, o, length);
+        }
+        return o - offset;
+    }
+    #endregion Serialize
 }

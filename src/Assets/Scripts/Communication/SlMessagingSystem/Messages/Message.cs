@@ -6,6 +6,7 @@ public enum MessageId : UInt32
     Wrapper                      = 0xffff0001,
     UseCircuitCode               = 0xffff0003,
     RegionHandshake              = 0xffff0094,
+    RegionHandshakeReply         = 0xffff0095,
     CompleteAgentMovement        = 0xffff00f9,
     AgentMovementCompleteMessage = 0xffff00fa,
     AgentDataUpdate              = 0xffff0183,
@@ -42,6 +43,11 @@ public enum MessageEncoding
 
 public class Message
 {
+    /// <summary>
+    /// MTU - The largest total size of a packet.
+    /// </summary>
+    public static readonly int MaximumTranferUnit = 1200;
+
     public PacketFlags Flags { get; set; }
     public UInt32 SequenceNumber { get; set; }
     public byte[] ExtraHeader { get; set; }
@@ -52,14 +58,23 @@ public class Message
     public MessageId Id { get; set; }
     public MessageTrustLevel TrustLevel { get; set; }
 
-    public List<UInt32> Acks { get; set; }
+    public List<UInt32> Acks { get; set; } = new List<UInt32>();
+
+    public void AddAck(UInt32 sequenceNumber)
+    {
+        if (Acks.Count >= 255)
+        {
+            throw new Exception("Messasge: Too many acks in a single message. Max is 255.");
+        }
+        Acks.Add(sequenceNumber);
+    }
 
     public virtual int GetSerializedLength()
     {
-        int size = 1                   // Flags
-                   + 4                   // SequenceNumber
-                   + 1                   // Extra header length
-                   + (ExtraHeader?.Length ?? 0); // Extra header
+        int size = 1                           // Flags
+                 + 4                           // SequenceNumber
+                 + 1                           // Extra header length
+                 + (ExtraHeader?.Length ?? 0); // Extra header
         switch (Frequency)
         {
             case MessageFrequency.High:
@@ -76,7 +91,7 @@ public class Message
                 throw new ArgumentOutOfRangeException(nameof(Frequency), "Message.GetSerializedLength(Message): Unknown message frequency.");
         }
 
-        if (Acks != null && Acks.Count != 0)
+        if (Acks.Count != 0)
         {
             size += Acks.Count * 4 + 1;
         }
@@ -93,16 +108,17 @@ public class Message
 
         int o = offset;
 
-        if (Acks != null && Acks.Count != 0)
+        if (Acks.Count != 0)
         {
             Flags |= PacketFlags.Ack;
         }
 
         buffer[o++] = (byte)Flags;
-        buffer[o++] = (byte)(SequenceNumber >> 24);
-        buffer[o++] = (byte)(SequenceNumber >> 16);
-        buffer[o++] = (byte)(SequenceNumber >> 8);
-        buffer[o++] = (byte)(SequenceNumber >> 0);
+        o = BinarySerializer.Serialize_Be(SequenceNumber, buffer, o, length);
+        //buffer[o++] = (byte)(SequenceNumber >> 24);
+        //buffer[o++] = (byte)(SequenceNumber >> 16);
+        //buffer[o++] = (byte)(SequenceNumber >> 8);
+        //buffer[o++] = (byte)(SequenceNumber >> 0);
         buffer[o++] = (byte)(ExtraHeader?.Length ?? 0);
 
         UInt32 id = (UInt32)Id;
@@ -116,6 +132,10 @@ public class Message
             buffer[o++] = (byte)(id >> 8);
         }
         buffer[o++] = (byte)(id >> 0);
+
+        // Acks come at the end of the buffer. WARNING: If the buffer is too small, acks will be overwritten!
+        BinarySerializer.SerializeAcks(Acks, buffer);
+
         return o - offset;
     }
 
