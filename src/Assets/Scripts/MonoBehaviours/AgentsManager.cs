@@ -1,8 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class AgentsManager : MonoBehaviour
 {
-    [SerializeField] protected GameObject CurrentPlayer; // TODO: This should probably be rezzed
+    [SerializeField] protected GameObject AgentPrefab;
+    
+    protected static Dictionary<Guid, GameObject> AgentGoById = new Dictionary<Guid, GameObject>();
 
     private void Start()
     {
@@ -11,15 +15,34 @@ public class AgentsManager : MonoBehaviour
 
     protected void OnAgentMoved(Agent agent)
     {
-        if (agent != Agent.CurrentPlayer)
+        if (AgentGoById.ContainsKey(agent.Id) == false)
         {
-            return;
+            AddAgentGameObject(agent);
         }
 
-        CurrentPlayer.transform.position = agent.Position;
+        GameObject go = AgentGoById[agent.Id];
+        go.transform.position = agent.Position;
+
         // Head looks at the point, the body ignores the y
         Vector3 bodyLookAt = agent.LookAt;
         bodyLookAt.y = agent.Position.y;
-        CurrentPlayer.transform.LookAt(bodyLookAt);
+        go.transform.LookAt(bodyLookAt);
+    }
+
+    protected void AddAgentGameObject(Agent agent)
+    {
+        GameObject go = Instantiate(AgentPrefab, transform);
+        AgentGoById[agent.Id] = go;
+
+        AgentController controller = go.GetComponent<AgentController>();
+        if (controller == null)
+        {
+            Logger.LogError("AgentsManager.AddAgentGameObject: Agent prefab has no AgentController.");
+            return;
+        }
+
+        go.name = $"{agent.FirstName} {agent.LastName}";
+        controller.SetName(agent.DisplayName);
+        controller.SetGroupTitle(agent.GroupTitle);
     }
 }
