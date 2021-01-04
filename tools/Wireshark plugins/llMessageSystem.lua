@@ -239,6 +239,30 @@ function ThrottleIndexToString(index)
 	return "Unknown"
 end
 
+function ViewerEffectTypeToString(effectType)
+	if effectType ==  0 then return "TEXT" end
+	if effectType ==  1 then return "ICON" end
+	if effectType ==  2 then return "CONNECTOR" end
+	if effectType ==  3 then return "FLEXIBLE_OBJECT" end
+	if effectType ==  4 then return "ANIMAL_CONTROLS" end
+	if effectType ==  5 then return "LOCAL_ANIMATION_OBJECT" end
+	if effectType ==  6 then return "CLOTH" end
+	if effectType ==  7 then return "EFFECT_BEAM" end
+	if effectType ==  8 then return "EFFECT_GLOW" end
+	if effectType ==  9 then return "EFFECT_POINT" end
+	if effectType == 10 then return "EFFECT_TRAIL" end
+	if effectType == 11 then return "EFFECT_SPHERE" end
+	if effectType == 12 then return "EFFECT_SPIRAL" end
+	if effectType == 13 then return "EFFECT_EDIT" end
+	if effectType == 14 then return "EFFECT_LOOKAT" end
+	if effectType == 15 then return "EFFECT_POINTAT" end
+	if effectType == 16 then return "EFFECT_VOICE_VISUALIZER" end
+	if effectType == 17 then return "NAME_TAG" end
+	if effectType == 18 then return "EFFECT_BLOB" end
+	return "UNKNOWN"
+end
+
+
 function GuidToString(buffer)
 	local a = buffer(0, 4)
 	local b = buffer(4, 2)
@@ -273,6 +297,18 @@ function AddVector3ToTree(tree, messageNumber, fieldPrefix, buffer, offset)
 	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "Y"], buffer, offset,  4)
 	local z = buffer(offset, 4):le_float()
 	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "Z"], buffer, offset,  4)
+	subtree:append_text(string.format(": <%f, %f, %f>", x, y, z))
+	return offset
+end
+
+function AddVector3dToTree(tree, messageNumber, fieldPrefix, buffer, offset)
+	local subtree = tree:add(llmsg_protocol, buffer(offset, 24), fieldPrefix)
+	local x = buffer(offset, 8):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "X"], buffer, offset,  8)
+	local y = buffer(offset, 8):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "Y"], buffer, offset,  8)
+	local z = buffer(offset, 8):le_float()
+	offset = AddFieldToTree_le(subtree, Decoders[messageNumber].Fields[fieldPrefix .. "Z"], buffer, offset,  8)
 	subtree:append_text(string.format(": <%f, %f, %f>", x, y, z))
 	return offset
 end
@@ -1325,6 +1361,58 @@ Decoders =
 		end
 	},
 
+	["ViewerEffectSpiral"] =
+	{
+		Name = "Effect Spiral",
+		Fields = 
+		{
+			SourceObjectId  = ProtoField.guid   ("llmsg.ViewerEffectSpiral.SourceObjectId",        "SourceObjectId"),
+			TargetObjectId  = ProtoField.guid   ("llmsg.ViewerEffectSpiral.TargetObjectId",        "TargetObjectId"),
+			PositionGlobalX = ProtoField.double ("llmsg.ViewerEffectSpiral.PositionGlobalX",       "PositionGlobalX"),
+			PositionGlobalY = ProtoField.double ("llmsg.ViewerEffectSpiral.PositionGlobalY",       "PositionGlobalY"),
+			PositionGlobalZ = ProtoField.double ("llmsg.ViewerEffectSpiral.PositionGlobalZ",       "PositionGlobalZ")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = "ViewerEffectSpiral"
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.SourceObjectId,     buffer, o, 16)
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.TargetObjectId,     buffer, o, 16)
+			o = AddVector3dToTree (subtree,      messageNumber,       "PositionGlobal",    buffer, o)
+			return o
+		end
+	},
+
+	["ViewerEffectLookAt"] =
+	{
+		Name = "Effect LookAt",
+		Fields = 
+		{
+			SourceAvatarId  = ProtoField.guid   ("llmsg.ViewerEffectLookAt.SourceObjectId",        "SourceObjectId"),
+			TargetObjectId  = ProtoField.guid   ("llmsg.ViewerEffectLookAt.TargetObjectId",        "TargetObjectId"),
+			TargetPositionX = ProtoField.double ("llmsg.ViewerEffectLookAt.TargetPositionX",       "TargetPositionX"),
+			TargetPositionY = ProtoField.double ("llmsg.ViewerEffectLookAt.TargetPositionY",       "TargetPositionY"),
+			TargetPositionZ = ProtoField.double ("llmsg.ViewerEffectLookAt.TargetPositionZ",       "TargetPositionZ"),
+			LookAtType      = ProtoField.uint8  ("llmsg.ViewerEffectLookAt.LookAtType",            "LookAtType")
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = "ViewerEffectLookAt"
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.SourceAvatarId,     buffer, o, 16)
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.TargetObjectId,     buffer, o, 16)
+			o = AddVector3dToTree (subtree,      messageNumber,       "TargetPosition",    buffer, o)
+			o = AddFieldToTree(subtree, Decoders[messageNumber].Fields.LookAtType,         buffer, o, 1)
+			return o
+		end
+	},
+
 	[0xff11] =
 	{
 		Name = "ViewerEffect",
@@ -1361,12 +1449,21 @@ Decoders =
 				local effectTree = effectsTree:add(llmsg_protocol, buffer(o), "Effect")
 				o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.Id,             buffer, o, 16)
 				o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.AgentId2,       buffer, o, 16)
-				o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.Type,           buffer, o,  1)
+				local type = buffer(o, 1):uint()
+				o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.Type,           buffer, o,  1, string.format(" %s", ViewerEffectTypeToString(type)))
 				o = AddFieldToTree_le (effectTree, Decoders[messageNumber].Fields.Duration,       buffer, o,  4)
 				o = AddFieldToTree_le (effectTree, Decoders[messageNumber].Fields.Color,          buffer, o,  4)
 				local typeDataLength = buffer(o, 1):uint();
-				o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.TypeDataLength, buffer, o,  1)
-				o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.TypeData,       buffer, o,  typeDataLength)
+				if type == 7 or type == 9 or type == 11 or type == 12 or type == 13 then
+					o = o + 1; -- Skip type field
+					o = Decoders["ViewerEffectSpiral"].Decoder(buffer, o, typeDataLength, effectTree, pinfo)
+				elseif type == 14 then
+					o = o + 1; -- Skip type field
+					o = Decoders["ViewerEffectLookAt"].Decoder(buffer, o, typeDataLength, effectTree, pinfo)
+				else
+					o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.TypeDataLength, buffer, o,  1)
+					o = AddFieldToTree    (effectTree, Decoders[messageNumber].Fields.TypeData,       buffer, o,  typeDataLength)
+				end
 			end
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
