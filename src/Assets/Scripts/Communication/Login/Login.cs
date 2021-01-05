@@ -6,10 +6,6 @@ using UnityEngine;
 
 public class Login
 {
-    public static Login Instance => _instance;
-
-    private static Login _instance = new Login();
-
     public static readonly int ADDRESS_SIZE = 64; // TODO: This should not be here
 
     protected string SerialNumber { get; set; } = "123456789-abcdefgh";
@@ -22,10 +18,6 @@ public class Login
     protected string ViewerVersion { get; set; }
     protected string ViewerChannel { get; set; } = "Second Life Unity";
     protected string HostId { get; set; } = "APA";
-
-    public UInt32 CircuitCode { get; protected set; }
-    public Guid SessionId { get; protected set; }
-    public Guid AgentId { get; protected set; }
 
     public void Initialise(string machineId,
                            string serialNumber,
@@ -50,17 +42,7 @@ public class Login
         HostId = hostId;
     }
 
-    public async Task Connect (
-        Credential credential,
-        Slurl slurl = null,
-        bool getInventoryLibrary = true,
-        bool godMode = false)
-    {
-        string uri = GridManager.Instance.CurrentGrid.LoginUri;
-        await Connect(uri, credential, slurl, getInventoryLibrary, godMode);
-    }
-
-    public async Task Connect(string uri, Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
+    public async Task<LoginResponse> Connect(string uri, Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
     {
         if (slurl == null)
         {
@@ -71,16 +53,24 @@ public class Login
         XmlRpcParameterArray parameters = CreateLoginParameters(credential, slurl, getInventoryLibrary, godMode);
         
         XmlRpcResponse response = await XmlRpcClient.Call(uri, "login_to_simulator", parameters);
+        
+        LoginResponse loginResponse = new LoginResponse();
         if (response.FaultCode != 0)
         {
-            Logger.LogWarning($"Login.Connect: Login failed. ({response.FaultCode} {response.FaultString})");
-            return;
+            loginResponse.LoginSucceeded = false;
+            loginResponse.LoginFailReason = response.FaultCode.ToString();
+            loginResponse.Message = response.FaultString;
+            loginResponse.MessageId = "XmlRpcError";
+            return loginResponse;
         }
 
         if (response.Parameters.Count != 1 || (response.Parameters[0] is XmlRpcStruct == false))
         {
-            Logger.LogWarning("Login.Connect: Login response contained incorrect parameters.");
-            return;
+            loginResponse.LoginSucceeded = false;
+            loginResponse.LoginFailReason = "500";
+            loginResponse.Message = "Login response contained incorrect parameters.";
+            loginResponse.MessageId = "XmlRpcError";
+            return loginResponse;
         }
 
         XmlRpcStruct responseData = (XmlRpcStruct)response.Parameters[0];
@@ -89,81 +79,73 @@ public class Login
             || (responseData["login"] is XmlRpcString == false)
             || ((XmlRpcString)responseData["login"]).Value != "true")
         {
-
-            // message_args = " "
-            // reason       = "key", "update", "tos"
-            // message      = "Sorry! We couldn't log you in. Please check to make sure you entered the right * Username (like bobsmith12 or steller.sunshine) * Password Also, please make sure your Caps Lock key is off."
-            // message_id   = "LoginFailedAuthenticationFailed"
-            Logger.LogWarning($"Login.Connect: {responseData["message_id"].AsString} {responseData["message"].AsString}");
-            return;
+            loginResponse.LoginSucceeded = false;
+            loginResponse.LoginFailReason = responseData["reason"]?.AsString;
+            loginResponse.Message = responseData["message"]?.AsString;
+            loginResponse.MessageId = responseData["message_id"]?.AsString;
+            return loginResponse;
         }
 
         Logger.LogInfo("Login.Connect: Connection was successful.");
 
-        if (ProcessLoginSuccessResponse(responseData))
+        if (ProcessLoginSuccessResponse(responseData, loginResponse))
         {
-            // Go to state STATE_WORLD_INIT
-
-            await Region.CurrentRegion.Circuit.SendUseCircuitCode(CircuitCode, SessionId, AgentId);
-            Logger.LogInfo("UseCircuitCode was acked.");
-            await Region.CurrentRegion.Circuit.SendCompleteAgentMovement(AgentId, SessionId, CircuitCode);
-            Logger.LogInfo("CompleteAgentMovement was acked.");
-
+            loginResponse.LoginSucceeded = true;
+            return loginResponse;
         }
         else
         {
             // Yet another error
         }
+
+        return loginResponse;
     }
 
-    protected bool ProcessLoginSuccessResponse(XmlRpcStruct responseData)
+    protected bool ProcessLoginSuccessResponse(XmlRpcStruct responseData, LoginResponse loginResponse)
     {
         // TODO: Parse benefits
         // TODO: Parse "udp_blacklist"
 
-        SessionId = Guid.Empty;
+        loginResponse.SessionId = Guid.Empty;
         if (responseData.Has("session_id"))
         {
-            SessionId = Guid.Parse(responseData["session_id"].AsString);
+            loginResponse.SessionId = Guid.Parse(responseData["session_id"].AsString);
         }
-        if (SessionId == Guid.Empty)
+        if (loginResponse.SessionId == Guid.Empty)
         {
             return false;
         }
 
         #region Agent
-        AgentId = Guid.Empty;
+        loginResponse.AgentId = Guid.Empty;
         if (responseData.Has("agent_id"))
         {
-            AgentId = Guid.Parse(responseData["agent_id"].AsString);
+            loginResponse.AgentId = Guid.Parse(responseData["agent_id"].AsString);
         }
-        if (AgentId == Guid.Empty)
+        if (loginResponse.AgentId == Guid.Empty)
         {
             return false;
         }
 
-        Agent agent = new Agent(AgentId);
-        Agent.SetCurrentPlayer(agent);
-
         // TODO: Send agentId and agentSessionId to the LLUrlEntryParcel
 
 
-        Guid agentSecureSessionId = Guid.Empty;
-        if (responseData.Has("secure_session_id"))
-        {
-            agentSecureSessionId = Guid.Parse(responseData["secure_session_id"].AsString);
-        }
+        //Guid agentSecureSessionId = Guid.Empty;
+        //if (responseData.Has("secure_session_id"))
+        //{
+        //    agentSecureSessionId = Guid.Parse(responseData["secure_session_id"].AsString);
+        //}
 
         string agentUserName = "";
         if (responseData.Has("first_name"))
         {
             agentUserName = responseData["first_name"].AsString.Replace('"', ' ').Trim(); // NOTE: login.cgi sends " to force names that look like numbers into strings
-            agent.FirstName = agentUserName;
+            loginResponse.FirstName = agentUserName;
         }
         if (responseData.Has("last_name"))
         {
             string lastName = responseData["last_name"].AsString.Replace('"', ' ').Trim(); // NOTE: login.cgi sends " to force names that look like numbers into strings
-            agent.LastName = lastName;
+            loginResponse.LastName = lastName;
             if (lastName != "Resident")
             {
                 agentUserName += $" {lastName}";
@@ -182,73 +164,70 @@ public class Login
         {
             // TODO: Construct display name from request credentials
         }
-        agent.DisplayName = displayName;
+        loginResponse.DisplayName = displayName;
 
-        RegionMaturityLevel regionMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
-        if (responseData.Has("agent_access_max"))
-        {
-            Enum.TryParse<RegionMaturityLevel>(responseData["agent_access_max"].AsString, out regionMaturityLevel);
-        }
+        //RegionMaturityLevel regionMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
+        //if (responseData.Has("agent_access_max"))
+        //{
+        //    Enum.TryParse<RegionMaturityLevel>(responseData["agent_access_max"].AsString, out regionMaturityLevel);
+        //}
 
-        RegionMaturityLevel preferredMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
-        if (responseData.Has("agent_region_access"))
-        {
-            Enum.TryParse<RegionMaturityLevel>(responseData["agent_region_access"].AsString, out preferredMaturityLevel);
-        }
+        //RegionMaturityLevel preferredMaturityLevel = RegionMaturityLevel.A; // TODO: Get from settings
+        //if (responseData.Has("agent_region_access"))
+        //{
+        //    Enum.TryParse<RegionMaturityLevel>(responseData["agent_region_access"].AsString, out preferredMaturityLevel);
+        //}
 
-        string agentStartLocation = "";
-        if (responseData.Has("start_location"))
-        {
-            agentStartLocation = responseData["start_location"].AsString;
-        }
+        //string agentStartLocation = "";
+        //if (responseData.Has("start_location"))
+        //{
+        //    agentStartLocation = responseData["start_location"].AsString;
+        //}
 
-        Vector3 agentStartLookAt = Vector3.forward;
-        if (responseData.Has("look_at"))
-        {
-            // TODO: Decode "[r0.75787899999999996936,r0.65239599999999997593,r0]"
-        }
+        //Vector3 agentStartLookAt = Vector3.forward;
+        //if (responseData.Has("look_at"))
+        //{
+        //    // TODO: Decode "[r0.75787899999999996936,r0.65239599999999997593,r0]"
+        //}
 
-        EventManager.Instance.RaiseOnAgentDataChanged(agent);
         #endregion Agent
 
         #region Region
-        Region region = new Region();
-        Region.SetCurrentRegion(region);
-
         if (responseData.Has("region_x") && responseData.Has("region_y"))
         {
             UInt32 x = UInt32.Parse(responseData["region_x"].AsString);
             UInt32 y = UInt32.Parse(responseData["region_y"].AsString);
-            region.Handle = new RegionHandle (x, y);
+            loginResponse.RegionHandle = new RegionHandle (x, y);
         }
 
-        CircuitCode = 0;
-        string simIp = "";
-        int simPort = 0;
+        loginResponse.CircuitCode = 0;
+        loginResponse.SimIp = "";
+        loginResponse.SimPort = 0;
+
         if (responseData.Has("circuit_code"))
         {
-            CircuitCode = UInt32.Parse(responseData["circuit_code"].AsString);
+            loginResponse.CircuitCode = UInt32.Parse(responseData["circuit_code"].AsString);
         }
         if (responseData.Has("sim_ip"))
         {
-            simIp = responseData["sim_ip"].AsString;
+            loginResponse.SimIp = responseData["sim_ip"].AsString;
         }
         if (responseData.Has("sim_port"))
         {
-            simPort = int.Parse(responseData["sim_port"].AsString);
+            loginResponse.SimPort = int.Parse(responseData["sim_port"].AsString);
         }
-        if (CircuitCode == 0 || string.IsNullOrEmpty(simIp) || simPort == 0)
+        if (loginResponse.CircuitCode == 0 || string.IsNullOrEmpty(loginResponse.SimIp) || loginResponse.SimPort == 0)
         {
             return false;
         }
-        region.Circuit = SlMessageSystem.Instance.EnableCircuit(simIp, simPort);
-
-        #endregion Region
 
         if (responseData.Has("seed_capability"))
         {
-            Logger.LogDebug($"seed_capability={responseData["seed_capability"].AsString}");
+            loginResponse.SeedCapability = responseData["seed_capability"]?.AsString;
         }
+
+        #endregion Region
+
 
         // TODO: Parse more things, see llstartup.cpp line 3439 and onwards
 

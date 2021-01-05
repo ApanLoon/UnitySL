@@ -159,7 +159,7 @@ public class LoginScreen : MonoBehaviour
         // TODO: Make it possible to select grid
 
         Credential credential = new Credential(NameText.text, PasswordText.text);
-        await Login.Instance.Connect(credential);
+        await Session.Instance.Start(credential);
 
         // TODO: Saving name and password should only be done if the login is successful
 

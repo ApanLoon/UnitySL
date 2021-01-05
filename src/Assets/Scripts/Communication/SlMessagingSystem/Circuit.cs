@@ -110,9 +110,9 @@ public class Circuit : IDisposable
 
     public async Task SendAgentThrottle()
     {
-        Guid agentId = Login.Instance.AgentId;
-        Guid sessionId = Login.Instance.SessionId;
-        UInt32 circuitCode = Login.Instance.CircuitCode;
+        Guid agentId = Session.Instance.AgentId;
+        Guid sessionId = Session.Instance.SessionId;
+        UInt32 circuitCode = Session.Instance.CircuitCode;
         float resend = 100 * 1024f; // TODO: Make these configurable
         float land = 100 * 1024f;
         float wind = 20 * 1024f;
@@ -127,9 +127,9 @@ public class Circuit : IDisposable
     }
     public async Task SendAgentHeightWidth(UInt16 height, UInt16 width)
     {
-        Guid agentId = Login.Instance.AgentId;
-        Guid sessionId = Login.Instance.SessionId;
-        UInt32 circuitCode = Login.Instance.CircuitCode;
+        Guid agentId = Session.Instance.AgentId;
+        Guid sessionId = Session.Instance.SessionId;
+        UInt32 circuitCode = Session.Instance.CircuitCode;
         Logger.LogDebug($"Circuit.SendAgentHeightWidth({agentId}, {sessionId}): Sending to {Address}:{Port}");
 
         AgentHeightWidthMessage message = new AgentHeightWidthMessage(agentId, sessionId, circuitCode, 0, height, width);

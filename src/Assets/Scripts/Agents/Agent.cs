@@ -44,6 +44,7 @@ public class Agent :IDisposable
 
     public Vector3 Position { get; set; }
     public Vector3 LookAt { get; set; }
+    public Region CurrentRegion { get; set; }
 
     public Agent(Guid id)
     {

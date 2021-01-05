@@ -47,6 +47,7 @@ public class Region
     // TODO: Add RegionInfo4 when I know what it is
 
     public Circuit Circuit { get; set; }
+    public string SeedCapability { get; set; }
 
     protected static async void OnRegionHandshakeMessage(RegionHandshakeMessage message)
     {
@@ -110,7 +111,7 @@ public class Region
         RegionHandshakeReplyFlags flags =   RegionHandshakeReplyFlags.CacheFileIsEmpty 
                                           | RegionHandshakeReplyFlags.SupportsSelfAppearance;
 
-        await CurrentRegion.Circuit.SendRegionHandshakeReply(Login.Instance.AgentId, Login.Instance.SessionId, flags);
+        await CurrentRegion.Circuit.SendRegionHandshakeReply(Session.Instance.AgentId, Session.Instance.SessionId, flags);
         await CurrentRegion.Circuit.SendAgentThrottle();
         await CurrentRegion.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should not be called from here and the dimensions should take the title and status bars into account.
     }
