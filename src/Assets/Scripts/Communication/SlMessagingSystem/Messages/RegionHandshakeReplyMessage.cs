@@ -1,20 +1,28 @@
 ﻿using System;
 
+[Flags]
+public enum RegionHandshakeReplyFlags : UInt32
+{
+    SendAllCacheableObjects = 1, 
+    CacheFileIsEmpty        = 2,   // No need to send cache probes
+    SupportsSelfAppearance  = 4
+}
+
 public class RegionHandshakeReplyMessage : Message
 {
     public Guid AgentId { get; set; }
     public Guid SessionId { get; set; }
-    public UInt32 RegionFlags { get; set; }
+    public RegionHandshakeReplyFlags ReplyFlags { get; set; }
 
-    public RegionHandshakeReplyMessage(Guid agentId, Guid sessionId, UInt32 regionFlags)
+    public RegionHandshakeReplyMessage(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags replyFlags)
     {
         Id = MessageId.RegionHandshakeReply;
-        Flags = 0; // TODO: message_template.msg says that this should be ZeroCoded but I don't have a way of doing that yet
+        Flags = PacketFlags.Reliable; // TODO: message_template.msg says that this should be ZeroCoded but I don't have a way of doing that yet and Firestorm doesn't do it
         Frequency = MessageFrequency.Low;
 
-        AgentId = agentId;
-        SessionId = sessionId;
-        RegionFlags = regionFlags;
+        AgentId    = agentId;
+        SessionId  = sessionId;
+        ReplyFlags = replyFlags;
     }
 
     public override int GetSerializedLength()
@@ -31,7 +39,7 @@ public class RegionHandshakeReplyMessage : Message
 
         o = BinarySerializer.Serialize(AgentId,     buffer, o, length);
         o = BinarySerializer.Serialize(SessionId,   buffer, o, length);
-        o = BinarySerializer.Serialize_Le(RegionFlags, buffer, o, length);
+        o = BinarySerializer.Serialize_Le((UInt32)ReplyFlags, buffer, o, length);
 
         return o - offset;
     }

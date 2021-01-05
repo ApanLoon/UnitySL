@@ -107,7 +107,10 @@ public class Region
 
         // TODO: Load cache for the region, but should it be here?
 
-        await CurrentRegion.Circuit.SendRegionHandshakeReply(Login.Instance.AgentId, Login.Instance.SessionId, 5);  // TODO: What are these flags?
+        RegionHandshakeReplyFlags flags =   RegionHandshakeReplyFlags.CacheFileIsEmpty 
+                                          | RegionHandshakeReplyFlags.SupportsSelfAppearance;
+
+        await CurrentRegion.Circuit.SendRegionHandshakeReply(Login.Instance.AgentId, Login.Instance.SessionId, flags);
         await CurrentRegion.Circuit.SendAgentThrottle();
         await CurrentRegion.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should not be called from here and the dimensions should take the title and status bars into account.
     }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public class Circuit : IDisposable
 {
-    public static readonly float AckTimeOut = 2f;
+    public static readonly float AckTimeOut = 0.5f; // TODO: if the acknowledgment is not received in a predetermined amount of time (A minimum of 1 second, or a maximum determined by the average ping delay of the circuit), the packet is resent. If the packet is not acknowledged after 3 resends (default value), it is dropped.
 
     public Circuit(IPAddress address, int port, SlMessageSystem messageSystem, float heartBeatInterval, float circuitTimeout)
     {
@@ -136,9 +136,9 @@ public class Circuit : IDisposable
         await SendReliable(message);
     }
 
-    public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, UInt32 flags)
+    public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
     {
-        Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags:x8}): Sending to {Address}:{Port}");
+        Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to {Address}:{Port}");
 
         RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
         await Send(message);
@@ -155,14 +155,19 @@ public class Circuit : IDisposable
 
     protected async Task SendReliable(Message message)
     {
+        message.Flags |= PacketFlags.Reliable;
+        message.SequenceNumber = ++LastSequenceNumber;
         WaitingForInboundAck.Add(message.SequenceNumber);
-        await Send(message);
+        await Send(message, false);
         await Ack(message.SequenceNumber);
     }
 
-    protected async Task Send(Message message)
+    protected async Task Send(Message message, bool assignSequenceNumber = true)
     {
-        message.SequenceNumber = ++LastSequenceNumber;
+        if (assignSequenceNumber)
+        {
+            message.SequenceNumber = ++LastSequenceNumber;
+        }
 
         int len = message.GetSerializedLength();
         int nAcks = WaitingForOutboundAck.Count;
@@ -189,7 +194,11 @@ public class Circuit : IDisposable
     {
         var waitTask = Task.Run(async () =>
         {
-            while (WaitingForInboundAck.Contains(sequenceNumber)) await Task.Delay(frequency);
+            while (WaitingForInboundAck.Contains(sequenceNumber))
+            {
+                await Task.Delay(frequency);
+            }
+            Logger.LogDebug($"{sequenceNumber} Acked?!?");
         });
 
         if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
