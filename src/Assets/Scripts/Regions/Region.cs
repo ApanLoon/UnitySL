@@ -108,7 +108,9 @@ public class Region
 
         // TODO: Load cache for the region, but should it be here?
 
-        RegionHandshakeReplyFlags flags =   RegionHandshakeReplyFlags.CacheFileIsEmpty 
+        RegionHandshakeReplyFlags flags = 0
+                                          | RegionHandshakeReplyFlags.SendAllCacheableObjects
+                                          | RegionHandshakeReplyFlags.CacheFileIsEmpty 
                                           | RegionHandshakeReplyFlags.SupportsSelfAppearance;
 
         await CurrentRegion.Circuit.SendRegionHandshakeReply(Session.Instance.AgentId, Session.Instance.SessionId, flags);
