@@ -17,6 +17,7 @@ public enum MessageId : UInt32
     AgentThrottle                = 0xffff0051,
     AgentHeightWidth             = 0xffff0053,
     HealthMessage                = 0xffff008a,
+    ChatFromSimulator            = 0xffff008b,
     RegionHandshake              = 0xffff0094,
     RegionHandshakeReply         = 0xffff0095,
     SimulatorViewerTimeMessage   = 0xffff0096,

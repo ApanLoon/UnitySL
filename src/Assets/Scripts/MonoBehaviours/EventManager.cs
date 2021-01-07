@@ -60,6 +60,10 @@ public class EventManager : MonoBehaviour
     public event Action<SimulatorViewerTimeMessage> OnSimulatorViewerTimeMessage;
     #endregion Region
 
+    #region Chat
+    public event Action<ChatFromSimulatorMessage> OnChatFromSimulatorMessage;
+    #endregion Chat
+
     #region Map
     public event Action<CoarseLocationUpdateMessage> OnCoarseLocationUpdateMessage;
     #endregion Map
@@ -92,6 +96,7 @@ public class EventManager : MonoBehaviour
 
         {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke          ((ViewerEffectMessage)m)          },
         {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                ((HealthMessage)m)                },
+        {MessageId.ChatFromSimulator,            (m) => Instance.OnChatFromSimulatorMessage?.Invoke     ((ChatFromSimulatorMessage)m)     },
         {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke       ((RegionHandshakeMessage)m)       },
         {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke   ((SimulatorViewerTimeMessage)m)   },
         {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke   ((ScriptControlChangeMessage)m)   },

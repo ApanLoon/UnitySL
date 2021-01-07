@@ -395,6 +395,30 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.ChatFromSimulator, // 0xffff008b
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                ChatFromSimulatorMessage m = new ChatFromSimulatorMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                string s;
+                Guid guid;
+                o = DeSerialize(out s, 1,    buf, o, length); m.FromName = s;
+                o = DeSerialize(out guid,             buf, o, length); m.SourceId = guid;
+                o = DeSerialize(out guid,             buf, o, length); m.OwnerId = guid;
+                m.SourceType   = (ChatSourceType)    buf[o++];
+                m.ChatType     = (ChatType)          buf[o++];
+                m.AudibleLevel = (ChatAudibleLevel)  buf[o++];
+                m.Position = DeSerializeVector3     (buf, ref o, length);
+                o = DeSerialize(out s, 2,    buf, o, length); m.Message = s;
+
+                Logger.LogDebug($"ChatFromSimulator: FromName={m.FromName}, Message={m.Message}, ChatType={m.ChatType}, AudibleLevel={m.AudibleLevel}, SourceType={m.SourceType}, SourceId={m.SourceId}, OwnerId={m.OwnerId}");
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.RegionHandshake, // 0xffff0094
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
