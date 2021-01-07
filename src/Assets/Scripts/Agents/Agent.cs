@@ -46,11 +46,21 @@ public class Agent :IDisposable
     public Vector3 LookAt { get; set; }
     public Region CurrentRegion { get; set; }
 
+    public float Health { get; set; }
+
     public Agent(Guid id)
     {
         Id = id;
+        EventManager.Instance.OnHealthMessage += OnHealthMessage;
         EventManager.Instance.OnAgentDataUpdateMessage += OnAgentDataUpdateMessage;
         EventManager.Instance.OnAgentMovementCompleteMessage += OnAgentMovementCompleteMessage;
+    }
+
+    protected void OnHealthMessage(HealthMessage message)
+    {
+        // TODO: There shouldn't be a health message listener for every agent!
+        CurrentPlayer.Health = message.Health;
+        EventManager.Instance.RaiseOnHealthChanged (CurrentPlayer);
     }
 
     protected void OnAgentMovementCompleteMessage(AgentMovementCompleteMessage message)

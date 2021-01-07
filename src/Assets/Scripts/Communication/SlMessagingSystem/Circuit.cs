@@ -92,6 +92,7 @@ public class Circuit : IDisposable
     public HashSet<UInt32> WaitingForInboundAck = new HashSet<UInt32>();
     public Queue<UInt32> WaitingForOutboundAck = new Queue<UInt32>();
 
+    #region SendMessage
     public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
     {
         Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");
@@ -205,7 +206,8 @@ public class Circuit : IDisposable
             throw new TimeoutException();
         }
     }
-    
+    #endregion SendMessage
+
     public async Task ReceiveData(byte[] buf)
     {
         Message message = BinarySerializer.DeSerializeMessage(buf, 0);
@@ -214,7 +216,7 @@ public class Circuit : IDisposable
             return;
         }
 
-        Logger.LogInfo($"Circuit.ReceiveData: {message}");
+        //Logger.LogInfo($"Circuit.ReceiveData: {message}");
 
         switch (message)
         {
@@ -231,6 +233,10 @@ public class Circuit : IDisposable
                         WaitingForInboundAck.Remove(ack);
                     }
                 }
+                break;
+
+            case HealthMessage healthMessage:
+                EventManager.Instance.RaiseOnHealthMessage(healthMessage);
                 break;
 
             case AgentDataUpdateMessage agentDataUpdateMessage:

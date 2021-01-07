@@ -19,6 +19,12 @@ public class EventManager : MonoBehaviour
 
     #region Agent
 
+    public event Action<Agent> OnHealthChanged;
+    public void RaiseOnHealthChanged(Agent agent)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnHealthChanged?.Invoke(agent));
+    }
+
     public event Action<Agent> OnAgentDataChanged;
     public void RaiseOnAgentDataChanged(Agent agent)
     {
@@ -32,6 +38,12 @@ public class EventManager : MonoBehaviour
     }
 
     #region Messages
+    public event Action<HealthMessage> OnHealthMessage;
+    public void RaiseOnHealthMessage(HealthMessage message)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnHealthMessage?.Invoke(message));
+    }
+
     public event Action<AgentDataUpdateMessage> OnAgentDataUpdateMessage;
     public void RaiseOnAgentDataUpdateMessage(AgentDataUpdateMessage message)
     {

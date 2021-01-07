@@ -180,6 +180,19 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.HealthMessage, // 0xffff008a
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                HealthMessage m = new HealthMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                m.Health = DeSerializeFloat_Le(buf, ref o, length);
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.RegionHandshake, // 0xffff0094
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {

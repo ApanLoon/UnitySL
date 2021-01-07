@@ -4,17 +4,30 @@ using UnityEngine;
 public class MainTitleBar : MonoBehaviour
 {
     [SerializeField] protected TMP_Text PlayerName;
+    [SerializeField] protected TMP_Text PlayerHealth;
     [SerializeField] protected TMP_Text RegionName;
     [SerializeField] protected TMP_Text PositionText;
 
     private void Start()
     {
         PlayerName.text = "";
+        PlayerHealth.text = "";
         RegionName.text = "";
         PositionText.text = "";
+        EventManager.Instance.OnHealthChanged += OnHealthChanged;
         EventManager.Instance.OnAgentDataChanged += OnAgentDataChanged;
         EventManager.Instance.OnRegionDataChanged += OnRegionDataChanged;
         EventManager.Instance.OnAgentMoved += OnAgentMoved;
+    }
+
+    protected void OnHealthChanged(Agent agent)
+    {
+        if (agent.Id != Agent.CurrentPlayer?.Id)
+        {
+            return;
+        }
+
+        PlayerHealth.text = $"Health: {agent.Health}%";
     }
 
     protected void OnAgentDataChanged(Agent agent)
@@ -25,8 +38,8 @@ public class MainTitleBar : MonoBehaviour
         }
 
         PlayerName.text = $"{agent.DisplayName} ({agent.FirstName} {agent.LastName})";
-
     }
+
     protected void OnRegionDataChanged(Region region)
     {
         if (region.Id != Region.CurrentRegion?.Id)
