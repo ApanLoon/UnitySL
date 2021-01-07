@@ -62,4 +62,12 @@ public class EventManager : MonoBehaviour
     }
 
     #endregion Region
+
+    #region Progress
+    public event Action<string, string, float, bool, float> OnProgressUpdate;
+    public void RaiseOnProgressUpdate (string title, string message, float progress, bool close = false, float maxProgress = 1.0f)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnProgressUpdate?.Invoke(title, message, progress, close, maxProgress));
+    }
+    #endregion Progress
 }

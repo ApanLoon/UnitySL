@@ -18,13 +18,22 @@ public class Session
 
     public async Task Start (string uri, Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
     {
+        float progress = 0f;
+
         #region Login
+
         Logger.LogDebug("LOGIN------------------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Logging in...", progress);
+        progress += 0.02f;
+
         Login login = new Login();
         LoginResponse loginResponse = await login.Connect(uri, credential, slurl, getInventoryLibrary, godMode);
 
+
         if (loginResponse.LoginSucceeded == false)
         {
+            EventManager.Instance.RaiseOnProgressUpdate("Login", "Login failed.", progress, true);
+
             switch (loginResponse.LoginFailReason)
             {
                 case "key":
@@ -45,6 +54,7 @@ public class Session
 
         #region WorldInit
         Logger.LogDebug("WORLD_INIT-------------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Initializing world...", 0.3f);
 
         AgentId = loginResponse.AgentId;
         Agent agent = new Agent(loginResponse.AgentId)
@@ -64,6 +74,7 @@ public class Session
         Region.SetCurrentRegion(region);
 
         Logger.LogInfo("Requesting capability grants...");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Requesting capability grants...", 0.32f);
         Task<Dictionary<string, string>> seedCapabilitiesTask = SeedCapabilities.RequestCapabilities(region.SeedCapability);
 
         agent.CurrentRegion = region;
@@ -72,14 +83,19 @@ public class Session
 
         #region MultimediaInit
         Logger.LogDebug("MULTIMEDIA_INIT--------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Initializing multimedia...", 0.42f);
+
         #endregion MultimediaInit
 
         #region FontInit
         Logger.LogDebug("FONT_INIT--------------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Initializing fonts...", 0.45f);
+
         #endregion FontInit
 
         #region SeedGrantedWait
         Logger.LogDebug("SEED_GRANTED_WAIT------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region capabilities...", 0.47f);
 
         Dictionary<string, string> grantedCapabilities = await seedCapabilitiesTask;
         Logger.LogInfo($"Got capability grants. ({grantedCapabilities?.Count})");
@@ -91,6 +107,8 @@ public class Session
 
         CircuitCode = loginResponse.CircuitCode;
         region.Circuit = SlMessageSystem.Instance.EnableCircuit(loginResponse.SimIp, loginResponse.SimPort);
+
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await Region.CurrentRegion.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
         Logger.LogInfo("UseCircuitCode was acked.");
         #endregion SeedCapabilitiesGranted
@@ -98,6 +116,7 @@ public class Session
         #region AgentSend
         Logger.LogDebug("AGENT_SEND-------------------------");
 
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Connecting to region...", 0.6f);
         await Region.CurrentRegion.Circuit.SendCompleteAgentMovement(loginResponse.AgentId, SessionId, loginResponse.CircuitCode);
         Logger.LogInfo("CompleteAgentMovement was acked.");
         #endregion AgentSend
@@ -112,10 +131,12 @@ public class Session
 
         #region Precache
         Logger.LogDebug("PRECACHE---------------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Loading world...", 0.9f);
         #endregion Precache
 
         #region Cleanup
         Logger.LogDebug("CLEANUP----------------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "", 1f);
         #endregion Cleanup
     }
 }
