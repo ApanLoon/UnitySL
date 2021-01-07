@@ -61,6 +61,7 @@ public class EventManager : MonoBehaviour
     #endregion Map
 
     #region Audio
+    public event Action<SoundTriggerMessage> OnSoundTriggerMessage;
     public event Action<AttachedSoundMessage> OnAttachedSoundMessage;
     public event Action<PreloadSoundMessage> OnPreloadSoundMessage;
     #endregion Audio
@@ -79,9 +80,12 @@ public class EventManager : MonoBehaviour
 
     protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
     {
+        {MessageId.SoundTrigger,                 (m) => Instance.OnSoundTriggerMessage?.Invoke          ((SoundTriggerMessage)m)  },
+
         {MessageId.CoarseLocationUpdate,         (m) => Instance.OnCoarseLocationUpdateMessage?.Invoke  ((CoarseLocationUpdateMessage)m)  },
         {MessageId.AttachedSound,                (m) => Instance.OnAttachedSoundMessage?.Invoke         ((AttachedSoundMessage)m)         },
         {MessageId.PreloadSound,                 (m) => Instance.OnPreloadSoundMessage?.Invoke          ((PreloadSoundMessage)m)          },
+
         {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke          ((ViewerEffectMessage)m)          },
         {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                ((HealthMessage)m)                },
         {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke       ((RegionHandshakeMessage)m)       },

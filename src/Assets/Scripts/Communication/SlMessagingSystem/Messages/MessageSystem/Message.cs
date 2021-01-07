@@ -5,6 +5,7 @@ public enum MessageId : UInt32
 {
     StartPingCheck               = 0x00000001,
     CompletePingCheck            = 0x00000002,
+    SoundTrigger                 = 0x0000001d,
 
     CoarseLocationUpdate         = 0x0000ff06,
     AttachedSound                = 0x0000ff0d,

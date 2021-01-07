@@ -154,6 +154,26 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.SoundTrigger, // 0x0000001d
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                SoundTriggerMessage m = new SoundTriggerMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+                o = DeSerialize(out guid, buf, o, length); m.SoundId  = guid;
+                o = DeSerialize(out guid, buf, o, length); m.OwnerId  = guid;
+                o = DeSerialize(out guid, buf, o, length); m.ObjectId = guid;
+                o = DeSerialize(out guid, buf, o, length); m.ParentId = guid;
+                m.Handle = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
+                m.Position = DeSerializeVector3 (buf, ref o, buf.Length);
+                Logger.LogDebug($"SoundTriggerMessage: SoundId={m.SoundId} OwnerId={m.OwnerId} ObjectId={m.ObjectId} ParentId={m.ParentId} Handle={m.Handle} Gain={m.Gain}");
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.CoarseLocationUpdate, // 0x0000ff06
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
