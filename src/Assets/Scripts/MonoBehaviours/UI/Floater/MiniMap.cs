@@ -78,10 +78,15 @@ public class MiniMap : MonoBehaviour
         }
 
         // Remove markers that have left:
-        foreach (Guid id in MarkerInfoByAgentId.Keys.Where(id => message.Locations.FirstOrDefault((x) => x.AgentId == id) == null))
+        for (int i = MarkerInfoByAgentId.Count - 1; i > 0 ; i--)
         {
-            Destroy(MarkerInfoByAgentId[id].GameObject);
-            MarkerInfoByAgentId.Remove(id);
+            Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
+            MarkerInfo mi = MarkerInfoByAgentId[key];
+            if (message.Locations.FirstOrDefault(x => x.AgentId == key) == null)
+            {
+                Destroy(MarkerInfoByAgentId[key].GameObject);
+                MarkerInfoByAgentId.Remove(key);
+            }
         }
     }
 
