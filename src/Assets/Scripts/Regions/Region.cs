@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public enum RegionMaturityLevel
 {
@@ -50,6 +51,14 @@ public class Region
     public Circuit Circuit { get; set; }
     public string SeedCapability { get; set; }
     public Dictionary<string, Capability> Capabilities { get; set; }
+
+    public Vector3 GetLocalPosition(Vector3Double globalPosition)
+    {
+        return new Vector3 (
+            (float)(globalPosition.x - Region.CurrentRegion.Handle.X),
+            (float)(globalPosition.y),
+            (float)(globalPosition.z - Region.CurrentRegion.Handle.Y));
+    }
 
     protected static async void OnRegionHandshakeMessage(RegionHandshakeMessage message)
     {

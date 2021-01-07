@@ -72,8 +72,15 @@ public class EventManager : MonoBehaviour
     {
         ThreadManager.ExecuteOnMainThread(() => OnRegionHandshakeMessage?.Invoke(message));
     }
-
     #endregion Region
+
+    #region ViewerEffect
+    public event Action<ViewerEffectMessage> OnViewerEffectMessage;
+    public void RaiseOnViewerEffectMessage(ViewerEffectMessage message)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnViewerEffectMessage?.Invoke(message));
+    }
+    #endregion ViewerEffect
 
     #region Progress
     public event Action<string, string, float, bool, float> OnProgressUpdate;

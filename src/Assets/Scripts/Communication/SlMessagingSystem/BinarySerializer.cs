@@ -154,6 +154,99 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.ViewerEffect, // 0x0000ff11
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                ViewerEffectMessage m = new ViewerEffectMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
+                o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
+
+                byte nEffects = buf[o++];
+                for (byte i = 0; i < nEffects; i++)
+                {
+                    Guid effectId;
+                    o = DeSerialize(out guid,             buf, o, length); effectId = guid;
+                    Guid agentId;
+                    o = DeSerialize(out guid,             buf, o, length); agentId = guid;
+                    ViewerEffectType type = (ViewerEffectType) buf[o++];
+                    float duration = DeSerializeFloat_Le (buf, ref o, length);
+                    Color color = DeSerializeColor       (buf, ref o, length);
+
+                    byte typeDataLength = buf[o++];
+                    ViewerEffect effect = null;
+                    switch (type)
+                    {
+                        case ViewerEffectType.Text:
+                            break;
+                        case ViewerEffectType.Icon:
+                            break;
+                        case ViewerEffectType.Connector:
+                            break;
+                        case ViewerEffectType.FlexibleObject:
+                            break;
+                        case ViewerEffectType.AnimalControls:
+                            break;
+                        case ViewerEffectType.LocalAnimationObject:
+                            break;
+                        case ViewerEffectType.Cloth:
+                            break;
+                        
+                        case ViewerEffectType.EffectBeam:
+                        case ViewerEffectType.EffectGlow:
+                        case ViewerEffectType.EffectPoint:
+                        case ViewerEffectType.EffectTrail:
+                        case ViewerEffectType.EffectSphere:
+                        case ViewerEffectType.EffectSpiral:
+                        case ViewerEffectType.EffectEdit:
+                            ViewerEffectSpiral spiralEffect = new ViewerEffectSpiral();
+                            o = DeSerialize(out guid,             buf, o, length); spiralEffect.SourceObjectId = guid;
+                            o = DeSerialize(out guid,             buf, o, length); spiralEffect.TargetObjectId = guid;
+                            spiralEffect.PositionGlobal = DeSerializeVector3Double(buf, ref o, length);
+                            effect = spiralEffect;
+                            break;
+
+                        case ViewerEffectType.EffectLookAt:
+                            ViewerEffectLookAt lookAtEffect = new ViewerEffectLookAt();
+                            o = DeSerialize(out guid,             buf, o, length); lookAtEffect.SourceAvatarId = guid;
+                            o = DeSerialize(out guid,             buf, o, length); lookAtEffect.TargetObjectId = guid;
+                            lookAtEffect.TargetPosition = DeSerializeVector3Double(buf, ref o, length);
+                            lookAtEffect.LookAtType = (ViewerEffectLookAtType) buf[o++];
+                            effect = lookAtEffect;
+                            break;
+
+                        case ViewerEffectType.EffectPointAt:
+                            break;
+                        case ViewerEffectType.EffectVoiceViaualizer:
+                            break;
+                        case ViewerEffectType.NameTag:
+                            break;
+                        case ViewerEffectType.EffectBlob:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    if (effect == null)
+                    {
+                        throw new NotImplementedException($"ViewerEffectMessage: ViewerEffect type {type} is not implemented.");
+                    }
+
+                    effect.Id = effectId;
+                    effect.AgentId = agentId;
+                    effect.EffectType = type;
+                    effect.Duration = duration;
+                    effect.Color = color;
+                    m.Effects.Add(effect);
+                }
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.Wrapper, // 0xffff0001
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
@@ -580,6 +673,60 @@ public static class BinarySerializer
     }
     #endregion Float
 
+    #region Double
+    public static int GetSerializedLength(double v)
+    {
+        return 8;
+    }
+    public static int Serialize_Le(double v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        byte[] b = BitConverter.GetBytes(v);
+        buffer[o++] = b[0]; //TODO: Verify byte order!
+        buffer[o++] = b[1];
+        buffer[o++] = b[2];
+        buffer[o++] = b[3];
+        buffer[o++] = b[4];
+        buffer[o++] = b[5];
+        buffer[o++] = b[6];
+        buffer[o++] = b[7];
+        return o;
+    }
+    public static int Serialize_Be(double v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        byte[] b = BitConverter.GetBytes(v);
+        buffer[o++] = b[7]; //TODO: Verify byte order!
+        buffer[o++] = b[6];
+        buffer[o++] = b[5];
+        buffer[o++] = b[4];
+        buffer[o++] = b[3];
+        buffer[o++] = b[2];
+        buffer[o++] = b[1];
+        buffer[o++] = b[0];
+        return o;
+    }
+
+    public static double DeSerializeDouble_Le(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 8)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeDouble_Le: Not enough bytes in buffer.");
+        }
+        byte[] buf = new byte[8];
+        buf[0] = buffer[offset++];
+        buf[1] = buffer[offset++];
+        buf[2] = buffer[offset++];
+        buf[3] = buffer[offset++];
+        buf[4] = buffer[offset++];
+        buf[5] = buffer[offset++];
+        buf[6] = buffer[offset++];
+        buf[7] = buffer[offset++];
+        double v = BitConverter.ToDouble(buf, 0); // TODO: Is the byte order guaranteed?
+        return v;
+    }
+    #endregion Double
+
     #region String
     public static int DeSerialize(out string s, uint lengthCount, byte[] buffer, int offset, int length)
     {
@@ -688,7 +835,7 @@ public static class BinarySerializer
 
     public static Vector3 DeSerializeVector3(byte[] buffer, ref int offset, int length)
     {
-        if (length - offset < 4)
+        if (length - offset < 4 * 3)
         {
             throw new IndexOutOfRangeException("BinarySerializer.DeSerializeVector3: Not enough bytes in buffer.");
         }
@@ -702,6 +849,46 @@ public static class BinarySerializer
         return v;
     }
     #endregion Vector3
+
+    #region Vector3Double
+
+    public static Vector3Double DeSerializeVector3Double(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 8 * 3)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeVector3Double: Not enough bytes in buffer.");
+        }
+
+        Vector3Double v = new Vector3Double // Convert handedness:
+        {
+            x = DeSerializeDouble_Le(buffer, ref offset, length),
+            z = DeSerializeDouble_Le(buffer, ref offset, length),
+            y = DeSerializeDouble_Le(buffer, ref offset, length)
+        };
+        return v;
+    }
+    #endregion Vector3Double
+
+    #region Color
+
+    public static Color DeSerializeColor(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeColor: Not enough bytes in buffer.");
+        }
+
+        Color v = new Color
+        {
+            r = buffer[offset++] / 255f,
+            g = buffer[offset++] / 255f,
+            b = buffer[offset++] / 255f,
+            a = buffer[offset++] / 255f
+        };
+        return v;
+    }
+    #endregion Color
+    
     #endregion BasicTypes
 
     #region Acks

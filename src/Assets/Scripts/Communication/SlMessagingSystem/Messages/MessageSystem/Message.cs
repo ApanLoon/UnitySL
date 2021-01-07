@@ -6,6 +6,8 @@ public enum MessageId : UInt32
     StartPingCheck               = 0x00000001,
     CompletePingCheck            = 0x00000002,
 
+    ViewerEffect                 = 0x0000ff11,
+
     Wrapper                      = 0xffff0001,
     UseCircuitCode               = 0xffff0003,
     AgentThrottle                = 0xffff0051,

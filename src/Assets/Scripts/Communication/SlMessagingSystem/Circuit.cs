@@ -95,7 +95,7 @@ public class Circuit : IDisposable
     #region SendMessage
     public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
     {
-        Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");
 
         UseCircuitCodeMessage message = new UseCircuitCodeMessage(circuitCode, sessionId, agentId);
         await SendReliable(message);
@@ -103,7 +103,7 @@ public class Circuit : IDisposable
 
     public async Task SendCompleteAgentMovement(Guid agentId, Guid sessionId, UInt32 circuitCode)
     {
-        Logger.LogDebug($"Circuit.SendCompleteAgentMovement({agentId}, {sessionId}, {circuitCode:x8}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendCompleteAgentMovement({agentId}, {sessionId}, {circuitCode:x8}): Sending to {Address}:{Port}");
 
         CompleteAgentMovementMessage message = new CompleteAgentMovementMessage(agentId, sessionId, circuitCode);
         await SendReliable(message);
@@ -121,7 +121,7 @@ public class Circuit : IDisposable
         float task = 310 * 1024f;
         float texture = 310 * 1024f; 
         float asset = 140 * 1024f;
-        Logger.LogDebug($"Circuit.SendAgentThrottle({agentId}, {sessionId}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendAgentThrottle({agentId}, {sessionId}): Sending to {Address}:{Port}");
 
         AgentThrottleMessage message = new AgentThrottleMessage(agentId, sessionId, circuitCode, 0, resend, land, wind, cloud, task, texture, asset);
         await SendReliable(message);
@@ -131,7 +131,7 @@ public class Circuit : IDisposable
         Guid agentId = Session.Instance.AgentId;
         Guid sessionId = Session.Instance.SessionId;
         UInt32 circuitCode = Session.Instance.CircuitCode;
-        Logger.LogDebug($"Circuit.SendAgentHeightWidth({agentId}, {sessionId}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendAgentHeightWidth({agentId}, {sessionId}): Sending to {Address}:{Port}");
 
         AgentHeightWidthMessage message = new AgentHeightWidthMessage(agentId, sessionId, circuitCode, 0, height, width);
         await SendReliable(message);
@@ -139,7 +139,7 @@ public class Circuit : IDisposable
 
     public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
     {
-        Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to {Address}:{Port}");
 
         RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
         await Send(message);
@@ -233,6 +233,10 @@ public class Circuit : IDisposable
                         WaitingForInboundAck.Remove(ack);
                     }
                 }
+                break;
+
+            case ViewerEffectMessage viewerEffectMessage:
+                EventManager.Instance.RaiseOnViewerEffectMessage(viewerEffectMessage);
                 break;
 
             case HealthMessage healthMessage:

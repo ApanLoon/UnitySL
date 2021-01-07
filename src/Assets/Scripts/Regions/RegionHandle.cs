@@ -18,4 +18,9 @@ public class RegionHandle
         X = (UInt32)(handle >> 32);
         Y = (UInt32)handle;
     }
+
+    public override string ToString()
+    {
+        return $"0x{Handle:x8} ({X}, {Y})";
+    }
 }
