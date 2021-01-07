@@ -41,6 +41,7 @@ public class EventManager : MonoBehaviour
     #region Messages
     public event Action<HealthMessage> OnHealthMessage;
     public event Action<AgentDataUpdateMessage> OnAgentDataUpdateMessage;
+    public event Action<ScriptControlChangeMessage> OnScriptControlChangeMessage;
     public event Action<AgentMovementCompleteMessage> OnAgentMovementCompleteMessage;
     #endregion Messages
     #endregion Agent
@@ -54,6 +55,7 @@ public class EventManager : MonoBehaviour
     }
 
     public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
+    public event Action<SimulatorViewerTimeMessage> OnSimulatorViewerTimeMessage;
     #endregion Region
 
     #region Map
@@ -89,6 +91,8 @@ public class EventManager : MonoBehaviour
         {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke          ((ViewerEffectMessage)m)          },
         {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                ((HealthMessage)m)                },
         {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke       ((RegionHandshakeMessage)m)       },
+        {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke   ((SimulatorViewerTimeMessage)m)   },
+        {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke   ((ScriptControlChangeMessage)m)   },
         {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke ((AgentMovementCompleteMessage)m) },
         {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke       ((AgentDataUpdateMessage)m)       },
     };

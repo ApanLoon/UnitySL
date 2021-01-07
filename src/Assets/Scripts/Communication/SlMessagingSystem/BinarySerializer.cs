@@ -167,7 +167,7 @@ public static class BinarySerializer
                 o = DeSerialize(out guid, buf, o, length); m.ParentId = guid;
                 m.Handle = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
                 m.Position = DeSerializeVector3 (buf, ref o, buf.Length);
-                Logger.LogDebug($"SoundTriggerMessage: SoundId={m.SoundId} OwnerId={m.OwnerId} ObjectId={m.ObjectId} ParentId={m.ParentId} Handle={m.Handle} Gain={m.Gain}");
+                //Logger.LogDebug($"SoundTriggerMessage: SoundId={m.SoundId} OwnerId={m.OwnerId} ObjectId={m.ObjectId} ParentId={m.ParentId} Handle={m.Handle} Gain={m.Gain}");
 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
@@ -446,6 +446,47 @@ public static class BinarySerializer
                         RegionProtocols = DeSerializeUInt32_Le(buf, ref o, length)
                     };
                     m.RegionInfo4.Add(info);
+                }
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.SimulatorViewerTimeMessage, // 0xffff0096
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                SimulatorViewerTimeMessage m = new SimulatorViewerTimeMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                m.UsecSinceStart = DeSerializeUInt64_Le (buf, ref o, length);
+                m.SecPerDay      = DeSerializeUInt32_Le (buf, ref o, length);
+                m.SecPerYear     = DeSerializeUInt32_Le (buf, ref o, length);
+                m.SunDirection   = DeSerializeVector3   (buf, ref o, buf.Length);
+                m.SunPhase       = DeSerializeFloat_Le  (buf, ref o, length);
+                m.SunAngVelocity = DeSerializeVector3   (buf, ref o, buf.Length);
+                Logger.LogDebug($"SimulatorViewerTimeMessage: UsecSinceStart={m.UsecSinceStart} SecPerDay={m.SecPerDay} SecPerYear={m.SecPerYear} SunDirection={m.SunDirection} SunPhase={m.SunPhase} SunAngVelocity={m.SunAngVelocity}");
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.ScriptControlChange, // 0xffff00bd
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                ScriptControlChangeMessage m = new ScriptControlChangeMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                byte nControls = buf[o++];
+                for (byte i = 0; i < nControls; i++)
+                {
+                    ControlsChange c = new ControlsChange();
+                    c.TakeControls   = buf[o++] == 1;
+                    c.Controls       = (AgentControls)DeSerializeUInt32_Le (buf, ref o, length);
+                    c.PassToAgent    = buf[o++] == 1;
+                    m.Controls.Add(c);
+                    //Logger.LogDebug($"ScriptControlChangeMessage: TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
                 }
 
                 return new DeSerializerResult(){Message = m, Offset = o};

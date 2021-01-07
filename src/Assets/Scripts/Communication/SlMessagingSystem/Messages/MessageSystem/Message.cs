@@ -19,6 +19,8 @@ public enum MessageId : UInt32
     HealthMessage                = 0xffff008a,
     RegionHandshake              = 0xffff0094,
     RegionHandshakeReply         = 0xffff0095,
+    SimulatorViewerTimeMessage   = 0xffff0096,
+    ScriptControlChange          = 0xffff00bd,
     CompleteAgentMovement        = 0xffff00f9,
     AgentMovementCompleteMessage = 0xffff00fa,
     AgentDataUpdate              = 0xffff0183,
