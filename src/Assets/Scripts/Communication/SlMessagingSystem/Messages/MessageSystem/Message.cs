@@ -8,6 +8,7 @@ public enum MessageId : UInt32
 
     CoarseLocationUpdate         = 0x0000ff06,
     AttachedSound                = 0x0000ff0d,
+    PreloadSound                 = 0x0000ff0f,
     ViewerEffect                 = 0x0000ff11,
 
     Wrapper                      = 0xffff0001,

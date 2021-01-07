@@ -220,6 +220,29 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.PreloadSound, // 0x0000ff0f
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                PreloadSoundMessage m = new PreloadSoundMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+                Guid guid;
+
+                byte nSounds = buf[o++];
+                for (byte i = 0; i < nSounds; i++)
+                {
+                    PreloadSoundMessage.SoundInfo si = new PreloadSoundMessage.SoundInfo();
+                    o = DeSerialize(out guid, buf, o, length); si.ObjectId = guid;
+                    o = DeSerialize(out guid, buf, o, length); si.OwnerId = guid;
+                    o = DeSerialize(out guid, buf, o, length); si.SoundId = guid;
+                    m.Sounds.Add(si);
+                    // Logger.LogDebug($"PreloadSoundMessage: ObjectId={si.ObjectId} OwnerId={si.OwnerId} SoundId={si.SoundId}");
+                }
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.ViewerEffect, // 0x0000ff11
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
