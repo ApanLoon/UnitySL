@@ -1194,12 +1194,28 @@ Decoders =
 			local name = Decoders[messageNumber].Name
 			local subtree = tree:add(llmsg_protocol, buffer(offset), name)	
 			local o = offset
-			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.X,            buffer, o,  1)
-			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Y,            buffer, o,  1)
-			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Z,            buffer, o,  1)
-			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.You,          buffer, o,  2)
-			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Prey,         buffer, o,  2)
-			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
+			
+			local nLocations = buffer(o, 1):uint(); o = o + 1
+			local locationsTree = subtree:add(llmsg_protocol, buffer(o, nLocations * 3), "Locations", string.format(" (%d)", nLocations))
+			for i = 0, nLocations - 1, 1 do
+				local locationTree = locationsTree:add(llmsg_protocol, buffer(o, nLocations * 3), "Location")
+				local x = buffer(o, 1):uint()
+				o = AddFieldToTree_le (locationTree, Decoders[messageNumber].Fields.X,            buffer, o,  1)
+				local y = buffer(o, 1):uint()
+				o = AddFieldToTree_le (locationTree, Decoders[messageNumber].Fields.Y,            buffer, o,  1)
+				local z = buffer(o, 1):uint()
+				o = AddFieldToTree_le (locationTree, Decoders[messageNumber].Fields.Z,            buffer, o,  1)
+				locationTree:append_text(string.format(" (%d, %d, %d)", x, y, z))
+			end
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.You,                   buffer, o,  2)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Prey,                  buffer, o,  2)
+			
+			local nAgents = buffer(o, 1):uint(); o = o + 1
+			local agentsTree = subtree:add(llmsg_protocol, buffer(o, nAgents * 16), "AgentIds", string.format(" (%d)", nLocations))
+			for i = 0, nAgents - 1, 1 do
+				o = AddFieldToTree    (agentsTree, Decoders[messageNumber].Fields.AgentId,        buffer, o, 16)
+			end
+			
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
