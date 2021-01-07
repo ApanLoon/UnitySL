@@ -516,6 +516,48 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.OnlineNotification, // 0xffff0142
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                OnlineNotificationMessage m = new OnlineNotificationMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+
+                byte nAgents = buf[o++];
+                for (byte i = 0; i < nAgents; i++)
+                {
+                    o = DeSerialize(out guid,             buf, o, length);
+                    m.Agents.Add(guid);
+                    Logger.LogDebug($"OnlineNotificationMessage: AgentId={guid}");
+                }
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.OfflineNotification, // 0xffff0143
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                OfflineNotificationMessage m = new OfflineNotificationMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+
+                byte nAgents = buf[o++];
+                for (byte i = 0; i < nAgents; i++)
+                {
+                    o = DeSerialize(out guid,             buf, o, length);
+                    m.Agents.Add(guid);
+                    Logger.LogDebug($"OfflineNotificationMessage: AgentId={guid}");
+                }
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.AgentDataUpdate, // 0xffff0183
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {

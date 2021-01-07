@@ -40,9 +40,11 @@ public class EventManager : MonoBehaviour
 
     #region Messages
     public event Action<HealthMessage> OnHealthMessage;
-    public event Action<AgentDataUpdateMessage> OnAgentDataUpdateMessage;
     public event Action<ScriptControlChangeMessage> OnScriptControlChangeMessage;
     public event Action<AgentMovementCompleteMessage> OnAgentMovementCompleteMessage;
+    public event Action<OnlineNotificationMessage> OnOnlineNotificationMessage;
+    public event Action<OfflineNotificationMessage> OnOfflineNotificationMessage;
+    public event Action<AgentDataUpdateMessage> OnAgentDataUpdateMessage;
     #endregion Messages
     #endregion Agent
 
@@ -94,6 +96,8 @@ public class EventManager : MonoBehaviour
         {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke   ((SimulatorViewerTimeMessage)m)   },
         {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke   ((ScriptControlChangeMessage)m)   },
         {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke ((AgentMovementCompleteMessage)m) },
+        {MessageId.OnlineNotification,           (m) => Instance.OnOnlineNotificationMessage?.Invoke    ((OnlineNotificationMessage)m)    },
+        {MessageId.OfflineNotification,          (m) => Instance.OnOfflineNotificationMessage?.Invoke   ((OfflineNotificationMessage)m)   },
         {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke       ((AgentDataUpdateMessage)m)       },
     };
 
