@@ -3,13 +3,13 @@
 [Flags]
 public enum SoundFlags : byte
 {
-    None        = 0,
-    Loop        = 1,
-    SyncMaster  = 2,
-    SyncSlave   = 4,
-    SyncPending = 8,
-    Queue       = 16,
-    Stop        = 32,
+    None        = 0x00,
+    Loop        = 0x01,
+    SyncMaster  = 0x02,
+    SyncSlave   = 0x04,
+    SyncPending = 0x08,
+    Queue       = 0x10,
+    Stop        = 0x20,
     SyncMask    = SyncMaster | SyncSlave | SyncPending
 }
 

@@ -56,6 +56,10 @@ public class EventManager : MonoBehaviour
     public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
     #endregion Region
 
+    #region Map
+    public event Action<CoarseLocationUpdateMessage> OnCoarseLocationUpdateMessage;
+    #endregion Map
+
     #region Audio
     public event Action<AttachedSoundMessage> OnAttachedSoundMessage;
     #endregion Audio
@@ -74,6 +78,7 @@ public class EventManager : MonoBehaviour
 
     protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
     {
+        {MessageId.CoarseLocationUpdate,         (m) => Instance.OnCoarseLocationUpdateMessage?.Invoke  ((CoarseLocationUpdateMessage)m)  },
         {MessageId.AttachedSound,                (m) => Instance.OnAttachedSoundMessage?.Invoke         ((AttachedSoundMessage)m)         },
         {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke          ((ViewerEffectMessage)m)          },
         {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                ((HealthMessage)m)                },

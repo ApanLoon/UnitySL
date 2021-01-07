@@ -154,6 +154,53 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.CoarseLocationUpdate, // 0x0000ff06
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                CoarseLocationUpdateMessage m = new CoarseLocationUpdateMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+                Guid guid;
+
+                byte nLocations = buf[o++];
+                for (byte i = 0; i < nLocations; i++)
+                {
+                    m.Locations.Add (new CoarseLocation {Position = DeSerializeVector3Byte(buf, ref o, buf.Length)});
+                }
+                int youIndex = DeSerializeInt16_Le (buf, ref o, buf.Length);
+                if (youIndex > 0 && youIndex < nLocations - 1)
+                {
+                    m.Locations[youIndex].IsYou = true;
+                }
+
+                int preyIndex = DeSerializeInt16_Le (buf, ref o, buf.Length);
+                if (preyIndex > 0 && preyIndex < nLocations - 1)
+                {
+                    m.Locations[preyIndex].IsPrey = true;
+                }
+
+                byte nAgents = buf[o++];
+                for (byte i = 0; i < nAgents; i++)
+                {
+                    o = DeSerialize(out guid, buf, o, length);
+                    if (i < nLocations)
+                    {
+                        m.Locations[i].AgentId = guid;
+                    }
+                }
+
+                //string s = "CoarseLocationUpdateMessage:";
+                //for (int i = 0; i < nLocations; i++)
+                //{
+                //    CoarseLocation l = m.Locations[i];
+                //    s +=$"\n    Position={l.Position} IsYou={l.IsYou} Prey={l.IsPrey} AgentId={l.AgentId}";
+                //}
+                //Logger.LogDebug(s);
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.AttachedSound, // 0x0000ff0d
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
@@ -166,6 +213,7 @@ public static class BinarySerializer
                 o = DeSerialize(out guid, buf, o, length); m.OwnerId = guid;
                 m.Gain = DeSerializeUInt32_Le (buf, ref o, buf.Length);
                 m.SoundFlags = (SoundFlags) buf[o++];
+                //Logger.LogDebug($"AttachedSoundMessage: SoundId={m.SoundId} ObjectId={m.ObjectId} OwnerId={m.OwnerId} Gain={m.Gain} Flags={m.SoundFlags}");
 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
@@ -485,6 +533,48 @@ public static class BinarySerializer
                         + (buffer[offset++] << 8));
     }
     #endregion UInt16
+
+    #region Int16
+    public static int GetSerializedLength(Int16 v)
+    {
+        return 2;
+    }
+    public static int Serialize_Le(Int16 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = (byte)(v >> 0);
+        buffer[o++] = (byte)(v >> 8);
+        return o;
+    }
+    public static int Serialize_Be(Int16 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = (byte)(v >> 8);
+        buffer[o++] = (byte)(v >> 0);
+        return o;
+    }
+
+    public static Int16 DeSerializeInt16_Be(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 2)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeInt16_Be: Not enough bytes in buffer.");
+        }
+
+        return (Int16)((buffer[offset++] << 8)
+                     + (buffer[offset++] << 0));
+    }
+    public static Int16 DeSerializeInt16_Le(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 2)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt16_Le: Not enough bytes in buffer.");
+        }
+
+        return (Int16)((buffer[offset++] << 0)
+                     + (buffer[offset++] << 8));
+    }
+    #endregion Int16
 
     #region UInt32
     public static int GetSerializedLength(UInt32 v)
@@ -867,6 +957,25 @@ public static class BinarySerializer
         return v;
     }
     #endregion Vector3
+
+    #region Vector3Byte
+
+    public static Vector3Byte DeSerializeVector3Byte(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 3)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeVector3Byte: Not enough bytes in buffer.");
+        }
+
+        Vector3Byte v = new Vector3Byte // Convert handedness:
+        {
+            x = buffer[offset++],
+            z = buffer[offset++],
+            y = buffer[offset++]
+        };
+        return v;
+    }
+    #endregion Vector3Byte
 
     #region Vector3Double
 
