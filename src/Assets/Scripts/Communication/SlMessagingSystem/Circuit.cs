@@ -198,7 +198,6 @@ public class Circuit : IDisposable
             {
                 await Task.Delay(frequency);
             }
-            Logger.LogDebug($"{sequenceNumber} Acked?!?");
         });
 
         if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))

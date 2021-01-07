@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
-using System.Net.Http;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -128,7 +129,7 @@ public class SeedCapabilities
 	/// </summary>
 	/// <param name="uri"></param>
 	/// <returns></returns>
-	public static async Task<Dictionary<string, string>> RequestCapabilities(string uri)
+	public static async Task<Dictionary<string, Capability>> RequestCapabilities(string uri)
     {
         string postData = BuildPostData();
 		try
@@ -185,9 +186,7 @@ public class SeedCapabilities
 
 			XmlDocument document = new XmlDocument();
 			document.Load(new StringReader(responseText));
-			Dictionary<string, string> grants = new Dictionary<string, string>();
-
-			// TODO: Parse and map granted caps
+            Dictionary<string, Capability> grants = BuildCapabilityMap(document);
 
             return grants;
         }
@@ -198,6 +197,57 @@ public class SeedCapabilities
 		return null;
 
 	}
+
+    private static Dictionary<string, Capability> BuildCapabilityMap(XmlDocument document)
+    {
+        Dictionary<string, Capability> map = new Dictionary<string, Capability>();
+
+        foreach (string name in CapabilityNames)
+        {
+			Capability cap = new Capability(name);
+            map[name] = cap;
+
+            XmlNode node = document.GetElementsByTagName("key").Cast<XmlNode>().FirstOrDefault((x) => x.InnerText == name);
+            if (node == null)
+            {
+                cap.IsGranted = false;
+                continue;
+            }
+
+            cap.IsGranted = true;
+            XmlNode data = node.NextSibling;
+            switch (data.Name)
+            {
+                case "string":
+                    cap.CapabilityType = CapabilityType.Http;
+                    cap.Url = data.InnerText;
+                    break;
+
+                case "map":
+                {
+                    cap.CapabilityType = CapabilityType.MessageSystem;
+                    XmlNode throttle = data.ChildNodes.Cast<XmlNode>().FirstOrDefault((x) => x.Name == "throttle");
+                    if (throttle != null)
+                    {
+                        cap.Throttle = int.Parse(throttle.FirstChild.InnerText); // TODO: Check that the child node exists and is named "integer"
+                    }
+                    XmlNode useSsl = data.ChildNodes.Cast<XmlNode>().FirstOrDefault((x) => x.Name == "use-ssl");
+                    if (useSsl != null)
+                    {
+                        cap.UseSsl = bool.Parse(useSsl.FirstChild.InnerText); // TODO: Check that the child node exists and is named "boolean"
+                    }
+                    XmlNode viaCache = data.ChildNodes.Cast<XmlNode>().FirstOrDefault((x) => x.Name == "via-cache");
+                    if (viaCache != null)
+                    {
+                        cap.ViaCache = bool.Parse(viaCache.FirstChild.InnerText); // TODO: Check that the child node exists and is named "boolean"
+                    }
+                    break;
+                }
+            }
+		}
+
+        return map;
+    }
 
 	protected static string BuildPostData()
     {

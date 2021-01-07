@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 
 public enum RegionMaturityLevel
 {
@@ -48,6 +49,7 @@ public class Region
 
     public Circuit Circuit { get; set; }
     public string SeedCapability { get; set; }
+    public Dictionary<string, Capability> Capabilities { get; set; }
 
     protected static async void OnRegionHandshakeMessage(RegionHandshakeMessage message)
     {

@@ -18,13 +18,10 @@ public class Session
 
     public async Task Start (string uri, Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
     {
-        float progress = 0f;
-
         #region Login
 
         Logger.LogDebug("LOGIN------------------------------");
-        EventManager.Instance.RaiseOnProgressUpdate("Login", "Logging in...", progress);
-        progress += 0.02f;
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Logging in...", 0.2f);
 
         Login login = new Login();
         LoginResponse loginResponse = await login.Connect(uri, credential, slurl, getInventoryLibrary, godMode);
@@ -32,7 +29,7 @@ public class Session
 
         if (loginResponse.LoginSucceeded == false)
         {
-            EventManager.Instance.RaiseOnProgressUpdate("Login", "Login failed.", progress, true);
+            EventManager.Instance.RaiseOnProgressUpdate("Login", "Login failed.", 0.29f, true);
 
             switch (loginResponse.LoginFailReason)
             {
@@ -75,7 +72,7 @@ public class Session
 
         Logger.LogInfo("Requesting capability grants...");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Requesting capability grants...", 0.32f);
-        Task<Dictionary<string, string>> seedCapabilitiesTask = SeedCapabilities.RequestCapabilities(region.SeedCapability);
+        Task<Dictionary<string, Capability>> seedCapabilitiesTask = SeedCapabilities.RequestCapabilities(region.SeedCapability);
 
         agent.CurrentRegion = region;
 
@@ -97,8 +94,8 @@ public class Session
         Logger.LogDebug("SEED_GRANTED_WAIT------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region capabilities...", 0.47f);
 
-        Dictionary<string, string> grantedCapabilities = await seedCapabilitiesTask;
-        Logger.LogInfo($"Got capability grants. ({grantedCapabilities?.Count})");
+        region.Capabilities = await seedCapabilitiesTask;
+        Logger.LogInfo($"Got capability grants. ({region.Capabilities?.Count})");
 
         #endregion SeedGrantedWait
 
@@ -136,7 +133,9 @@ public class Session
 
         #region Cleanup
         Logger.LogDebug("CLEANUP----------------------------");
-        EventManager.Instance.RaiseOnProgressUpdate("Login", "", 1f);
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "Complete", 1f);
+        await Task.Delay(1000); // Wait to let player see the "Complete" message.
+        EventManager.Instance.RaiseOnProgressUpdate("Login", "", 1f, true);
         #endregion Cleanup
     }
 }

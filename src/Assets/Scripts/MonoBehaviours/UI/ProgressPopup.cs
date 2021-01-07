@@ -22,6 +22,6 @@ public class ProgressPopup : MonoBehaviour
         float percentage = progress / maxProgress;
         ProgressFillerImage.fillAmount = percentage;
 
-        Container.SetActive(percentage < 1f && !close);
+        Container.SetActive(!close);
     }
 }
