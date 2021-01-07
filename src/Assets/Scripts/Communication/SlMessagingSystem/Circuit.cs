@@ -218,7 +218,7 @@ public class Circuit : IDisposable
 
         //Logger.LogInfo($"Circuit.ReceiveData: {message}");
 
-        switch (message) // TODO: This switch statement is ugly.
+        switch (message)
         {
             case StartPingCheckMessage startPingCheckMessage:
                 CompletePingCheckMessage completePingCheckMessage = new CompletePingCheckMessage(startPingCheckMessage.PingId);
@@ -234,31 +234,10 @@ public class Circuit : IDisposable
                     }
                 }
                 break;
-
-            case AttachedSoundMessage attachedSoundMessage:
-                EventManager.Instance.RaiseOnAttachedSoundMessage(attachedSoundMessage);
-                break;
-
-            case ViewerEffectMessage viewerEffectMessage:
-                EventManager.Instance.RaiseOnViewerEffectMessage(viewerEffectMessage);
-                break;
-
-            case HealthMessage healthMessage:
-                EventManager.Instance.RaiseOnHealthMessage(healthMessage);
-                break;
-
-            case AgentDataUpdateMessage agentDataUpdateMessage:
-                EventManager.Instance.RaiseOnAgentDataUpdateMessage(agentDataUpdateMessage);
-                break;
-
-            case AgentMovementCompleteMessage agentMovementCompleteMessage:
-                EventManager.Instance.RaiseOnAgentMovementCompleteMessage(agentMovementCompleteMessage);
-                break;
-
-            case RegionHandshakeMessage regionHandshakeMessage:
-                EventManager.Instance.RaiseOnRegionHandshakeMessage(regionHandshakeMessage);
-                break;
         }
+
+        // Raise the event corresponding to the message:
+        EventManager.Instance.RaiseOnMessage(message);
 
         if ((message.Flags & PacketFlags.Reliable) != 0)
         {

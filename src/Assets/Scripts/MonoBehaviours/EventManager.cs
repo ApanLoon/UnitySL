@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EventManager : MonoBehaviour
@@ -39,22 +40,8 @@ public class EventManager : MonoBehaviour
 
     #region Messages
     public event Action<HealthMessage> OnHealthMessage;
-    public void RaiseOnHealthMessage(HealthMessage message)
-    {
-        ThreadManager.ExecuteOnMainThread(() => OnHealthMessage?.Invoke(message));
-    }
-
     public event Action<AgentDataUpdateMessage> OnAgentDataUpdateMessage;
-    public void RaiseOnAgentDataUpdateMessage(AgentDataUpdateMessage message)
-    {
-        ThreadManager.ExecuteOnMainThread(() => OnAgentDataUpdateMessage?.Invoke(message));
-    }
-
     public event Action<AgentMovementCompleteMessage> OnAgentMovementCompleteMessage;
-    public void RaiseOnAgentMovementCompleteMessage(AgentMovementCompleteMessage message)
-    {
-        ThreadManager.ExecuteOnMainThread(() => OnAgentMovementCompleteMessage?.Invoke(message));
-    }
     #endregion Messages
     #endregion Agent
 
@@ -67,28 +54,14 @@ public class EventManager : MonoBehaviour
     }
 
     public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
-
-    public void RaiseOnRegionHandshakeMessage(RegionHandshakeMessage message)
-    {
-        ThreadManager.ExecuteOnMainThread(() => OnRegionHandshakeMessage?.Invoke(message));
-    }
     #endregion Region
 
     #region Audio
     public event Action<AttachedSoundMessage> OnAttachedSoundMessage;
-
-    public void RaiseOnAttachedSoundMessage(AttachedSoundMessage message)
-    {
-        ThreadManager.ExecuteOnMainThread(() => OnAttachedSoundMessage?.Invoke(message));
-    }
     #endregion Audio
 
     #region ViewerEffect
     public event Action<ViewerEffectMessage> OnViewerEffectMessage;
-    public void RaiseOnViewerEffectMessage(ViewerEffectMessage message)
-    {
-        ThreadManager.ExecuteOnMainThread(() => OnViewerEffectMessage?.Invoke(message));
-    }
     #endregion ViewerEffect
 
     #region Progress
@@ -98,4 +71,24 @@ public class EventManager : MonoBehaviour
         ThreadManager.ExecuteOnMainThread(() => OnProgressUpdate?.Invoke(title, message, progress, close, maxProgress));
     }
     #endregion Progress
+
+    protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
+    {
+        {MessageId.AttachedSound,                (m) => Instance.OnAttachedSoundMessage?.Invoke         ((AttachedSoundMessage)m)         },
+        {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke          ((ViewerEffectMessage)m)          },
+        {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                ((HealthMessage)m)                },
+        {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke       ((RegionHandshakeMessage)m)       },
+        {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke ((AgentMovementCompleteMessage)m) },
+        {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke       ((AgentDataUpdateMessage)m)       },
+    };
+
+    public void RaiseOnMessage(Message message)
+    {
+        if (HandlerByMessageId.ContainsKey(message.Id) == false)
+        {
+            return;
+        }
+
+        ThreadManager.ExecuteOnMainThread(() => HandlerByMessageId[message.Id](message));
+    }
 }
