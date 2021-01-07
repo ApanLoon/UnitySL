@@ -6,6 +6,7 @@ public enum MessageId : UInt32
     StartPingCheck               = 0x00000001,
     CompletePingCheck            = 0x00000002,
 
+    AttachedSound                = 0x0000ff0d,
     ViewerEffect                 = 0x0000ff11,
 
     Wrapper                      = 0xffff0001,

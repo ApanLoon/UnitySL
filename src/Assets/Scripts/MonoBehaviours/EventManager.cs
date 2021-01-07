@@ -74,6 +74,15 @@ public class EventManager : MonoBehaviour
     }
     #endregion Region
 
+    #region Audio
+    public event Action<AttachedSoundMessage> OnAttachedSoundMessage;
+
+    public void RaiseOnAttachedSoundMessage(AttachedSoundMessage message)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnAttachedSoundMessage?.Invoke(message));
+    }
+    #endregion Audio
+
     #region ViewerEffect
     public event Action<ViewerEffectMessage> OnViewerEffectMessage;
     public void RaiseOnViewerEffectMessage(ViewerEffectMessage message)

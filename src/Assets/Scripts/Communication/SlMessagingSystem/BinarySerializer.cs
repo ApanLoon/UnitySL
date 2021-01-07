@@ -154,6 +154,24 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.AttachedSound, // 0x0000ff0d
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                AttachedSoundMessage m = new AttachedSoundMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+                o = DeSerialize(out guid, buf, o, length); m.SoundId = guid;
+                o = DeSerialize(out guid, buf, o, length); m.ObjectId = guid;
+                o = DeSerialize(out guid, buf, o, length); m.OwnerId = guid;
+                m.Gain = DeSerializeUInt32_Le (buf, ref o, buf.Length);
+                m.SoundFlags = (SoundFlags) buf[o++];
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.ViewerEffect, // 0x0000ff11
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {

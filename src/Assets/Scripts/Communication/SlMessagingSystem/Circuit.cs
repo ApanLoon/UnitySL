@@ -218,7 +218,7 @@ public class Circuit : IDisposable
 
         //Logger.LogInfo($"Circuit.ReceiveData: {message}");
 
-        switch (message)
+        switch (message) // TODO: This switch statement is ugly.
         {
             case StartPingCheckMessage startPingCheckMessage:
                 CompletePingCheckMessage completePingCheckMessage = new CompletePingCheckMessage(startPingCheckMessage.PingId);
@@ -233,6 +233,10 @@ public class Circuit : IDisposable
                         WaitingForInboundAck.Remove(ack);
                     }
                 }
+                break;
+
+            case AttachedSoundMessage attachedSoundMessage:
+                EventManager.Instance.RaiseOnAttachedSoundMessage(attachedSoundMessage);
                 break;
 
             case ViewerEffectMessage viewerEffectMessage:
