@@ -55,7 +55,7 @@ public static class BinarySerializer
             int ackOffset = buf.Length - ackLength;
             for (int i = 0; i < nAcks; i++)
             {
-                UInt32 ack = DeSerializeUInt32_Le(buf, ref ackOffset, buf.Length);
+                UInt32 ack = DeSerializeUInt32_Be(buf, ref ackOffset, buf.Length);
                 acks.Add(ack);
             }
         }
