@@ -159,7 +159,7 @@ public class SlMessageSystem : IDisposable
 
             if (im != null && CircuitByEndPoint.ContainsKey(im.EndPoint))
             {
-                await CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
+                CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
             }
 
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted
@@ -216,7 +216,7 @@ public class SlMessageSystem : IDisposable
                 IncomingMessages.Enqueue(new IncomingMessage{EndPoint = endPoint, MessageBytes = buf});
             }
         }
-        catch (ObjectDisposedException e)
+        catch (ObjectDisposedException)
         {
             return;
         }

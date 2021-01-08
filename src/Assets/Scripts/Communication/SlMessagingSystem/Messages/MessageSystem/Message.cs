@@ -24,6 +24,8 @@ public enum MessageId : UInt32
     ScriptControlChange          = 0xffff00bd,
     CompleteAgentMovement        = 0xffff00f9,
     AgentMovementCompleteMessage = 0xffff00fa,
+    LogoutRequest                = 0xffff00fc,
+    LogoutReply                  = 0xffff00fd,
     OnlineNotification           = 0xffff0142,
     OfflineNotification          = 0xffff0143,
     AgentDataUpdateRequest       = 0xffff0182,

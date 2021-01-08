@@ -540,6 +540,27 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.LogoutReply, // 0xffff00fd
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                LogoutReplyMessage m = new LogoutReplyMessage (flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                Guid guid;
+                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
+                o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
+                byte nItems = buf[o++];
+                for (byte i = 0; i < nItems; i++)
+                {
+                    o = DeSerialize(out guid,             buf, o, length);
+                    m.InventoryItems.Add(guid);
+                }
+                Logger.LogDebug($"LogoutReplyMessage: AgentId={m.AgentId}, SessionId={m.SessionId}, InventoryItems={string.Join (", ", m.InventoryItems)}");
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
             MessageId.OnlineNotification, // 0xffff0142
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {

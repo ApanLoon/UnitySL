@@ -86,6 +86,8 @@ public class EventManager : MonoBehaviour
     }
     #endregion Progress
 
+    public event Action<LogoutReplyMessage> OnLogoutReplyMessage;
+
     protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
     {
         {MessageId.SoundTrigger,                 (m) => Instance.OnSoundTriggerMessage?.Invoke          ((SoundTriggerMessage)m)  },
@@ -101,6 +103,7 @@ public class EventManager : MonoBehaviour
         {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke   ((SimulatorViewerTimeMessage)m)   },
         {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke   ((ScriptControlChangeMessage)m)   },
         {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke ((AgentMovementCompleteMessage)m) },
+        {MessageId.LogoutReply,                  (m) => Instance.OnLogoutReplyMessage?.Invoke           ((LogoutReplyMessage)m)           },
         {MessageId.OnlineNotification,           (m) => Instance.OnOnlineNotificationMessage?.Invoke    ((OnlineNotificationMessage)m)    },
         {MessageId.OfflineNotification,          (m) => Instance.OnOfflineNotificationMessage?.Invoke   ((OfflineNotificationMessage)m)   },
         {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke       ((AgentDataUpdateMessage)m)       },

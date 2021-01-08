@@ -10,6 +10,9 @@ public class Session
     public Guid AgentId { get; set; }
     public UInt32 CircuitCode { get; set; } // TODO: Should not be here
 
+    public bool IsLoggedIn { get; protected set; }
+    public bool IsLogoutPending { get; protected set; }
+
     public async Task Start (Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
     {
         string uri = GridManager.Instance.CurrentGrid.LoginUri;
@@ -19,6 +22,9 @@ public class Session
     public async Task Start (string uri, Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
     {
         List<Task> awaitables = new List<Task>();
+
+        IsLoggedIn = false;
+        IsLogoutPending = false;
 
         #region Login
 
@@ -170,5 +176,63 @@ public class Session
         await Task.Delay(1000); // Wait to let player see the "Complete" message.
         EventManager.Instance.RaiseOnProgressUpdate("Login", "", 1f, true);
         #endregion Cleanup
+
+        IsLoggedIn = true;
+    }
+
+    public async Task Stop()
+    {
+        if (IsLoggedIn == false)
+        {
+            return;
+        }
+
+        Logger.LogDebug("LOGOUT-----------------------------");
+        EventManager.Instance.RaiseOnProgressUpdate("Logout", "Logging out...", 0.2f);
+
+        EventManager.Instance.OnLogoutReplyMessage += OnLogoutReplyMessage;
+
+        IsLogoutPending = true;
+        await Region.CurrentRegion.Circuit.SendLogoutRequest(AgentId, SessionId);
+
+        // Wait for LogOutReply:
+        int frequency = 10;
+        int timeout = 1000;
+        var waitTask = Task.Run(async () =>
+        {
+            while (IsLogoutPending)
+            {
+                await Task.Delay(frequency);
+            }
+        });
+
+        if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
+        {
+            Logger.LogError("LogoutReply took too long.");
+        }
+
+        IsLogoutPending = false;
+        IsLoggedIn = false;
+
+        EventManager.Instance.OnLogoutReplyMessage -= OnLogoutReplyMessage;
+
+        EventManager.Instance.RaiseOnProgressUpdate("Logout", "Complete", 1f);
+        await Task.Delay(1000); // Wait to let player see the "Complete" message.
+        EventManager.Instance.RaiseOnProgressUpdate("Logout", "", 1f, true);
+    }
+
+    protected void OnLogoutReplyMessage(LogoutReplyMessage message)
+    {
+        if (message.AgentId != AgentId || message.SessionId != SessionId)
+        {
+            Logger.LogWarning($"Received LogoutReply for unknown agent or session. (AgentId={message.AgentId}, sessionId={message.SessionId})");
+            return;
+        }
+
+        EventManager.Instance.RaiseOnProgressUpdate("Logout", "Updating inventory items...", 0.8f);
+
+        // TODO: Do something with the inventory items.
+
+        IsLogoutPending = false;
     }
 }

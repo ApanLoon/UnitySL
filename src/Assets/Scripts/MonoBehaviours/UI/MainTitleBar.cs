@@ -10,14 +10,14 @@ public class MainTitleBar : MonoBehaviour
 
     private void Start()
     {
-        PlayerName.text = "";
+        PlayerName.text   = "";
         PlayerHealth.text = "";
-        RegionName.text = "";
+        RegionName.text   = "";
         PositionText.text = "";
-        EventManager.Instance.OnHealthChanged += OnHealthChanged;
-        EventManager.Instance.OnAgentDataChanged += OnAgentDataChanged;
+        EventManager.Instance.OnHealthChanged     += OnHealthChanged;
+        EventManager.Instance.OnAgentDataChanged  += OnAgentDataChanged;
         EventManager.Instance.OnRegionDataChanged += OnRegionDataChanged;
-        EventManager.Instance.OnAgentMoved += OnAgentMoved;
+        EventManager.Instance.OnAgentMoved        += OnAgentMoved;
     }
 
     protected void OnHealthChanged(Agent agent)

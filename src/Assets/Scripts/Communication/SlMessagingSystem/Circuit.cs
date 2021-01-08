@@ -72,7 +72,7 @@ public class Circuit : IDisposable
 
                 if (ackMessage != null)
                 {
-                    await Send(ackMessage);
+                    Send (ackMessage);
                 }
                 else
                 {
@@ -145,6 +145,14 @@ public class Circuit : IDisposable
         await SendReliable(message);
     }
 
+    public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
+    {
+        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId}): Sending to {Address}:{Port}");
+
+        LogoutRequestMessage message = new LogoutRequestMessage (agentId, sessionId);
+        await SendReliable(message);
+    }
+
     public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
     {
         Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to {Address}:{Port}");
@@ -178,11 +186,11 @@ public class Circuit : IDisposable
         {
             WaitingForInboundAck.Add(message.SequenceNumber);
         }
-        await Send(message, false);
+        Send(message, false);
         await Ack(message.SequenceNumber);
     }
 
-    protected async Task Send(Message message, bool assignSequenceNumber = true)
+    protected void Send(Message message, bool assignSequenceNumber = true)
     {
         if (assignSequenceNumber)
         {
@@ -236,7 +244,7 @@ public class Circuit : IDisposable
     }
     #endregion SendMessage
 
-    public async Task ReceiveData(byte[] buf)
+    public void ReceiveData(byte[] buf)
     {
         Message message = BinarySerializer.DeSerializeMessage(buf, 0);
         if (message == null)
@@ -250,7 +258,7 @@ public class Circuit : IDisposable
         {
             case StartPingCheckMessage startPingCheckMessage:
                 CompletePingCheckMessage completePingCheckMessage = new CompletePingCheckMessage(startPingCheckMessage.PingId);
-                await Send(completePingCheckMessage);
+                Send (completePingCheckMessage);
                 break;
 
             case PacketAckMessage packetAckMessage:
