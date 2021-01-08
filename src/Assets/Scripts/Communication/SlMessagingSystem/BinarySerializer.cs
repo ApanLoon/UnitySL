@@ -507,7 +507,7 @@ public static class BinarySerializer
                 {
                     ControlsChange c = new ControlsChange();
                     c.TakeControls   = buf[o++] == 1;
-                    c.Controls       = (AgentControls)DeSerializeUInt32_Le (buf, ref o, length);
+                    c.ControlFlags       = (AgentControlFlags)DeSerializeUInt32_Le (buf, ref o, length);
                     c.PassToAgent    = buf[o++] == 1;
                     m.Controls.Add(c);
                     //Logger.LogDebug($"ScriptControlChangeMessage: TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
@@ -1111,7 +1111,15 @@ public static class BinarySerializer
     #endregion Guid
 
     #region Vector3
-
+    public static int Serialize_Le(Vector3 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        // Convert handedness
+        o = Serialize_Le(v.x, buffer, o, length);
+        o = Serialize_Le(v.z, buffer, o, length);
+        o = Serialize_Le(v.y, buffer, o, length);
+        return o;
+    }
     public static Vector3 DeSerializeVector3(byte[] buffer, ref int offset, int length)
     {
         if (length - offset < 4 * 3)
@@ -1166,6 +1174,23 @@ public static class BinarySerializer
         return v;
     }
     #endregion Vector3Double
+
+    #region Quaternion
+    public static int Serialize_Le (Quaternion q, byte[] buffer, int offset, int length)
+    {
+        if (length - offset < 4 * 3)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.Serialize (Quaternion): Not enough bytes in buffer.");
+        }
+
+        Quaternion v = q.normalized;
+        // Convert handedness TODO: Verify that this is done correctly
+        offset = Serialize_Le (v.x, buffer, offset, length);
+        offset = Serialize_Le (v.z, buffer, offset, length);
+        offset = Serialize_Le (v.y, buffer, offset, length);
+        return offset;
+    }
+    #endregion Quaternion
 
     #region Color
 

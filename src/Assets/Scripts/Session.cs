@@ -146,8 +146,8 @@ public class Session
 
         //TODO: Download audio
         //TODO: Download active gestures
-        
-        awaitables.Add (region.Circuit.SendAgentHeightWidth(1080, 1920)); // TODO: This should take the title and status bars into account.
+
+        awaitables.Add(region.Circuit.SendAgentHeightWidth(1080, 1920)); // TODO: This should take the title and status bars into account.
 
         #endregion Misc
 

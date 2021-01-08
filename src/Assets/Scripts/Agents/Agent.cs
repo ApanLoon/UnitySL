@@ -3,8 +3,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum AgentState : byte
+{
+    Typing = 0x04,
+    Editing = 0x10
+}
+
 [Flags]
-public enum AgentControls : UInt32
+public enum AgentControlFlags : UInt32
 {
     AtPos                   = 0x00000001,
     AtNeg                   = 0x00000002,
@@ -83,12 +89,25 @@ public class Agent :IDisposable
     public string GroupName { get; set; }
     public string GroupTitle { get; set; }
     public UInt64 GroupPowers { get; set; }
+    public Region CurrentRegion { get; set; }
+
 
     public Vector3 Position { get; set; }
     public Vector3 LookAt { get; set; }
-    public Region CurrentRegion { get; set; }
+    public Quaternion BodyRotation { get; set; } = Quaternion.identity;
+    public Quaternion HeadRotation { get; set; } = Quaternion.identity;
 
-    public float Health { get; set; }
+    public Vector3 CameraCentre   { get; set; }
+    public Vector3 CameraAtAxis   { get; set; }
+    public Vector3 CameraLeftAxis { get; set; }
+    public Vector3 CameraUpAxis   { get; set; }
+    public float FarClipPlane { get; set; }
+
+    public float             Health { get; set; }
+    public AgentState        AgentState { get; set; }
+    public AgentControlFlags ControlFlags { get; set; }
+
+
 
     public Agent(Guid id)
     {
@@ -105,19 +124,63 @@ public class Agent :IDisposable
         EventManager.Instance.RaiseOnHealthChanged (CurrentPlayer);
     }
 
-    protected void OnAgentMovementCompleteMessage(AgentMovementCompleteMessage message)
+    protected async void OnAgentMovementCompleteMessage(AgentMovementCompleteMessage message) // TODO: Should this even be here?
     {
+        // TODO: Check if AgentId and SessionId makles sense
         if (message.AgentId != Id)
         {
             return;
         }
 
+        // TODO: Check timestamp to make sure the movement compleation makes sense.
+
         Position = message.Position;
         LookAt = message.LookAt;
 
-        //TODO: What to do with the rest of the info in this message?
+        // TODO: Check that the avatar is valid
 
+        // TODO: Check if the region is valid, disconnect if not
+
+        // TODO: Update current region and host
+
+        await Region.CurrentRegion.Circuit.SendAgentThrottle();
+
+        await Region.CurrentRegion.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should take the title and status bars into account.
+
+        // if (Teleport)
+        // {
+        // TODO: Force camera to new location and look at
+        // TODO: Force agent position
+        // }
+        // else if (initial login)
+        // {
+        // // This is initial log-in, not a region crossing:
+        // Set the camera looking ahead of the AV so send_agent_update() below 
+        // will report the correct location to the server.
+        // }
+        // 
         EventManager.Instance.RaiseOnAgentMoved(this);
+
+        // TODO: Check beacon and remove if we are close
+
+        Region.CurrentRegion.Circuit.SendAgentUpdate (Id,
+                                                            Session.Instance.SessionId,
+                                                            BodyRotation,
+                                                            HeadRotation,
+                                                            AgentState,
+                                                            CameraCentre,
+                                                            CameraAtAxis,
+                                                            CameraLeftAxis,
+                                                            CameraUpAxis,
+                                                            FarClipPlane,
+                                                            ControlFlags,
+                                                            AgentUpdateFlags.None);
+
+        // TODO: Force flying depending on region permissions
+
+        // TODO: Force simulator to recognise do not disturb mode
+
+        // TODO: Send current walk/run animation
     }
 
     protected void OnAgentDataUpdateMessage(AgentDataUpdateMessage message)

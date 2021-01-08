@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 public class Circuit : IDisposable
 {
@@ -101,6 +102,35 @@ public class Circuit : IDisposable
     public Queue<UInt32> WaitingForOutboundAck = new Queue<UInt32>();
 
     #region SendMessage
+
+    public void SendAgentUpdate (Guid              agentId,
+                                 Guid              sessionId,
+                                 Quaternion        bodyRotation, 
+                                 Quaternion        headRotation, 
+                                 AgentState        agentState, 
+                                 Vector3           cameraCentre, 
+                                 Vector3           cameraAtAxis, 
+                                 Vector3           cameraLeftAxis, 
+                                 Vector3           cameraUpAxis, 
+                                 float             farClipPlane, 
+                                 AgentControlFlags controlFlags, 
+                                 AgentUpdateFlags  updateFlags)
+    {
+        AgentUpdateMessage message = new AgentUpdateMessage (agentId,
+                                                             sessionId,
+                                                             bodyRotation,
+                                                             headRotation,
+                                                             agentState,
+                                                             cameraCentre,
+                                                             cameraAtAxis,
+                                                             cameraLeftAxis,
+                                                             cameraUpAxis,
+                                                             farClipPlane,
+                                                             controlFlags,
+                                                             updateFlags);
+        Send (message);
+    }
+
     public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
     {
         //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class ControlsChange
 {
     public bool TakeControls { get; set; }
-    public AgentControls Controls { get; set; }
+    public AgentControlFlags ControlFlags { get; set; }
     public bool PassToAgent { get; set; }
 }
 
