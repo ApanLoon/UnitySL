@@ -125,7 +125,5 @@ public class Region
                                           | RegionHandshakeReplyFlags.SupportsSelfAppearance;
 
         await CurrentRegion.Circuit.SendRegionHandshakeReply(Session.Instance.AgentId, Session.Instance.SessionId, flags);
-        await CurrentRegion.Circuit.SendAgentThrottle();
-        await CurrentRegion.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should not be called from here and the dimensions should take the title and status bars into account.
     }
 }

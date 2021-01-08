@@ -18,6 +18,8 @@ public class Session
 
     public async Task Start (string uri, Credential credential, Slurl slurl = null, bool getInventoryLibrary = true, bool godMode = false)
     {
+        List<Task> awaitables = new List<Task>();
+
         #region Login
 
         Logger.LogDebug("LOGIN------------------------------");
@@ -120,19 +122,50 @@ public class Session
 
         #region InventorySend
         Logger.LogDebug("INVENTORY_SEND---------------------");
+
+        //TODO: Fill in inventory skeleton and request details
+        //TODO: Fill in buddy list skeleton and request details
+        //TODO: Request mute list
+        //TODO: Request money balance
+
+        awaitables.Add(region.Circuit.SendAgentDataUpdateRequest(agent.Id, SessionId));
+
         #endregion InventorySend
 
         #region Misc
         Logger.LogDebug("MISC-------------------------------");
+
+        //TODO: Calculate max bandwidth
+        awaitables.Add (region.Circuit.SendAgentThrottle());
+
+        //TODO: Download audio
+        //TODO: Download active gestures
+        
+        awaitables.Add (region.Circuit.SendAgentHeightWidth(1080, 1920)); // TODO: This should take the title and status bars into account.
+
         #endregion Misc
 
         #region Precache
         Logger.LogDebug("PRECACHE---------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Loading world...", 0.9f);
+
+        //TODO: Send AgentIsNowWearing
+
+        await Task.WhenAll(awaitables.ToArray());
+        awaitables.Clear();
         #endregion Precache
 
         #region Cleanup
         Logger.LogDebug("CLEANUP----------------------------");
+
+        //TODO: Make map view observe inventory
+        //TODO: Make map view observe friends
+        //TODO: Stop Away animation
+        //TODO: Clear control flag Away
+        //TODO: Observe friends
+        //TODO: Retrieve land description
+        //TODO: Send hover height to capability "AgentPreferences"
+
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Complete", 1f);
         await Task.Delay(1000); // Wait to let player see the "Complete" message.
         EventManager.Instance.RaiseOnProgressUpdate("Login", "", 1f, true);
