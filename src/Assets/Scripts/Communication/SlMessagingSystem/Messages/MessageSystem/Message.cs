@@ -26,6 +26,7 @@ public enum MessageId : UInt32
     AgentMovementCompleteMessage = 0xffff00fa,
     OnlineNotification           = 0xffff0142,
     OfflineNotification          = 0xffff0143,
+    AgentDataUpdateRequest       = 0xffff0182,
     AgentDataUpdate              = 0xffff0183,
     PacketAck                    = 0xfffffffb,
     OpenCircuit                  = 0xfffffffc

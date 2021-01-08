@@ -145,6 +145,14 @@ public class Circuit : IDisposable
         await SendReliable(message);
     }
 
+    public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
+    {
+        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to {Address}:{Port}");
+
+        AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
+        await SendReliable(message);
+    }
+
     public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
     {
         //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to {Address}:{Port}");
