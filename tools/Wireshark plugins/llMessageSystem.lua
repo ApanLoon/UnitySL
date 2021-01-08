@@ -864,6 +864,41 @@ Decoders =
 		end
 	},
 
+	[0x0d] =
+	{
+		Name = "ObjectUpdateCompressed",
+		Fields =
+		{
+			RegionHandle       = ProtoField.uint64 ("llmsg.ObjectUpdate.RegionHandle",       "RegionHandle"),
+			TimeDilation       = ProtoField.uint16 ("llmsg.ObjectUpdate.TimeDilation",       "TimeDilation"),		
+			UpdateFlags        = ProtoField.uint32 ("llmsg.ObjectUpdate.UpdateFlags",        "UpdateFlags"),		
+			Data               = ProtoField.none   ("llmsg.ObjectUpdate.Data",               "Data")	
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0x0d
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset), name)
+			local o = offset
+
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.RegionHandle,    buffer, o,  8)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.TimeDilation,    buffer, o,  2)
+			
+			local nObjectData = buffer(o, 1):uint(); o = o + 1
+			local objectDatasTree = subtree:add(llmsg_protocol, buffer(o), "ObjectData", string.format(" (%d)", nObjectData))
+			for i = 0, nObjectData - 1, 1 do
+				local objectDataTree = objectDatasTree:add(llmsg_protocol, buffer(o), "ObjectData")
+				o = AddFieldToTree_le (objectDataTree, Decoders[messageNumber].Fields.UpdateFlags,       buffer, o,  4)
+				local len = buffer(o, 2):le_uint(); o = o + 2
+				o = AddFieldToTree    (objectDataTree, Decoders[messageNumber].Fields.Data,              buffer, o,  len)
+			end
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0x0e] =
 	{
 		Name = "ObjectUpdateCached",
