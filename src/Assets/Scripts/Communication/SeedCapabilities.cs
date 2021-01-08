@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -159,14 +158,14 @@ public class SeedCapabilities
             {
                 throw new Exception($"SeedCaspabilites: Failed to get response stream.");
             }
-            //Logger.Log("SeedCapabilities.RequestCapabilities: Got response stream.");
+            //Logger.LogDebug("SeedCapabilities.RequestCapabilities: Got response stream.");
 
             var buffer = new byte[length];
             try
             {
                 int count = 0;
                 int start = 0;
-                while ((count = contentStream.Read(buffer, start, length - start)) != 0)
+                while ((count = await contentStream.ReadAsync(buffer, start, length - start)) != 0)
                 {
                     start += count;
                     //Logger.LogDebug($"SeedCapabilities.RequestCapabilities: Read {count} bytes. ({start}/{length})");
@@ -180,9 +179,6 @@ public class SeedCapabilities
                 }
             }
             string responseText = Encoding.UTF8.GetString(buffer).Replace("\0", "");
-
-            Logger.LogDebug("Writing capabilites response to file.");
-            File.WriteAllText("capResponse.xml", responseText);
 
 			XmlDocument document = new XmlDocument();
 			document.Load(new StringReader(responseText));

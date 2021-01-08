@@ -25,7 +25,6 @@ namespace SLViewerLib.Communication.XmlRpc
 
                 HttpContent content = new StringContent(request.ToXml(), Encoding.UTF8, "text/xml");
                 content.Headers.ContentType.CharSet = null; // LL server gets upset if we specify this (Closes the connection or responds with "Bad request")
-                //Logger.Log($"XmlRpcClient.Call: content: \n{request.ToXml()}");
 
                 HttpRequestMessage requestMessage = new HttpRequestMessage()
                 {
@@ -40,11 +39,7 @@ namespace SLViewerLib.Communication.XmlRpc
                     Content = content
                 };
 
-                //HttpResponseMessage responseMessage = await HttpClient.SendAsync(requestMessage);
-                //string responseText = await responseMessage.Content.ReadAsStringAsync();
-
                 HttpResponseMessage responseMessage = await HttpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
-                //Logger.Log("XmlRpcClient.Call: Request sent.");
 
                 if (responseMessage.IsSuccessStatusCode == false)
                 {
@@ -52,7 +47,6 @@ namespace SLViewerLib.Communication.XmlRpc
                 }
 
                 var contentStream = await responseMessage.Content.ReadAsStreamAsync();
-                //Logger.Log("XmlRpcClient.Call: Got response stream.");
 
                 int length = (int)(responseMessage.Content.Headers.ContentLength ?? 2048);
                 var buffer = new byte[length];
@@ -60,7 +54,7 @@ namespace SLViewerLib.Communication.XmlRpc
                 {
                     int count = 0;
                     int start = 0;
-                    while ((count = contentStream.Read(buffer, start, length - start)) != 0)
+                    while ((count = await contentStream.ReadAsync(buffer, start, length - start)) != 0)
                     {
                         start += count;
                         //Logger.LogDebug($"XmlRpcClient.Call: Read {count} bytes. ({start}/{length})");
@@ -75,10 +69,9 @@ namespace SLViewerLib.Communication.XmlRpc
                 }
                 string responseText = Encoding.UTF8.GetString(buffer).Replace("\0", "");
 
-                //File.WriteAllText("loginResponse.xml", responseText);
-
                 XmlDocument document = new XmlDocument();
                 document.Load(new StringReader(responseText));
+
                 return new XmlRpcResponse(document.LastChild); // This skips any XmlDeclaration
             }
             catch (Exception e)
