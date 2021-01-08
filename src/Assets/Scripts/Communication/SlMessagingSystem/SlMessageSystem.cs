@@ -148,13 +148,18 @@ public class SlMessageSystem : IDisposable
                 }
             }
 
-            if (IncomingMessages.Count > 0)
+            IncomingMessage im = null;
+            lock (IncomingMessages)
             {
-                IncomingMessage im = IncomingMessages.Dequeue();
-                if (CircuitByEndPoint.ContainsKey(im.EndPoint))
+                if (IncomingMessages.Count > 0)
                 {
-                    await CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
+                    im = IncomingMessages.Dequeue();
                 }
+            }
+
+            if (im != null && CircuitByEndPoint.ContainsKey(im.EndPoint))
+            {
+                await CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
             }
 
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted
@@ -206,7 +211,10 @@ public class SlMessageSystem : IDisposable
             byte[] buf = state.Client.EndReceive(ar, ref endPoint);
             state.Client.BeginReceive(ReceiveData, state);
 
-            IncomingMessages.Enqueue(new IncomingMessage{EndPoint = endPoint, MessageBytes = buf});
+            lock (IncomingMessages)
+            {
+                IncomingMessages.Enqueue(new IncomingMessage{EndPoint = endPoint, MessageBytes = buf});
+            }
         }
         catch (ObjectDisposedException e)
         {

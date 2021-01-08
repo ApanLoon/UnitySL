@@ -55,15 +55,23 @@ public class Circuit : IDisposable
             DateTime now = DateTime.Now;
             if (now.Subtract(LastSendTime).TotalSeconds >= AckTimeOut)
             {
-                if (WaitingForOutboundAck.Count > 0)
+                PacketAckMessage ackMessage = null;
+                lock (WaitingForOutboundAck)
                 {
-                    int n = 0;
-                    PacketAckMessage ackMessage = new PacketAckMessage();
-                    while (WaitingForOutboundAck.Count > 0 && n < 255)
+                    if (WaitingForOutboundAck.Count > 0)
                     {
-                        ackMessage.AddPacketAck(WaitingForOutboundAck.Dequeue());
-                        n++;
+                        ackMessage = new PacketAckMessage();
+                        int n = 0;
+                        while (WaitingForOutboundAck.Count > 0 && n < 255)
+                        {
+                            ackMessage.AddPacketAck(WaitingForOutboundAck.Dequeue());
+                            n++;
+                        }
                     }
+                }
+
+                if (ackMessage != null)
+                {
                     await Send(ackMessage);
                 }
                 else
@@ -142,7 +150,7 @@ public class Circuit : IDisposable
         //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to {Address}:{Port}");
 
         RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
-        await Send(message);
+        await SendReliable(message);
     }
 
 
@@ -158,7 +166,10 @@ public class Circuit : IDisposable
     {
         message.Flags |= PacketFlags.Reliable;
         message.SequenceNumber = ++LastSequenceNumber;
-        WaitingForInboundAck.Add(message.SequenceNumber);
+        lock (WaitingForInboundAck)
+        {
+            WaitingForInboundAck.Add(message.SequenceNumber);
+        }
         await Send(message, false);
         await Ack(message.SequenceNumber);
     }
@@ -171,16 +182,19 @@ public class Circuit : IDisposable
         }
 
         int len = message.GetSerializedLength();
-        int nAcks = WaitingForOutboundAck.Count;
-        
-        // If there is room in the packet and there are SequenceNumbers in WaitingForOutboundAck, add as many as possible
-        if (nAcks > 0 && len < Message.MaximumTranferUnit - 5 && message is PacketAckMessage == false)
+        lock (WaitingForInboundAck)
         {
-            // At least one Ack fits, calculate how many:
-            nAcks = Math.Min(nAcks, (Message.MaximumTranferUnit - len - 1) / 4);
-            for (int i = 0; i < nAcks; i++)
+            int nAcks = WaitingForOutboundAck.Count;
+
+            // If there is room in the packet and there are SequenceNumbers in WaitingForOutboundAck, add as many as possible
+            if (nAcks > 0 && len < Message.MaximumTranferUnit - 5 && message is PacketAckMessage == false)
             {
-                message.AddAck(WaitingForOutboundAck.Dequeue());
+                // At least one Ack fits, calculate how many:
+                nAcks = Math.Min(nAcks, (Message.MaximumTranferUnit - len - 1) / 4);
+                for (int i = 0; i < nAcks; i++)
+                {
+                    message.AddAck(WaitingForOutboundAck.Dequeue());
+                }
             }
         }
 
@@ -195,15 +209,21 @@ public class Circuit : IDisposable
     {
         var waitTask = Task.Run(async () =>
         {
-            while (WaitingForInboundAck.Contains(sequenceNumber))
+            bool isWaiting = true;
+            while (isWaiting)
             {
                 await Task.Delay(frequency);
+                lock (WaitingForInboundAck)
+                {
+                    isWaiting = WaitingForInboundAck.Contains(sequenceNumber);
+                }
             }
         });
 
         if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
         {
-            throw new TimeoutException();
+            // TODO: Retry somehow
+            throw new TimeoutException($"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds.");
         }
     }
     #endregion SendMessage
@@ -226,11 +246,14 @@ public class Circuit : IDisposable
                 break;
 
             case PacketAckMessage packetAckMessage:
-                foreach (UInt32 ack in packetAckMessage.PacketAcks)
+                lock (WaitingForInboundAck)
                 {
-                    if (WaitingForInboundAck.Contains(ack))
+                    foreach (UInt32 ack in packetAckMessage.PacketAcks)
                     {
-                        WaitingForInboundAck.Remove(ack);
+                        if (WaitingForInboundAck.Contains(ack))
+                        {
+                            WaitingForInboundAck.Remove(ack);
+                        }
                     }
                 }
                 break;
@@ -241,7 +264,10 @@ public class Circuit : IDisposable
 
         if ((message.Flags & PacketFlags.Reliable) != 0)
         {
-            WaitingForOutboundAck.Enqueue(message.SequenceNumber);
+            lock (WaitingForOutboundAck)
+            {
+                WaitingForOutboundAck.Enqueue(message.SequenceNumber);
+            }
         }
 
         // Appended acks:
@@ -249,11 +275,15 @@ public class Circuit : IDisposable
         {
             return;
         }
-        foreach (UInt32 ack in message.Acks)
+
+        lock (WaitingForInboundAck)
         {
-            if (WaitingForInboundAck.Contains(ack))
+            foreach (UInt32 ack in message.Acks)
             {
-                WaitingForInboundAck.Remove(ack);
+                if (WaitingForInboundAck.Contains(ack))
+                {
+                    WaitingForInboundAck.Remove(ack);
+                }
             }
         }
     }
