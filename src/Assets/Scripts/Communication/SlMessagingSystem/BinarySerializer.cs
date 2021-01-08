@@ -770,10 +770,10 @@ public static class BinarySerializer
             throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt32_Le: Not enough bytes in buffer.");
         }
 
-        return (UInt32)((UInt32)buffer[offset++] << 0)
-               + ((UInt32)buffer[offset++] << 8)
-               + ((UInt32)buffer[offset++] << 16)
-               + ((UInt32)buffer[offset++] << 24);
+        return (UInt32)((UInt32)buffer[offset++] <<  0)
+                     + ((UInt32)buffer[offset++] <<  8)
+                     + ((UInt32)buffer[offset++] << 16)
+                     + ((UInt32)buffer[offset++] << 24);
     }
     #endregion UInt32
 
@@ -832,14 +832,14 @@ public static class BinarySerializer
             throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt64_Le: Not enough bytes in buffer.");
         }
 
-        return (UInt64)((UInt64)buffer[offset++] << 0)
-               + ((UInt64)buffer[offset++] << 8)
-               + ((UInt64)buffer[offset++] << 16)
-               + ((UInt64)buffer[offset++] << 24)
-               + ((UInt64)buffer[offset++] << 32)
-               + ((UInt64)buffer[offset++] << 40)
-               + ((UInt64)buffer[offset++] << 48)
-               + ((UInt64)buffer[offset++] << 56);
+        return (UInt64)((UInt64)buffer[offset++] <<  0)
+                     + ((UInt64)buffer[offset++] <<  8)
+                     + ((UInt64)buffer[offset++] << 16)
+                     + ((UInt64)buffer[offset++] << 24)
+                     + ((UInt64)buffer[offset++] << 32)
+                     + ((UInt64)buffer[offset++] << 40)
+                     + ((UInt64)buffer[offset++] << 48)
+                     + ((UInt64)buffer[offset++] << 56);
     }
     #endregion UInt64
 
