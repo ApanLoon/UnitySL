@@ -2424,11 +2424,11 @@ Decoders =
 
 	[0xffff00fc] =
 	{
-		Name = "MuteListRequest",
+		Name = "LogoutRequest",
 		Fields =
 		{
-			AgentId        = ProtoField.guid   ("llmsg.MuteListRequest.AgentId",        "AgentId"),
-			SessionId      = ProtoField.guid   ("llmsg.MuteListRequest.SessionId",      "SessionId")
+			AgentId        = ProtoField.guid   ("llmsg.LogoutRequest.AgentId",        "AgentId"),
+			SessionId      = ProtoField.guid   ("llmsg.LogoutRequest.SessionId",      "SessionId")
 		},
 		
 		Decoder = function (buffer, offset, dataLength, tree, pinfo)
@@ -2438,6 +2438,7 @@ Decoders =
 			local o = offset
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,      buffer, o, 16)
 			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,    buffer, o, 16)
+			
 			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
 			return o
