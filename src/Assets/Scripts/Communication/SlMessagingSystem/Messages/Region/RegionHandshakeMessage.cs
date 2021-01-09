@@ -9,8 +9,8 @@ public class RegionInfo4
 
 public class RegionHandshakeMessage : Message
 {
-    public UInt32 RegionFlags { get; set; }
-    public byte SimAccess { get; set; }
+    public RegionFlags RegionFlags { get; set; }
+    public SimAccess SimAccess { get; set; }
     public string SimName { get; set; }
     public Guid SimOwner { get; set; }
     public bool IsEstateManager { get; set; }

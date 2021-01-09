@@ -128,7 +128,7 @@ public class SeedCapabilities
 	/// </summary>
 	/// <param name="uri"></param>
 	/// <returns></returns>
-	public static async Task<Dictionary<string, Capability>> RequestCapabilities(string uri)
+	public static async Task<List<Capability>> RequestCapabilities(string uri)
     {
         string postData = BuildPostData();
 		try
@@ -182,7 +182,7 @@ public class SeedCapabilities
 
 			XmlDocument document = new XmlDocument();
 			document.Load(new StringReader(responseText));
-            Dictionary<string, Capability> grants = BuildCapabilityMap(document);
+            List<Capability> grants = BuildCapabilityMap(document);
 
             return grants;
         }
@@ -194,14 +194,14 @@ public class SeedCapabilities
 
 	}
 
-    private static Dictionary<string, Capability> BuildCapabilityMap(XmlDocument document)
+    private static List<Capability> BuildCapabilityMap(XmlDocument document)
     {
-        Dictionary<string, Capability> map = new Dictionary<string, Capability>();
+        List<Capability> list = new List<Capability>();
 
         foreach (string name in CapabilityNames)
         {
 			Capability cap = new Capability(name);
-            map[name] = cap;
+            list.Add(cap);
 
             XmlNode node = document.GetElementsByTagName("key").Cast<XmlNode>().FirstOrDefault((x) => x.InnerText == name);
             if (node == null)
@@ -242,7 +242,7 @@ public class SeedCapabilities
             }
 		}
 
-        return map;
+        return list;
     }
 
 	protected static string BuildPostData()

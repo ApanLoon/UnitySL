@@ -6,8 +6,11 @@ public enum CapabilityType
     MessageSystem
 }
 
+
 public class Capability
 {
+    public static readonly string SEED_CAPABILITY_NAME = "Seed";
+    
     public string Name { get; set; }
     
     public bool IsGranted { get; set; }

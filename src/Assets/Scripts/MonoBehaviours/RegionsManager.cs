@@ -25,7 +25,7 @@ public class RegionsManager : MonoBehaviour
 
     protected void OnRegionDataChanged(Region region)
     {
-        if (region == Region.CurrentRegion)
+        if (region == Agent.CurrentPlayer?.Region)
         {
             Vector3 pos = CurrentRegionGo.Water.transform.position;
             pos.y = region.WaterHeight;

@@ -19,6 +19,11 @@ public class RegionHandle
         Y = (UInt32)handle;
     }
 
+    public Vector3Double ToVector3Double()
+    {
+        return new Vector3Double(X, Y, 0f); // TODO: Should Y and Z be swapped?
+    }
+
     public override string ToString()
     {
         return $"0x{Handle:x8} ({X}, {Y})";

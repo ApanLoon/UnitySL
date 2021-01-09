@@ -53,66 +53,18 @@ public enum EdgeType : byte
 //static const S32 EQUAL_TO_NEIGHBOR = 0;
 //static const S32 ONE_LESS_THAN_NEIGHBOR = -1;
 
-public enum DirectionIndex : UInt32
-{
-    East      = 0,
-    North     = 1,
-    West      = 2,
-    South     = 3,
-
-    NorthEast = 4,
-    NorthWest = 5,
-    SouthWest = 6,
-    SouthEast = 7,
-    Middle    = 8,
-    Invalid   = 0xffffffff
-}
-
-[Flags]
-public enum DirectionFlag : byte
-{
-    East  = 1 << (int)DirectionIndex.East,
-    North = 1 << (int)DirectionIndex.North,
-    West  = 1 << (int)DirectionIndex.West,
-    South = 1 << (int)DirectionIndex.South,
-
-    NorthEast = North | East,
-    NorthWest = North | West,
-    SouthWest = South | West,
-    SouthEast = South | East
-}
-
 public class Surface
 {
     public static readonly int ABOVE_WATERLINE_ALPHA = 32;  // The alpha of water when the land elevation is above the waterline.
 
-    public static readonly DirectionIndex[] DirOpposite =
-    {
-        DirectionIndex.West,      DirectionIndex.South,     DirectionIndex.East,      DirectionIndex.North,
-        DirectionIndex.SouthWest, DirectionIndex.SouthEast, DirectionIndex.NorthEast, DirectionIndex.NorthWest
-    };
-
-    public static readonly DirectionIndex[,] DirAdjacent = 
-    {
-        {DirectionIndex.NorthEast, DirectionIndex.SouthEast},
-        {DirectionIndex.NorthEast, DirectionIndex.NorthWest},
-        {DirectionIndex.NorthWest, DirectionIndex.SouthWest},
-        {DirectionIndex.SouthWest, DirectionIndex.SouthEast},
-        {DirectionIndex.East,      DirectionIndex.North},
-        {DirectionIndex.North,     DirectionIndex.West},
-        {DirectionIndex.West,      DirectionIndex.South},
-        {DirectionIndex.East,      DirectionIndex.South}
-    };
-
-
     // Number of grid points on one side of a region, including +1 buffer for
     // north and east edge.
-    public int GridsPerEdge;
+    public UInt32 GridsPerEdge;
 
     public float OOGridsPerEdge;            // Inverse of grids per edge
 
-    public int PatchesPerEdge;            // Number of patches on one side of a region
-    public int NumberOfPatches;           // Total number of patches
+    public UInt32 PatchesPerEdge;            // Number of patches on one side of a region
+    public UInt32 NumberOfPatches;           // Total number of patches
 
 
     // Each surface points at 8 neighbors (or NULL)
@@ -123,7 +75,7 @@ public class Surface
     // +---+---+---+
     // |SW | S | SE|
     // +---+---+---+
-    public Surface[] Neighbors = new Surface[8]; // Adjacent patches
+    public Surface[] Neighbours = new Surface[8]; // Adjacent patches
 
     public SurfaceType SurfaceType;              // Useful for identifying derived classes
 
@@ -150,7 +102,7 @@ public class Surface
     // When we want multiple cameras we'll need one of each these for each camera
     protected int VisiblePatchCount;
 
-    protected UInt32 GridsPerPatchEdge;         // Number of grid points on a side of a patch
+    public UInt32 GridsPerPatchEdge { get; protected set; }         // Number of grid points on a side of a patch
     protected float MetersPerGrid;             // Converts (i,j) indecies to distance
     protected float MetersPerEdge;             // = mMetersPerGrid * (mGridsPerEdge-1)
 
@@ -206,7 +158,7 @@ public class Surface
 
         for (int i = 0; i < 8; i++)
         {
-            Neighbors[i] = null;
+            Neighbours[i] = null;
         }
     }
 
@@ -290,4 +242,258 @@ public class Surface
             //patchp->setHasReceivedData();
         }
 	}
+
+    /// <summary>
+    /// Assumes that arguments are powers of 2, and that
+    /// gridsPerEdge / gridsPerPatchEdge = power of 2 
+    /// </summary>
+    /// <param name="gridsPerRegionEdge"></param>
+    /// <param name="gridsPerPatchEdge"></param>
+    /// <param name="originGlobal"></param>
+    /// <param name="width">in metres</param>
+    public void Create (UInt32 gridsPerEdge, UInt32 gridsPerPatchEdge, Vector3Double originGlobal, float width)
+    {
+        // Initialize various constants for the surface
+        GridsPerEdge = gridsPerEdge + 1;  // Add 1 for the east and north buffer
+        OOGridsPerEdge = 1f / GridsPerEdge;
+        GridsPerPatchEdge = gridsPerPatchEdge;
+        PatchesPerEdge = ((GridsPerEdge - 1) / GridsPerPatchEdge);
+        NumberOfPatches = PatchesPerEdge * PatchesPerEdge;
+        MetersPerGrid = width / (GridsPerEdge - 1);
+        MetersPerEdge = MetersPerGrid * (GridsPerEdge - 1);
+
+        OriginGlobal = originGlobal;
+
+        //TODO: PVArray.create(GridsPerEdge, GridsPerPatchEdge, LLWorld::getInstance()->getRegionScale());
+
+        UInt32 nGrids = GridsPerEdge * GridsPerEdge;
+
+        // Initialize data arrays for surface
+        SurfaceZ = new float[nGrids];
+        Norm = new Vector3[nGrids];
+
+        // Reset the surface to be a flat square grid
+        for (int i = 0; i < nGrids; i++)
+        {
+            // Surface is flat and zero
+            // Normals all point up
+            SurfaceZ[i] = 0.0f;
+            Norm[i] = new Vector3 (0f, 0f, 1f);
+        }
+        
+        VisiblePatchCount = 0;
+        
+        //TODO: InitTextures();
+
+        // Has to be done after texture initialization
+        // TODO: CreatePatchData();
+    }
+
+    public void ConnectNeighbour(Surface neighbour, DirectionIndex direction)
+    {
+        UInt32 i;
+        SurfacePatch patch;
+        SurfacePatch neighbor_patch;
+
+        Neighbours[(int)direction] = neighbour;
+        neighbour.Neighbours[(int)World.DirOpposite[(int)direction]] = this;
+
+        // Connect patches
+        DirectionIndex oppositeDir = World.DirOpposite[(int)direction];
+        switch (direction)
+        {
+            case DirectionIndex.NorthEast:
+                patch = GetPatch (PatchesPerEdge - 1, PatchesPerEdge - 1);
+                neighbor_patch = neighbour.GetPatch (0, 0);
+
+                patch.ConnectNeighbour (neighbor_patch, direction);
+                neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+
+                patch.UpdateNorthEdge(); // Only update one of north or east.
+                patch.DirtyZ();
+                break;
+
+            case DirectionIndex.NorthWest:
+                patch = GetPatch (0, PatchesPerEdge - 1);
+                neighbor_patch = neighbour.GetPatch (PatchesPerEdge - 1, 0);
+
+                patch.ConnectNeighbour (neighbor_patch, direction);
+                neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+                break;
+
+            case DirectionIndex.SouthWest:
+                patch = GetPatch (0, 0);
+                neighbor_patch = neighbour.GetPatch (PatchesPerEdge - 1, PatchesPerEdge - 1);
+
+                patch.ConnectNeighbour (neighbor_patch, direction);
+                neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+
+                neighbor_patch.UpdateNorthEdge(); // Only update one of north or east.
+                neighbor_patch.DirtyZ();
+                break;
+
+            case DirectionIndex.SouthEast:
+                patch = GetPatch (PatchesPerEdge - 1, 0);
+                neighbor_patch = neighbour.GetPatch (0, PatchesPerEdge - 1);
+
+                patch.ConnectNeighbour (neighbor_patch, direction);
+                neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+                break;
+
+            case DirectionIndex.East:
+                // Do east/west connections, first
+                for (i = 0; i < (int)PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (PatchesPerEdge - 1, i);
+                    neighbor_patch = neighbour.GetPatch (0, i);
+
+                    patch.ConnectNeighbour (neighbor_patch, direction);
+                    neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+
+                    patch.UpdateEastEdge();
+                    patch.DirtyZ();
+                }
+
+                // Now do northeast/southwest connections
+                for (i = 0; i < (int)PatchesPerEdge - 1; i++)
+                {
+                    patch = GetPatch (PatchesPerEdge - 1, i);
+                    neighbor_patch = neighbour.GetPatch (0, i + 1);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.NorthEast);
+                    neighbor_patch.ConnectNeighbour (patch, DirectionIndex.SouthWest);
+                }
+                // Now do southeast/northwest connections
+                for (i = 1; i < (int)PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (PatchesPerEdge - 1, i);
+                    neighbor_patch = neighbour.GetPatch (0, i - 1);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.SouthEast);
+                    neighbor_patch.ConnectNeighbour (patch, DirectionIndex.NorthWest);
+                }
+                break;
+
+            case DirectionIndex.North:
+                // Do north/south connections, first
+                for (i = 0; i < (int)PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (i, PatchesPerEdge - 1);
+                    neighbor_patch = neighbour.GetPatch (i, 0);
+
+                    patch.ConnectNeighbour (neighbor_patch, direction);
+                    neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+
+                    patch.UpdateNorthEdge();
+                    patch.DirtyZ();
+                }
+
+                // Do northeast/southwest connections
+                for (i = 0; i < (int)PatchesPerEdge - 1; i++)
+                {
+                    patch = GetPatch (i, PatchesPerEdge - 1);
+                    neighbor_patch = neighbour.GetPatch (i + 1, 0);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.NorthEast);
+                    neighbor_patch.ConnectNeighbour (patch, DirectionIndex.SouthWest);
+                }
+                // Do southeast/northwest connections
+                for (i = 1; i < (int)PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (i, PatchesPerEdge - 1);
+                    neighbor_patch = neighbour.GetPatch (i - 1, 0);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.NorthWest);
+                    neighbor_patch.ConnectNeighbour (patch, DirectionIndex.SouthEast);
+                }
+                break;
+
+            case DirectionIndex.West:
+                // Do east/west connections, first
+                for (i = 0; i < PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (0, i);
+                    neighbor_patch = neighbour.GetPatch (PatchesPerEdge - 1, i);
+
+                    patch.ConnectNeighbour (neighbor_patch, direction);
+                    neighbor_patch.ConnectNeighbour (patch, oppositeDir);
+
+                    neighbor_patch.UpdateEastEdge();
+                    neighbor_patch.DirtyZ();
+                }
+
+                // Now do northeast/southwest connections
+                for (i = 1; i < PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (0, i);
+                    neighbor_patch = neighbour.GetPatch (PatchesPerEdge - 1, i - 1);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.SouthWest);
+                    neighbor_patch.ConnectNeighbour (patch, DirectionIndex.NorthEast);
+                }
+
+                // Now do northwest/southeast connections
+                for (i = 0; i < PatchesPerEdge - 1; i++)
+                {
+                    patch = GetPatch (0, i);
+                    neighbor_patch = neighbour.GetPatch (PatchesPerEdge - 1, i + 1);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.NorthWest);
+                    neighbor_patch.ConnectNeighbour(patch, DirectionIndex.SouthEast);
+                }
+                break;
+
+            case DirectionIndex.South:
+                // Do north/south connections, first
+                for (i = 0; i < PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (i, 0);
+                    neighbor_patch = neighbour.GetPatch (i, PatchesPerEdge - 1);
+
+                    patch.ConnectNeighbour(neighbor_patch, direction);
+                    neighbor_patch.ConnectNeighbour(patch, oppositeDir);
+
+                    neighbor_patch.UpdateNorthEdge();
+                    neighbor_patch.DirtyZ();
+                }
+
+                // Now do northeast/southwest connections
+                for (i = 1; i < PatchesPerEdge; i++)
+                {
+                    patch = GetPatch (i, 0);
+                    neighbor_patch = neighbour.GetPatch (i - 1, PatchesPerEdge - 1);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.SouthWest);
+                    neighbor_patch.ConnectNeighbour (patch, DirectionIndex.NorthEast);
+                }
+                // Now do northeast/southwest connections
+                for (i = 0; i < PatchesPerEdge - 1; i++)
+                {
+                    patch = GetPatch (i, 0);
+                    neighbor_patch = neighbour.GetPatch (i + 1, PatchesPerEdge - 1);
+
+                    patch.ConnectNeighbour (neighbor_patch, DirectionIndex.SouthEast);
+                    neighbor_patch.ConnectNeighbour(patch, DirectionIndex.NorthWest);
+                }
+                break;
+        }
+    }
+
+    public SurfacePatch GetPatch(UInt32 x, UInt32 y)
+    {
+        // Note: If "below zero" it will hopefully by larger than PatchesPerEdge
+        if (x < PatchesPerEdge && y < PatchesPerEdge)
+        {
+            return PatchList[x + y * PatchesPerEdge];
+        }
+
+        Logger.LogError("Surface.GetPatch: Asking for patch out of bounds");
+        return null;
+    }
+
+    public void DirtySurfacePatch (SurfacePatch patch)
+    {
+        // Put surface patch on dirty surface patch list
+        DirtyPatchList.Add (patch);
+    }
 }

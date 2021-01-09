@@ -455,8 +455,8 @@ public static class BinarySerializer
                 string s;
                 Guid guid;
 
-                m.RegionFlags = DeSerializeUInt32_Le (buf, ref o, length);
-                m.SimAccess = buf[o++];
+                m.RegionFlags = (RegionFlags)DeSerializeUInt32_Le (buf, ref o, length);
+                m.SimAccess = (SimAccess)buf[o++];
                 o = DeSerialize(out s, 1, buf, o, length); m.SimName = s;
                 o = DeSerialize(out guid, buf, o, length); m.SimOwner = guid;
                 m.IsEstateManager = buf[o++] != 0;

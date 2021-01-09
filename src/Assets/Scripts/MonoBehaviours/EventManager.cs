@@ -56,6 +56,13 @@ public class EventManager : MonoBehaviour
         ThreadManager.ExecuteOnMainThread(() => OnRegionDataChanged?.Invoke(region));
     }
 
+    public event Action<Region> OnRegionRemoved;
+
+    public void RaiseOnRegionRemoved(Region region)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnRegionRemoved?.Invoke(region));
+    }
+
     public event Action<LayerDataMessage> OnLayerDataMessage;
     public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
     public event Action<SimulatorViewerTimeMessage> OnSimulatorViewerTimeMessage;

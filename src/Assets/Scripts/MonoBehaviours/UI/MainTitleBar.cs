@@ -42,7 +42,7 @@ public class MainTitleBar : MonoBehaviour
 
     protected void OnRegionDataChanged(Region region)
     {
-        if (region.Id != Region.CurrentRegion?.Id)
+        if (region.Id != Agent.CurrentPlayer?.Region?.Id)
         {
             return;
         }

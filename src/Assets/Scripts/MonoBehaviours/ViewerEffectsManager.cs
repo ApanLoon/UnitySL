@@ -16,6 +16,12 @@ public class ViewerEffectsManager : MonoBehaviour
 
     protected void OnViewerEffectMessage(ViewerEffectMessage message)
     {
+        Region region = Agent.CurrentPlayer?.Region;
+        if (region == null)
+        {
+            return;
+        }
+
         foreach (ViewerEffect viewerEffect in message.Effects)
         {
             GameObject go = null;
@@ -23,12 +29,12 @@ public class ViewerEffectsManager : MonoBehaviour
             {
                 case ViewerEffectSpiral spiralEffect:
                     go = Instantiate(SpiralEffectPrefab, transform); // TODO: Use effect pool
-                    go.transform.position = Region.CurrentRegion.GetLocalPosition(spiralEffect.PositionGlobal);
+                    go.transform.position = region.GetLocalPosition(spiralEffect.PositionGlobal);
                     break;
 
                 case ViewerEffectLookAt lookAtEffect:
                     go = Instantiate(LookAtEffectPrefab, transform); // TODO: Use effect pool
-                    go.transform.position = Region.CurrentRegion.GetLocalPosition(lookAtEffect.TargetPosition);
+                    go.transform.position = region.GetLocalPosition(lookAtEffect.TargetPosition);
                     break;
             }
 

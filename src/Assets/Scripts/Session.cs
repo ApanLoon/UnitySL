@@ -9,6 +9,7 @@ public class Session
     public Guid SessionId { get; set; }
     public Guid AgentId { get; set; }
     public UInt32 CircuitCode { get; set; } // TODO: Should not be here
+    public Host FirstSimHost { get; set; }
 
     public bool IsLoggedIn { get; protected set; }
     public bool IsLogoutPending { get; protected set; }
@@ -27,7 +28,6 @@ public class Session
         IsLogoutPending = false;
 
         #region Login
-
         Logger.LogDebug("LOGIN------------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Logging in...", 0.2f);
 
@@ -71,19 +71,20 @@ public class Session
         Agent.SetCurrentPlayer(agent);
         EventManager.Instance.RaiseOnAgentDataChanged(agent);
 
-        Region region = new Region
-        {
-            Handle = loginResponse.RegionHandle,
-            SeedCapability = loginResponse.SeedCapability
-        };
-        Region.SetCurrentRegion(region);
+        // Before we create the first region, we need to set the agent's OriginGlobal
+        // This is necessary because creating objects before this is set will result in a
+        // bad PositionAgent cache.
+        agent.InitOriginGlobal (loginResponse.RegionHandle.ToVector3Double());
+
+        FirstSimHost = new Host(loginResponse.SimIp, loginResponse.SimPort);
+        Region region = World.Instance.AddRegion(loginResponse.RegionHandle, FirstSimHost);
 
         Logger.LogInfo("Requesting capability grants...");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Requesting capability grants...", 0.32f);
-        Task<Dictionary<string, Capability>> seedCapabilitiesTask = SeedCapabilities.RequestCapabilities(region.SeedCapability);
+        
+        Task seedCapabilitiesTask = region.SetSeedCapability(loginResponse.SeedCapability);
 
-        agent.CurrentRegion = region;
-
+        agent.Region = region;
         #endregion WorldInit
 
         #region MultimediaInit
@@ -102,8 +103,8 @@ public class Session
         Logger.LogDebug("SEED_GRANTED_WAIT------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region capabilities...", 0.47f);
 
-        region.Capabilities = await seedCapabilitiesTask;
-        Logger.LogInfo($"Got capability grants. ({region.Capabilities?.Count})");
+        await seedCapabilitiesTask;
+        Logger.LogInfo($"Got capability grants.");
 
         #endregion SeedGrantedWait
 
@@ -116,7 +117,7 @@ public class Session
         region.Circuit = SlMessageSystem.Instance.EnableCircuit(new Host(loginResponse.SimIp, loginResponse.SimPort));
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
-        await Region.CurrentRegion.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
+        await region.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
         Logger.LogInfo("UseCircuitCode was acked.");
         #endregion SeedCapabilitiesGranted
 
@@ -124,7 +125,7 @@ public class Session
         Logger.LogDebug("AGENT_SEND-------------------------");
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Connecting to region...", 0.6f);
-        await Region.CurrentRegion.Circuit.SendCompleteAgentMovement(loginResponse.AgentId, SessionId, loginResponse.CircuitCode);
+        await region.Circuit.SendCompleteAgentMovement(loginResponse.AgentId, SessionId, loginResponse.CircuitCode);
         Logger.LogInfo("CompleteAgentMovement was acked.");
         #endregion AgentSend
 
@@ -181,7 +182,6 @@ public class Session
 
         IsLoggedIn = true;
 
-
         await Task.Delay(3000);
         Logger.LogDebug("POST----------------");
         // TODO: This is in the application loop in Indra:
@@ -202,7 +202,13 @@ public class Session
         EventManager.Instance.OnLogoutReplyMessage += OnLogoutReplyMessage;
 
         IsLogoutPending = true;
-        await Region.CurrentRegion.Circuit.SendLogoutRequest(AgentId, SessionId);
+
+        if (   Agent.CurrentPlayer                != null
+            && Agent.CurrentPlayer.Region         != null
+            && Agent.CurrentPlayer.Region.Circuit != null)
+        {
+            await Agent.CurrentPlayer.Region.Circuit.SendLogoutRequest(AgentId, SessionId);
+        }
 
         // Wait for LogOutReply:
         int frequency = 10;
@@ -234,7 +240,6 @@ public class Session
     protected void RegisterEventListeners()
     {
         EventManager.Instance.OnLayerDataMessage += ProcessLayerData;
-
         //msg->setHandlerFuncFast(_PREHASH_ImageData, LLViewerTextureList::receiveImageHeader);
         //msg->setHandlerFuncFast(_PREHASH_ImagePacket, LLViewerTextureList::receiveImagePacket);
         //msg->setHandlerFuncFast(_PREHASH_ObjectUpdate, process_object_update);
@@ -418,7 +423,7 @@ public class Session
             LayerType = message.LayerType,
             Data = message.Data,
             Size = message.Data.Length,
-            Region = Region.CurrentRegion
+            Region = Agent.CurrentPlayer?.Region
         };
 
         VolumeLayerManager.AddLayerData(vlData);

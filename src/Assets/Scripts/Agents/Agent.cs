@@ -89,7 +89,7 @@ public class Agent :IDisposable
     public string GroupName { get; set; }
     public string GroupTitle { get; set; }
     public UInt64 GroupPowers { get; set; }
-    public Region CurrentRegion { get; set; }
+    public Region Region { get; set; }
 
 
     public Vector3 Position { get; set; }
@@ -107,7 +107,10 @@ public class Agent :IDisposable
     public AgentState        AgentState { get; set; }
     public AgentControlFlags ControlFlags { get; set; }
 
-
+    /// <summary>
+    /// Origin of agent coords from global coords
+    /// </summary>
+    public Vector3Double OriginGlobal { get; set; }
 
     public Agent(Guid id)
     {
@@ -143,9 +146,9 @@ public class Agent :IDisposable
 
         // TODO: Update current region and host
 
-        await Region.CurrentRegion.Circuit.SendAgentThrottle();
+        await Region.Circuit.SendAgentThrottle();
 
-        await Region.CurrentRegion.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should take the title and status bars into account.
+        await Region.Circuit.SendAgentHeightWidth(1080, 1920); // TODO: This should take the title and status bars into account.
 
         // if (Teleport)
         // {
@@ -163,18 +166,18 @@ public class Agent :IDisposable
 
         // TODO: Check beacon and remove if we are close
 
-        Region.CurrentRegion.Circuit.SendAgentUpdate (Id,
-                                                            Session.Instance.SessionId,
-                                                            BodyRotation,
-                                                            HeadRotation,
-                                                            AgentState,
-                                                            CameraCentre,
-                                                            CameraAtAxis,
-                                                            CameraLeftAxis,
-                                                            CameraUpAxis,
-                                                            FarClipPlane,
-                                                            ControlFlags,
-                                                            AgentUpdateFlags.None);
+        Region.Circuit.SendAgentUpdate (Id,
+                                              Session.Instance.SessionId,
+                                              BodyRotation,
+                                              HeadRotation,
+                                              AgentState,
+                                              CameraCentre,
+                                              CameraAtAxis,
+                                              CameraLeftAxis,
+                                              CameraUpAxis,
+                                              FarClipPlane,
+                                              ControlFlags,
+                                              AgentUpdateFlags.None);
 
         // TODO: Force flying depending on region permissions
 
@@ -203,5 +206,10 @@ public class Agent :IDisposable
     public void Dispose()
     {
         EventManager.Instance.OnAgentDataUpdateMessage -= OnAgentDataUpdateMessage;
+    }
+
+    public void InitOriginGlobal(Vector3Double originGlobal)
+    {
+        OriginGlobal = originGlobal;
     }
 }
