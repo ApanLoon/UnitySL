@@ -111,7 +111,7 @@ public class Session
         Logger.LogDebug("SEED_CAPABILITIES_GRANTED----------");
 
         CircuitCode = loginResponse.CircuitCode;
-        region.Circuit = SlMessageSystem.Instance.EnableCircuit(loginResponse.SimIp, loginResponse.SimPort);
+        region.Circuit = SlMessageSystem.Instance.EnableCircuit(new Host(loginResponse.SimIp, loginResponse.SimPort));
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await Region.CurrentRegion.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);

@@ -69,6 +69,7 @@ public class SlMessageSystem : IDisposable
 
     //mMessageBuilder = NULL;
 
+    protected Dictionary<Host,       Circuit> CircuitByHost = new Dictionary<Host, Circuit>();
     protected Dictionary<IPEndPoint, Circuit> CircuitByEndPoint = new Dictionary<IPEndPoint, Circuit>();
     protected UdpClient UdpClient;
 
@@ -170,23 +171,18 @@ public class SlMessageSystem : IDisposable
         UdpClient?.Dispose();
     }
 
-    public Circuit EnableCircuit(string address, int port, float heartBeatInterval = 5f, float circuitTimeout = 100f)
-    {
-        IPAddress a = IPAddress.Parse(address);
-        return EnableCircuit(a, port, heartBeatInterval, circuitTimeout);
-    }
-
-    public Circuit EnableCircuit(IPAddress address, int port, float heartBeatInterval = 5f, float circuitTimeout = 100f)
+    public Circuit EnableCircuit(Host host, float heartBeatInterval = 5f, float circuitTimeout = 100f)
     {
         Logger.LogDebug("SlMessageSystem.EnableCircuit");
 
-        IPEndPoint endPoint = new IPEndPoint(address, port);
-        if (CircuitByEndPoint.ContainsKey(endPoint))
+        if (CircuitByHost.ContainsKey(host))
         {
-            return CircuitByEndPoint[endPoint];
+            return CircuitByHost[host];
         }
-        Circuit circuit = new Circuit(address, port, this, heartBeatInterval, circuitTimeout);
-        CircuitByEndPoint.Add(endPoint, circuit);
+
+        Circuit circuit = new Circuit(host, this, heartBeatInterval, circuitTimeout);
+        CircuitByHost[host] = circuit;
+        CircuitByEndPoint[host.EndPoint] = circuit;
         return circuit;
     }
 
@@ -199,7 +195,7 @@ public class SlMessageSystem : IDisposable
     protected async Task Send(byte[] buffer, Circuit circuit)
     {
         //Logger.LogDebug($"SlMessageSystem.Send: Sending {buffer.Length} bytes...");
-        await UdpClient.SendAsync(buffer, buffer.Length, circuit.RemoteEndPoint);
+        await UdpClient.SendAsync(buffer, buffer.Length, circuit.Host.EndPoint);
     }
     
     protected void ReceiveData(IAsyncResult ar)

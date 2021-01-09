@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -9,11 +8,9 @@ public class Circuit : IDisposable
 {
     public static readonly float AckTimeOut = 0.5f; // TODO: if the acknowledgment is not received in a predetermined amount of time (A minimum of 1 second, or a maximum determined by the average ping delay of the circuit), the packet is resent. If the packet is not acknowledged after 3 resends (default value), it is dropped.
 
-    public Circuit(IPAddress address, int port, SlMessageSystem messageSystem, float heartBeatInterval, float circuitTimeout)
+    public Circuit(Host host, SlMessageSystem messageSystem, float heartBeatInterval, float circuitTimeout)
     {
-        RemoteEndPoint = new IPEndPoint(address, port);
-        Address = address;
-        Port = port;
+        Host = host;
         MessageSystem = messageSystem; 
         HeartBeatInterval = heartBeatInterval;
         CircuitTimeout = circuitTimeout;
@@ -29,7 +26,7 @@ public class Circuit : IDisposable
             Logger.LogDebug("Circuit.Start: Already started.");
             return;
         }
-        Logger.LogDebug($"Circuit.Start: Address={Address}, Port={Port}");
+        Logger.LogDebug($"Circuit.Start: Host={Host}");
 
         _cts = new CancellationTokenSource();
         _threadLoopTask = Task.Run(() => ThreadLoop(_cts.Token), _cts.Token);
@@ -37,7 +34,7 @@ public class Circuit : IDisposable
 
     public void Stop()
     {
-        Logger.LogDebug($"Circuit.Stop: Address={Address}, Port={Port}");
+        Logger.LogDebug($"Circuit.Stop: Host={Host}");
         _cts.Cancel();
 
         _cts.Dispose();
@@ -48,7 +45,7 @@ public class Circuit : IDisposable
 
     protected async Task ThreadLoop(CancellationToken ct)
     {
-        Logger.LogInfo($"Circuit.ThreadLoop: Running Address={Address}, Port={Port}");
+        Logger.LogInfo($"Circuit.ThreadLoop: Running Host={Host}");
 
         LastSendTime = DateTime.Now; // Pretend that we sent something to prevent initial keep-alive.
         while (ct.IsCancellationRequested == false)
@@ -84,14 +81,12 @@ public class Circuit : IDisposable
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted
         }
         // Cancelling appears to kill the task immediately without giving it a chance to get here
-        Logger.LogInfo($"Circuit.ThreadLoop: Stopping... Address={Address}, Port={Port}");
+        Logger.LogInfo($"Circuit.ThreadLoop: Stopping... Host={Host}");
     }
     #endregion Thread
 
     protected DateTime LastSendTime;
-    public IPEndPoint RemoteEndPoint { get; set; }
-    public IPAddress Address { get; }
-    public int Port { get; }
+    public Host Host { get; set; }
     public SlMessageSystem MessageSystem { get; }
     public float HeartBeatInterval { get; }
     public float CircuitTimeout { get; }
@@ -103,6 +98,7 @@ public class Circuit : IDisposable
 
     #region SendMessage
 
+    #region Specific
     public void SendAgentUpdate (Guid              agentId,
                                  Guid              sessionId,
                                  Quaternion        bodyRotation, 
@@ -177,7 +173,7 @@ public class Circuit : IDisposable
 
     public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
     {
-        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId}): Sending to {Address}:{Port}");
+        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId}): Sending to Host={Host}");
 
         LogoutRequestMessage message = new LogoutRequestMessage (agentId, sessionId);
         await SendReliable(message);
@@ -185,7 +181,7 @@ public class Circuit : IDisposable
 
     public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
     {
-        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to {Address}:{Port}");
+        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to Host={Host}");
 
         AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
         await SendReliable(message);
@@ -193,20 +189,12 @@ public class Circuit : IDisposable
 
     public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
     {
-        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to Host={Host}");
 
         RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
         await SendReliable(message);
     }
-
-
-    //public void SendOpenCircuit()
-    //{
-    //    Logger.LogDebug($"Circuit.SendOpenCircuit: Sending to {Address}:{Port}");
-
-    //    OpenCircuitMessage message = new OpenCircuitMessage(Address, Port);
-    //    SlMessageSystem.Instance.EnqueueMessage(this, message);
-    //}
+    #endregion Specific
 
     protected async Task SendReliable(Message message)
     {
@@ -336,7 +324,7 @@ public class Circuit : IDisposable
 
     public void Dispose()
     {
-        Logger.LogDebug($"Circuit.Dispose: Address={Address}, Port={Port}");
+        Logger.LogDebug($"Circuit.Dispose: Host={Host}");
         Stop();
     }
 }
