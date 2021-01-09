@@ -180,6 +180,13 @@ public class Session
         #endregion Cleanup
 
         IsLoggedIn = true;
+
+
+        await Task.Delay(3000);
+        Logger.LogDebug("POST----------------");
+        // TODO: This is in the application loop in Indra:
+        VolumeLayerManager.UnpackLayerData();
+
     }
 
     public async Task Stop()

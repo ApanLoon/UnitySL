@@ -37,4 +37,33 @@ public class VolumeLayerManager
         }
         LayerData.Add(vlData);
     }
+
+
+    public static void UnpackLayerData()
+    {
+        Logger.LogDebug("VolumeLayerManager.UnpackLayerData");
+        for (int i = 0; i < LayerData.Count; i++)
+        {
+            VolumeLayerData vlData = LayerData[i];
+            Logger.LogDebug(BitConverter.ToString(vlData.Data));
+            BitPack bitPack = new BitPack(vlData.Data);
+
+            PatchDct.PatchGroupHeader gh = PatchDct.PatchGroupHeader.Create(bitPack);
+
+            Logger.LogDebug($"VolumeLayerManager.UnpackLayerData: {gh}");
+
+            switch (vlData.LayerType)
+            {
+                case LayerType.Land:
+                    //Region.CurrentRegion.Surface.DecompressDCTPatch(bitPack, gh, false);
+                    break;
+                case LayerType.Wind:
+                    break;
+                case LayerType.Cloud:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
 }
