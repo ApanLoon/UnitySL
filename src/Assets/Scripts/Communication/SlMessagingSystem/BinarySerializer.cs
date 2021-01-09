@@ -10,6 +10,9 @@ public static class BinarySerializer
     #region Messages
 
     #region Message
+
+    public static HashSet<UInt32> UnknownMessageIds = new HashSet<uint>();
+
     public static Message DeSerializeMessage(byte[] buf, int offset)
     {
         if (buf.Length - offset < 6)
@@ -116,7 +119,13 @@ public static class BinarySerializer
                     break;
             }
 
-            Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id {idString}");
+            // Only log unknown messages the first time to reduce spam and lag:
+            if (UnknownMessageIds.Contains(id) == false)
+            {
+                Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id {idString}");
+                UnknownMessageIds.Add(id);
+            }
+            
             return new DeSerializerResult(){Message = null, Offset = o};
         }
 
@@ -148,6 +157,24 @@ public static class BinarySerializer
 
                 m.PingId = buf[o++]; 
                 m.OldestUnchecked = DeSerializeUInt32_Le (buf, ref o, buf.Length);
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        {
+            MessageId.LayerData, // 0x0000000b
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                LayerDataMessage m = new LayerDataMessage(flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+
+                m.LayerType = (LayerType)buf[o++];
+                UInt16 len = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
+                m.Data = new byte[len];
+                Array.Copy(buf, o, m.Data, 0, len);
+
+                Logger.LogDebug($"LayerDataMessage: LayerType={m.LayerType}, len={len}, Flags={flags}");
 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }

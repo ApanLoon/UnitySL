@@ -56,6 +56,7 @@ public class EventManager : MonoBehaviour
         ThreadManager.ExecuteOnMainThread(() => OnRegionDataChanged?.Invoke(region));
     }
 
+    public event Action<LayerDataMessage> OnLayerDataMessage;
     public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
     public event Action<SimulatorViewerTimeMessage> OnSimulatorViewerTimeMessage;
     #endregion Region
@@ -93,6 +94,7 @@ public class EventManager : MonoBehaviour
         {MessageId.SoundTrigger,                 (m) => Instance.OnSoundTriggerMessage?.Invoke          ((SoundTriggerMessage)m)  },
 
         {MessageId.CoarseLocationUpdate,         (m) => Instance.OnCoarseLocationUpdateMessage?.Invoke  ((CoarseLocationUpdateMessage)m)  },
+        {MessageId.LayerData,                    (m) => Instance.OnLayerDataMessage?.Invoke             ((LayerDataMessage)m)             },
         {MessageId.AttachedSound,                (m) => Instance.OnAttachedSoundMessage?.Invoke         ((AttachedSoundMessage)m)         },
         {MessageId.PreloadSound,                 (m) => Instance.OnPreloadSoundMessage?.Invoke          ((PreloadSoundMessage)m)          },
 
