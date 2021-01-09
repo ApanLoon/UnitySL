@@ -4,6 +4,13 @@
     public double y { get; set; }
     public double z { get; set; }
 
+    public Vector3Double(double x, double y, double z)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     public override string ToString()
     {
         return $"({x}, {y}, {z})";
