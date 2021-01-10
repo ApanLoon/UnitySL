@@ -13,7 +13,7 @@ public class SurfacePatch
     // +---+---+---+
 
     public bool HasReceivedData; // has the patch EVER received height data?
-    public bool STexUpdate; // Does the surface texture need to be updated?
+    public bool SurfaceTextureUpdate; // Does the surface texture need to be updated?
 
     protected SurfacePatch[] NeighborPatches = new SurfacePatch[8]; // Adjacent patches
     protected bool[] NormalsInvalid = new bool[9]; // Which normals are invalid
@@ -23,8 +23,18 @@ public class SurfacePatch
     protected bool HeightsGenerated;
 
     protected UInt32 DataOffset;
+
+    /// <summary>
+    /// Contains the Z values for the entire surface, make sure that you use the DataZStart offset every time you access this.
+    /// </summary>
     protected float[] DataZ;
+    public UInt32 DataZStart { get; set; }
+
+    /// <summary>
+    /// Contains the Normal vectors for the entire surface, make sure that you use the DataNormStart offset every time you access this.
+    /// </summary>
     protected Vector3[] DataNorm;
+    public UInt32 DataNormStart { get; protected set; }
 
     // Pointer to the LLVOSurfacePatch object which is used in the new renderer.
     //protected LLPointer<LLVOSurfacePatch> mVObjp;
@@ -33,7 +43,7 @@ public class SurfacePatch
     //protected LLPatchVisibilityInfo mVisInfo;
 
     // pointers to beginnings of patch data fields
-    protected Vector3Double OriginGlobal;
+    public Vector3Double OriginGlobal { get; set; }
     protected Vector3 OriginRegion;
 
 
@@ -51,12 +61,12 @@ public class SurfacePatch
     // of LLSurface that is "connected" to another LLSurface
     protected float LastUpdateTime; // Time patch was last updated
 
-    protected Surface Surface; // Pointer to "parent" surface
+    public Surface Surface; // Pointer to "parent" surface
 
     public SurfacePatch()
     {
         HasReceivedData = false;
-        STexUpdate = false;
+        SurfaceTextureUpdate = false;
         Dirty = false;
         DirtyZStats = true;
         HeightsGenerated = false;
@@ -81,7 +91,7 @@ public class SurfacePatch
         int i;
         for (i = 0; i < 8; i++)
         {
-            SetNeighborPatch((DirectionIndex)i, null);
+            SetNeighbourPatch((DirectionIndex)i, null);
         }
 
         for (i = 0; i < 9; i++)
@@ -95,7 +105,7 @@ public class SurfacePatch
         return NeighborPatches[(int)direction];
     }
 
-    public void SetNeighborPatch (DirectionIndex direction, SurfacePatch neighbor)
+    public void SetNeighbourPatch (DirectionIndex direction, SurfacePatch neighbor)
     {
         NeighborPatches[(UInt32)direction] = neighbor;
         NormalsInvalid[(UInt32)direction] = true;
@@ -108,7 +118,7 @@ public class SurfacePatch
 
     public void DirtyZ()
     {
-        STexUpdate = true;
+        SurfaceTextureUpdate = true;
 
         // Invalidate all normals in this patch
         UInt32 i;
@@ -172,8 +182,8 @@ public class SurfacePatch
         NormalsInvalid[(int)direction] = true;
         neighbour.NormalsInvalid[(int)World.DirOpposite[(int)direction]] = true;
 
-        SetNeighborPatch(direction, neighbour);
-        neighbour.SetNeighborPatch (World.DirOpposite[(int)direction], this);
+        SetNeighbourPatch(direction, neighbour);
+        neighbour.SetNeighbourPatch (World.DirOpposite[(int)direction], this);
 
         switch (direction)
         {
@@ -205,20 +215,20 @@ public class SurfacePatch
         UInt32 gridsPerEdge = Surface.GridsPerEdge;
 
         UInt32 i;
-        UInt32 southSurfaceIndex;
+        UInt32 southSurfaceIndex = gridsPerPatchEdge *gridsPerEdge + DataZStart;
         UInt32 northSurfaceIndex;
-        float[] northSource = DataZ;
+        float[] northSource = null;
 
         if (GetNeighbourPatch (DirectionIndex.North) != null)
         {
-            southSurfaceIndex = gridsPerPatchEdge * gridsPerEdge;
-            northSurfaceIndex = (gridsPerPatchEdge - 1) * gridsPerEdge;
+            northSource = DataZ;
+            northSurfaceIndex = (gridsPerPatchEdge - 1) * gridsPerEdge + DataZStart;
         }
         else if ((ConnectedEdge & EdgeType.North) != 0)
         {
-            southSurfaceIndex = gridsPerPatchEdge * gridsPerEdge;
-            northSurfaceIndex = 0;
-            northSource = GetNeighbourPatch (DirectionIndex.North).DataZ;
+            SurfacePatch neighbour = GetNeighbourPatch(DirectionIndex.North);
+            northSource       =     neighbour.DataZ;
+            northSurfaceIndex = 0 + neighbour.DataZStart;
         }
         else
         {
@@ -239,20 +249,19 @@ public class SurfacePatch
 
         UInt32 j;
         UInt32 k;
-        UInt32 westSurfaceIndex;
+        UInt32 westSurfaceIndex = gridsPerPatchEdge + DataZStart;
         UInt32 eastSurfaceIndex;
         float[] eastSource = DataZ;
 
         if (GetNeighbourPatch (DirectionIndex.East) != null)
         {
-            westSurfaceIndex = gridsPerPatchEdge;
-            eastSurfaceIndex = gridsPerPatchEdge - 1;
+            eastSurfaceIndex = gridsPerPatchEdge - 1 + DataZStart;
         }
         else if ((ConnectedEdge & EdgeType.East) != 0)
         {
-            westSurfaceIndex = gridsPerPatchEdge;
-            eastSurfaceIndex = 0;
-            eastSource = GetNeighbourPatch (DirectionIndex.East).DataZ;
+            SurfacePatch neighbour = GetNeighbourPatch(DirectionIndex.East);
+            eastSource       =     neighbour.DataZ;
+            eastSurfaceIndex = 0 + neighbour.DataZStart;
         }
         else
         {
@@ -266,5 +275,17 @@ public class SurfacePatch
             k = j * gridsPerEdge;
             DataZ[westSurfaceIndex + k] = eastSource[eastSurfaceIndex + k];  // update buffer Z
         }
+    }
+
+    public void SetDataZ(float[] dataZ, UInt32 dataZStart)
+    {
+        DataZ = dataZ;
+        DataZStart = dataZStart;
+    }
+
+    public void SetDataNorm(Vector3[] dataNorm, UInt32 dataNormStart)
+    {
+        DataNorm = dataNorm;
+        DataNormStart = dataNormStart;
     }
 }

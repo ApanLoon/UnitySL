@@ -174,7 +174,7 @@ public static class BinarySerializer
                 m.Data = new byte[len];
                 Array.Copy(buf, o, m.Data, 0, len);
 
-                Logger.LogDebug($"LayerDataMessage: LayerType={m.LayerType}, len={len}, Flags={flags}");
+                // Logger.LogDebug($"LayerDataMessage: LayerType={m.LayerType}, len={len}, Flags={flags}");
 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }

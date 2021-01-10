@@ -167,8 +167,6 @@ public class Region : IDisposable
     // TODO: Add RegionInfo4 when I know what it is
 
     public Circuit Circuit { get; set; }
-    public Surface Surface { get; set; } = new Surface (SurfaceType.Land, null);
-
     
     protected float TimeDilation;   // time dilation of physics simulation on simulator
     protected Dictionary<string, Capability> CapabilityByName { get; set; } = new Dictionary<string, Capability>();

@@ -55,7 +55,7 @@ public class VolumeLayerManager
             switch (vlData.LayerType)
             {
                 case LayerType.Land:
-                    //Region.CurrentRegion.Surface.DecompressDCTPatch(bitPack, gh, false);
+                    Agent.CurrentPlayer.Region.Land.DecompressDCTPatch (bitPack, gh, false);
                     break;
                 case LayerType.Wind:
                     break;

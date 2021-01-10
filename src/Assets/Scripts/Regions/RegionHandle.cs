@@ -21,7 +21,7 @@ public class RegionHandle
 
     public Vector3Double ToVector3Double()
     {
-        return new Vector3Double(X, Y, 0f); // TODO: Should Y and Z be swapped?
+        return new Vector3Double (X, 0f, Y); // NOTE: y and z are swapped compared to Indra because of handedness
     }
 
     public override string ToString()

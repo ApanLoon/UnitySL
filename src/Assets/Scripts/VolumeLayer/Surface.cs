@@ -94,13 +94,13 @@ public class Surface
     protected HashSet<SurfacePatch> DirtyPatchList = new HashSet<SurfacePatch>();
 
     // The textures should never be directly initialized - use the setter methods!
-    //protected LLPointer<LLViewerTexture> mSTexturep;      // Texture for surface
+    //protected LLPointer<LLViewerTexture> SurfaceTexture;      // Texture for surface
     //protected LLPointer<LLViewerTexture> mWaterTexturep;  // Water texture
 
     //protected LLPointer<LLVOWater> mWaterObjp;
 
     // When we want multiple cameras we'll need one of each these for each camera
-    protected int VisiblePatchCount;
+    protected UInt32 VisiblePatchCount;
 
     public UInt32 GridsPerPatchEdge { get; protected set; }         // Number of grid points on a side of a patch
     protected float MetersPerGrid;             // Converts (i,j) indecies to distance
@@ -119,7 +119,7 @@ public class Surface
 
     protected Region Region;  // Patch whose coordinate system this surface is using.
 
-    public Surface(SurfaceType surfaceType, Region region)
+    public Surface (SurfaceType surfaceType, Region region)
     {
         SurfaceType = surfaceType;
         Region = region;
@@ -162,87 +162,6 @@ public class Surface
         }
     }
 
-    public void SetRegion (Region region)
-    {
-        Region = region;
-        //WaterObj = null; // depends on region, needs recreating
-    }
-
-    public void DecompressDCTPatch(BitPack bitPack, PatchDct.PatchGroupHeader groupHeader, bool isLargePatch)
-    {
-        //int o = bitPack.Offset;
-        //bitPack.Offset = o + 8 + 32 + 16;
-        //byte b0 = bitPack.GetUInt8();
-        //byte b1 = bitPack.GetUInt8();
-        //bitPack.Offset = o + 8 + 32 + 16;
-        //byte[] b = bitPack.GetBytes(10, false);
-        //bitPack.Offset = o;
-        //Logger.LogDebug($"b0={b0:x2} b1={b1:x2} b[0]={b[0]:x2} b[1]={b[1]:x2}");
-
-        int j;
-        int i;
-        int[] patch = new int[PatchDct.LARGE_PATCH_SIZE * PatchDct.LARGE_PATCH_SIZE];
-
-//        init_patch_decompressor(gopp->patch_size);
-//        gopp->stride = mGridsPerEdge;
-//        set_group_of_patch_header(gopp);
-
-        while (true)
-        {
-            PatchDct.PatchHeader ph = PatchDct.PatchHeader.Create(bitPack);
-            Logger.LogDebug($"Surface.DecompressDCTPatch: {ph} w={ph.PatchIds >> 5} h={ph.PatchIds & 0x1f}");
-            break;
-            if (ph.QuantWBits == PatchDct.END_OF_PATCHES)
-            {
-                break;
-            }
-
-            i = ph.PatchIds >> 5;
-            j = ph.PatchIds & 0x1f;
-
-            //if ((i >= mPatchesPerEdge) || (j >= mPatchesPerEdge))
-            //{
-            //    LL_WARNS() << "Received invalid terrain packet - patch header patch ID incorrect!"
-            //               << " patches per edge " << mPatchesPerEdge
-            //               << " i " << i
-            //               << " j " << j
-            //               << " dc_offset " << ph.dc_offset
-            //               << " range " << (S32)ph.range
-            //               << " quant_wbits " << (S32)ph.quant_wbits
-            //               << " patchids " << (S32)ph.patchids
-            //        << LL_ENDL;
-            //    return;
-            //}
-
-            //patchp = &mPatchList[j * mPatchesPerEdge + i];
-
-
-            //decode_patch(bitpack, patch);
-            //decompress_patch(patchp->getDataZ(), patch, &ph);
-
-            //// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.
-            //patchp->updateNorthEdge();
-            //patchp->updateEastEdge();
-            //if (patchp->getNeighborPatch(WEST))
-            //{
-            //    patchp->getNeighborPatch(WEST)->updateEastEdge();
-            //}
-            //if (patchp->getNeighborPatch(SOUTHWEST))
-            //{
-            //    patchp->getNeighborPatch(SOUTHWEST)->updateEastEdge();
-            //    patchp->getNeighborPatch(SOUTHWEST)->updateNorthEdge();
-            //}
-            //if (patchp->getNeighborPatch(SOUTH))
-            //{
-            //    patchp->getNeighborPatch(SOUTH)->updateNorthEdge();
-            //}
-
-            //// Dirty patch statistics, and flag that the patch has data.
-            //patchp->dirtyZ();
-            //patchp->setHasReceivedData();
-        }
-	}
-
     /// <summary>
     /// Assumes that arguments are powers of 2, and that
     /// gridsPerEdge / gridsPerPatchEdge = power of 2 
@@ -283,13 +202,116 @@ public class Surface
         
         VisiblePatchCount = 0;
         
-        //TODO: InitTextures();
+        InitTextures();
 
         // Has to be done after texture initialization
-        // TODO: CreatePatchData();
+        CreatePatchData();
     }
 
-    public void ConnectNeighbour(Surface neighbour, DirectionIndex direction)
+    #region Textures
+    protected void InitTextures()
+    {
+        CreateSurfaceTexture();
+
+        // TODO: CreateWaterTexture();
+        // TODO: Create water GameObject
+    }
+
+    protected void CreateSurfaceTexture()
+    {
+        // TODO: Generate dummy grey texture or probably use a pre-made one?
+        //if (!mSTexturep)
+        //{
+        //    // Fill with dummy gray data.	
+        //    // GL NOT ACTIVE HERE
+        //    LLPointer<LLImageRaw> raw = new LLImageRaw(sTextureSize, sTextureSize, 3);
+        //    U8* default_texture = raw->getData();
+        //    for (S32 i = 0; i < sTextureSize; i++)
+        //    {
+        //        for (S32 j = 0; j < sTextureSize; j++)
+        //        {
+        //            *(default_texture + (i * sTextureSize + j) * 3) = 128;
+        //            *(default_texture + (i * sTextureSize + j) * 3 + 1) = 128;
+        //            *(default_texture + (i * sTextureSize + j) * 3 + 2) = 128;
+        //        }
+        //    }
+
+        //    mSTexturep = LLViewerTextureManager::getLocalTexture(raw.get(), FALSE);
+        //    mSTexturep->dontDiscard();
+        //    gGL.getTexUnit(0)->bind(mSTexturep);
+        //    mSTexturep->setAddressMode(LLTexUnit::TAM_CLAMP);
+        //}
+    }
+
+    protected void CreatePatchData()
+    {
+        // Assumes GridsPerEdge, GridsPerPatchEdge, and PatchesPerEdge have been properly set
+        // TODO -- check for create() called when surface is not empty
+        UInt32 i;
+        UInt32 j;
+        SurfacePatch patch;
+
+        // Allocate memory
+        PatchList = new SurfacePatch[NumberOfPatches];
+        for (i = 0; i < NumberOfPatches; i++)
+        {
+            PatchList[i] = new SurfacePatch();
+        }
+
+        // One of each for each camera
+        VisiblePatchCount = NumberOfPatches;
+
+        for (j = 0; j < PatchesPerEdge; j++)
+        {
+            for (i = 0; i < PatchesPerEdge; i++)
+            {
+                patch = GetPatch (i, j);
+                patch.Surface = this;
+            }
+        }
+
+        for (j = 0; j < PatchesPerEdge; j++)
+        {
+            for (i = 0; i < PatchesPerEdge; i++)
+            {
+                patch = GetPatch (i, j);
+                patch.HasReceivedData = false;
+                patch.SurfaceTextureUpdate = true;
+
+                UInt32 dataOffset = i * GridsPerPatchEdge + j * GridsPerPatchEdge * GridsPerEdge;
+
+                patch.SetDataZ    (SurfaceZ, dataOffset);
+                patch.SetDataNorm (Norm,     dataOffset);
+                
+                // We make each patch point to its neighbours so we can do resolution checking 
+                // when butting up different resolutions.  Patches that don't have neighbours
+                // somewhere will point to NULL on that side.
+                patch.SetNeighbourPatch (DirectionIndex.East,      i < PatchesPerEdge - 1                           ? GetPatch (i + 1, j    ) : null);
+                patch.SetNeighbourPatch (DirectionIndex.North,                               j < PatchesPerEdge - 1 ? GetPatch (i,     j + 1) : null);
+                patch.SetNeighbourPatch (DirectionIndex.West,      i > 0                                            ? GetPatch (i - 1, j    ) : null);
+                patch.SetNeighbourPatch (DirectionIndex.South,                               j > 0                  ? GetPatch (i,     j - 1) : null);
+                patch.SetNeighbourPatch (DirectionIndex.NorthEast, i < PatchesPerEdge - 1 && j < PatchesPerEdge - 1 ? GetPatch (i + 1, j + 1) : null);
+                patch.SetNeighbourPatch (DirectionIndex.NorthWest, i > 0                  && j < PatchesPerEdge - 1 ? GetPatch (i - 1, j + 1) : null);
+                patch.SetNeighbourPatch (DirectionIndex.SouthWest, i > 0                  && j > 0                  ? GetPatch (i - 1, j - 1) : null);
+                patch.SetNeighbourPatch (DirectionIndex.SouthEast, i < PatchesPerEdge - 1 && j > 0                  ? GetPatch (i + 1, j - 1) : null);
+
+
+                patch.OriginGlobal = new Vector3Double (               // NOTE: y and z are swapped compared to Indra because of handedness
+                    OriginGlobal.x + i * MetersPerGrid * GridsPerPatchEdge,
+                    0f,
+                    OriginGlobal.x + j * MetersPerGrid * GridsPerPatchEdge); // TODO: Is it really correct to use .x here?
+            }
+        }
+    }
+    #endregion Textures
+
+    public void SetRegion (Region region)
+    {
+        Region = region;
+        //WaterObj = null; // depends on region, needs recreating
+    }
+
+    public void ConnectNeighbour (Surface neighbour, DirectionIndex direction)
     {
         UInt32 i;
         SurfacePatch patch;
@@ -479,7 +501,7 @@ public class Surface
         }
     }
 
-    public SurfacePatch GetPatch(UInt32 x, UInt32 y)
+    public SurfacePatch GetPatch (UInt32 x, UInt32 y)
     {
         // Note: If "below zero" it will hopefully by larger than PatchesPerEdge
         if (x < PatchesPerEdge && y < PatchesPerEdge)
@@ -495,5 +517,73 @@ public class Surface
     {
         // Put surface patch on dirty surface patch list
         DirtyPatchList.Add (patch);
+    }
+
+    public void DecompressDCTPatch (BitPack bitPack, PatchDct.PatchGroupHeader groupHeader, bool isLargePatch)
+    {
+        //int o = bitPack.Offset;
+        //bitPack.Offset = o + 8 + 32 + 16;
+        //byte b0 = bitPack.GetUInt8();
+        //byte b1 = bitPack.GetUInt8();
+        //bitPack.Offset = o + 8 + 32 + 16;
+        //byte[] b = bitPack.GetBytes(10, false);
+        //bitPack.Offset = o;
+        //Logger.LogDebug($"b0={b0:x2} b1={b1:x2} b[0]={b[0]:x2} b[1]={b[1]:x2}");
+
+        int j;
+        int i;
+        int[] patch = new int[PatchDct.LARGE_PATCH_SIZE * PatchDct.LARGE_PATCH_SIZE];
+
+        //        init_patch_decompressor(gopp->patch_size);
+        //        gopp->stride = mGridsPerEdge;
+        //        set_group_of_patch_header(gopp);
+
+        while (true)
+        {
+            PatchDct.PatchHeader ph = PatchDct.PatchHeader.Create(bitPack);
+            Logger.LogDebug($"Surface.DecompressDCTPatch: {ph} w={ph.PatchIds >> 5} h={ph.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
+
+            if (ph.QuantWBits == PatchDct.END_OF_PATCHES)
+            {
+                break;
+            }
+
+            i = ph.PatchIds >> 5;
+            j = ph.PatchIds & 0x1f;
+
+            if ((i >= PatchesPerEdge) || (j >= PatchesPerEdge))
+            {
+                Logger.LogWarning($"Surface.DecompressDCTPatch: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={ph.DcOffset} Range={ph.Range} QuantWBits={ph.QuantWBits} PatchIds={ph.PatchIds}");
+                return;
+            }
+
+            break;
+            //patchp = &mPatchList[j * mPatchesPerEdge + i];
+
+
+            //decode_patch(bitpack, patch);
+            //decompress_patch(patchp->getDataZ(), patch, &ph);
+
+            //// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.
+            //patchp->updateNorthEdge();
+            //patchp->updateEastEdge();
+            //if (patchp->getNeighborPatch(WEST))
+            //{
+            //    patchp->getNeighborPatch(WEST)->updateEastEdge();
+            //}
+            //if (patchp->getNeighborPatch(SOUTHWEST))
+            //{
+            //    patchp->getNeighborPatch(SOUTHWEST)->updateEastEdge();
+            //    patchp->getNeighborPatch(SOUTHWEST)->updateNorthEdge();
+            //}
+            //if (patchp->getNeighborPatch(SOUTH))
+            //{
+            //    patchp->getNeighborPatch(SOUTH)->updateNorthEdge();
+            //}
+
+            //// Dirty patch statistics, and flag that the patch has data.
+            //patchp->dirtyZ();
+            //patchp->setHasReceivedData();
+        }
     }
 }
