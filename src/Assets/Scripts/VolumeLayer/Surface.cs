@@ -532,11 +532,11 @@ public class Surface
 
         int j;
         int i;
-        int[] patch = new int[PatchDct.LARGE_PATCH_SIZE * PatchDct.LARGE_PATCH_SIZE];
+        int[] patchData = new int[PatchDct.LARGE_PATCH_SIZE * PatchDct.LARGE_PATCH_SIZE];
 
-        //        init_patch_decompressor(gopp->patch_size);
-        //        gopp->stride = mGridsPerEdge;
-        //        set_group_of_patch_header(gopp);
+        //InitPatchDecompressor (groupHeader.PatchSize);
+        //groupHeader.Stride = GridsPerEdge; // 257
+        //SetGroupOfPatchHeader (groupHeader);
 
         while (true)
         {
@@ -557,11 +557,13 @@ public class Surface
                 return;
             }
 
+            SurfacePatch patch = PatchList[j * PatchesPerEdge + i];
+
+
+            DecodePatch (bitPack, groupHeader.PatchSize, (ph.QuantWBits & 0xf) + 2, patchData);
+
+            Logger.LogDebug($"{patchData[0]:x8}, {patchData[1]:x8}, {patchData[2]:x8}, {patchData[3]:x8} ");
             break;
-            //patchp = &mPatchList[j * mPatchesPerEdge + i];
-
-
-            //decode_patch(bitpack, patch);
             //decompress_patch(patchp->getDataZ(), patch, &ph);
 
             //// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.
@@ -584,6 +586,35 @@ public class Surface
             //// Dirty patch statistics, and flag that the patch has data.
             //patchp->dirtyZ();
             //patchp->setHasReceivedData();
+        }
+    }
+
+    private void DecodePatch (BitPack bitPack, int patchSize, int wordBits, int[] patchData)
+    {
+        Logger.LogDebug($"Surface.DecodePatch: patchSize={patchSize}, wordBits={wordBits}");
+        // TODO: Different for Big Endian
+        int i;
+        int j;
+        for (i = 0; i < patchSize * patchSize; i++)
+        {
+            if (bitPack.GetBool() == false)
+            {
+                patchData[i] = 0;
+                continue;
+            }
+
+            if (bitPack.GetBool() == false)
+            {
+                for (j = i; j < patchSize * patchSize; j++)
+                {
+                    patchData[j] = 0;
+                }
+
+                return;
+            }
+
+            bool isNegative = bitPack.GetBool();
+            patchData[i] = (int)bitPack.GetUInt32_Le (wordBits) * (isNegative ? -1 : 1);
         }
     }
 }

@@ -13,7 +13,7 @@ public class PatchDct
         {
             PatchGroupHeader gh = new PatchGroupHeader
             {
-                Stride = bitPack.GetUInt16_Le(),
+                Stride = bitPack.GetUInt16_Be(),
                 PatchSize = bitPack.GetUInt8(),
                 LayerType = (LayerType)bitPack.GetUInt8()
             };
@@ -46,8 +46,8 @@ public class PatchDct
             }
 
             ph.DcOffset = bitPack.GetFloat_Le();
-            ph.Range = bitPack.GetUInt16_Le();
-            ph.PatchIds = bitPack.GetUInt16_Le(10);
+            ph.Range = bitPack.GetUInt16_Be();
+            ph.PatchIds = bitPack.GetUInt16_Be(10);
             return ph;
         }
 
