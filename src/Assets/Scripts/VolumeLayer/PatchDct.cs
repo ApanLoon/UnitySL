@@ -13,7 +13,7 @@ public class PatchDct
         {
             PatchGroupHeader gh = new PatchGroupHeader
             {
-                Stride = bitPack.GetUInt16_Be(),
+                Stride = bitPack.GetUInt16_Le(),
                 PatchSize = bitPack.GetUInt8(),
                 LayerType = (LayerType)bitPack.GetUInt8()
             };
@@ -26,7 +26,7 @@ public class PatchDct
 
         public override string ToString()
         {
-            return $"GroupHeader: Stride={Stride}, PatchSize={PatchSize}, LayerType={LayerType}";
+            return $"GroupHeader: Stride=0x{Stride:x4}, PatchSize=0x{PatchSize:x2}, LayerType={LayerType}";
         }
     }
 
@@ -46,8 +46,8 @@ public class PatchDct
             }
 
             ph.DcOffset = bitPack.GetFloat_Le();
-            ph.Range = bitPack.GetUInt16_Be();
-            ph.PatchIds = bitPack.GetUInt16_Be(10);
+            ph.Range = bitPack.GetUInt16_Le();
+            ph.PatchIds = bitPack.GetUInt16_Le(10);
             return ph;
         }
 
@@ -58,7 +58,7 @@ public class PatchDct
 
         public override string ToString()
         {
-            return $"PatchHeader: DcOffset={DcOffset}, Range={Range}, QuantWBits={QuantWBits}, PatchIds={PatchIds}";
+            return $"PatchHeader: QuantWBits=0x{QuantWBits:x2}, DcOffset={DcOffset}, Range=0x{Range:x4}, PatchIds=0x{PatchIds:x4}";
         }
     }
 

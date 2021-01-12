@@ -535,7 +535,7 @@ public class Surface
         int[] patchData = new int[PatchDct.LARGE_PATCH_SIZE * PatchDct.LARGE_PATCH_SIZE];
 
         //InitPatchDecompressor (groupHeader.PatchSize);
-        //groupHeader.Stride = GridsPerEdge; // 257
+        groupHeader.Stride = (UInt16)GridsPerEdge;
         //SetGroupOfPatchHeader (groupHeader);
 
         while (true)
@@ -562,8 +562,16 @@ public class Surface
 
             DecodePatch (bitPack, groupHeader.PatchSize, (ph.QuantWBits & 0xf) + 2, patchData);
 
-            Logger.LogDebug($"{patchData[0]:x8}, {patchData[1]:x8}, {patchData[2]:x8}, {patchData[3]:x8} ");
-            break;
+            string s = "";
+            for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
+            {
+                if ((k % groupHeader.PatchSize) == 0)
+                {
+                    s += "\n";
+                }
+                s += $"{patchData[k]:x8}, ";
+            }
+            Logger.LogDebug(s);
             //decompress_patch(patchp->getDataZ(), patch, &ph);
 
             //// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.

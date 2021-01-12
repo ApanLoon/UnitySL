@@ -45,7 +45,6 @@ public class VolumeLayerManager
         for (int i = 0; i < LayerData.Count; i++)
         {
             VolumeLayerData vlData = LayerData[i];
-            Logger.LogDebug(BitConverter.ToString(vlData.Data));
             BitPack bitPack = new BitPack(vlData.Data);
 
             PatchDct.PatchGroupHeader gh = PatchDct.PatchGroupHeader.Create(bitPack);
