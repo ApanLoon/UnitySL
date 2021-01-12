@@ -519,48 +519,43 @@ public class Surface
         DirtyPatchList.Add (patch);
     }
 
-    public void DecompressDCTPatch (BitPack bitPack, PatchDct.PatchGroupHeader groupHeader, bool isLargePatch)
+    /// <summary>
+    /// Decompresses all the patches in the given BitPack and assigns heights and normals to the surface.
+    /// </summary>
+    /// <param name="bitPack"></param>
+    /// <param name="groupHeader"></param>
+    /// <param name="isLargePatch"></param>
+    public void DecompressPatches (BitPack bitPack, GroupHeader groupHeader, bool isLargePatch)
     {
-        //int o = bitPack.Offset;
-        //bitPack.Offset = o + 8 + 32 + 16;
-        //byte b0 = bitPack.GetUInt8();
-        //byte b1 = bitPack.GetUInt8();
-        //bitPack.Offset = o + 8 + 32 + 16;
-        //byte[] b = bitPack.GetBytes(10, false);
-        //bitPack.Offset = o;
-        //Logger.LogDebug($"b0={b0:x2} b1={b1:x2} b[0]={b[0]:x2} b[1]={b[1]:x2}");
-
         int j;
         int i;
-        int[] patchData = new int[PatchDct.LARGE_PATCH_SIZE * PatchDct.LARGE_PATCH_SIZE];
+        int[] patchData = new int[Patch.LARGE_PATCH_SIZE * Patch.LARGE_PATCH_SIZE]; // Large enough for a maximum sized patch
 
-        //InitPatchDecompressor (groupHeader.PatchSize);
+        Patch.InitPatchDecompressor (groupHeader.PatchSize);
         groupHeader.Stride = (UInt16)GridsPerEdge;
-        //SetGroupOfPatchHeader (groupHeader);
+        Patch.SetGroupHeader (groupHeader);
 
         while (true)
         {
-            PatchDct.PatchHeader ph = PatchDct.PatchHeader.Create(bitPack);
-            Logger.LogDebug($"Surface.DecompressDCTPatch: {ph} w={ph.PatchIds >> 5} h={ph.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
+            PatchHeader patchHeader = new PatchHeader (bitPack);
+            Logger.LogDebug($"Surface.DecompressPatches: {patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
 
-            if (ph.QuantWBits == PatchDct.END_OF_PATCHES)
+            if (patchHeader.IsEnd)
             {
                 break;
             }
 
-            i = ph.PatchIds >> 5;
-            j = ph.PatchIds & 0x1f;
+            i = patchHeader.PatchIds >> 5;
+            j = patchHeader.PatchIds & 0x1f;
 
             if ((i >= PatchesPerEdge) || (j >= PatchesPerEdge))
             {
-                Logger.LogWarning($"Surface.DecompressDCTPatch: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={ph.DcOffset} Range={ph.Range} QuantWBits={ph.QuantWBits} PatchIds={ph.PatchIds}");
+                Logger.LogWarning($"Surface.DecompressPatches: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
                 return;
             }
 
-            SurfacePatch patch = PatchList[j * PatchesPerEdge + i];
-
-
-            DecodePatch (bitPack, groupHeader.PatchSize, (ph.QuantWBits & 0xf) + 2, patchData);
+            SurfacePatch surfacePatch = PatchList[j * PatchesPerEdge + i];
+            Patch.Decode (bitPack, groupHeader.PatchSize, (patchHeader.QuantWBits & 0xf) + 2, patchData);
 
             string s = "";
             for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
@@ -572,7 +567,7 @@ public class Surface
                 s += $"{patchData[k]:x8}, ";
             }
             Logger.LogDebug(s);
-            //decompress_patch(patchp->getDataZ(), patch, &ph);
+            //decompress_patch (SurfaceZ, patch.DataZStart, patchData, ph);
 
             //// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.
             //patchp->updateNorthEdge();
@@ -594,35 +589,6 @@ public class Surface
             //// Dirty patch statistics, and flag that the patch has data.
             //patchp->dirtyZ();
             //patchp->setHasReceivedData();
-        }
-    }
-
-    private void DecodePatch (BitPack bitPack, int patchSize, int wordBits, int[] patchData)
-    {
-        Logger.LogDebug($"Surface.DecodePatch: patchSize={patchSize}, wordBits={wordBits}");
-        // TODO: Different for Big Endian
-        int i;
-        int j;
-        for (i = 0; i < patchSize * patchSize; i++)
-        {
-            if (bitPack.GetBool() == false)
-            {
-                patchData[i] = 0;
-                continue;
-            }
-
-            if (bitPack.GetBool() == false)
-            {
-                for (j = i; j < patchSize * patchSize; j++)
-                {
-                    patchData[j] = 0;
-                }
-
-                return;
-            }
-
-            bool isNegative = bitPack.GetBool();
-            patchData[i] = (int)bitPack.GetUInt32_Le (wordBits) * (isNegative ? -1 : 1);
         }
     }
 }

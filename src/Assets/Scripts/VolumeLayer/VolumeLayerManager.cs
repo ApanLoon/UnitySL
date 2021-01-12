@@ -47,14 +47,13 @@ public class VolumeLayerManager
             VolumeLayerData vlData = LayerData[i];
             BitPack bitPack = new BitPack(vlData.Data);
 
-            PatchDct.PatchGroupHeader gh = PatchDct.PatchGroupHeader.Create(bitPack);
-
+            GroupHeader gh = new GroupHeader (bitPack);
             Logger.LogDebug($"VolumeLayerManager.UnpackLayerData: {gh}");
 
             switch (vlData.LayerType)
             {
                 case LayerType.Land:
-                    Agent.CurrentPlayer.Region.Land.DecompressDCTPatch (bitPack, gh, false);
+                    Agent.CurrentPlayer.Region.Land.DecompressPatches (bitPack, gh, false);
                     break;
                 case LayerType.Wind:
                     break;
