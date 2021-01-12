@@ -37,34 +37,59 @@ public class BitPack
     #endregion bool
 
     #region UInt64
-    public UInt64 GetUInt64_Be(int nBits = 64)
-    {
-        if (nBits < 0 || nBits > 64)
-        {
-            throw new ArgumentException();
-        }
-
-        UInt64 v = 0;
-        while (nBits > 0)
-        {
-            v |= (UInt64)((GetBool() ? 1 : 0) << --nBits);
-        }
-        return v;
-    }
-
     public UInt64 GetUInt64_Le(int nBits = 64)
     {
-        UInt64 be = GetUInt64_Be (nBits);
-        return (UInt64)((((be >>  0) & 0xff) << 56)
-                      + (((be >>  8) & 0xff) << 48)
-                      + (((be >> 16) & 0xff) << 40)
-                      + (((be >> 24) & 0xff) << 32)
-                      + (((be >> 32) & 0xff) << 24)
-                      + (((be >> 40) & 0xff) << 16)
-                      + (((be >> 48) & 0xff) <<  8)
-                      + (((be >> 56) & 0xff) <<  0)
-            );
+        return GetUInt64 (nBits, true);
     }
+    public UInt64 GetUInt64_Be(int nBits = 64)
+    {
+        return GetUInt64 (nBits, false);
+    }
+
+    public UInt64 GetUInt64 (int nBits = 64, bool littleEndian = false) //TODO: Big endian with ((nBits % 8) != 0) still fails
+    {
+        UInt64 result = 0;
+
+        int bitCounter = 0;
+        int shift = littleEndian ? 0 : (nBits - 1) & ~7;
+        byte b = 0;
+        while (nBits > 0)
+        {
+            if (bitCounter != 0 && (bitCounter % 8 == 0))
+            {
+                result += (UInt64)(b << shift);
+                shift += littleEndian ? 8 : -8;
+                b = 0;
+            }
+
+            b <<= 1;
+            b |= (byte)(GetBool() ? 1U : 0U);
+
+            nBits--;
+            bitCounter++;
+        }
+
+        result += (UInt64)(b << shift);
+
+        return result;
+    }
+
+
+
+
+    //public UInt64 GetUInt64_Le(int nBits = 64)
+    //{
+    //    UInt64 be = GetUInt64_Be (nBits);
+    //    return (UInt64)((((be >>  0) & 0xff) << 56)
+    //                  + (((be >>  8) & 0xff) << 48)
+    //                  + (((be >> 16) & 0xff) << 40)
+    //                  + (((be >> 24) & 0xff) << 32)
+    //                  + (((be >> 32) & 0xff) << 24)
+    //                  + (((be >> 40) & 0xff) << 16)
+    //                  + (((be >> 48) & 0xff) <<  8)
+    //                  + (((be >> 56) & 0xff) <<  0)
+    //        );
+    //}
     #endregion UInt64
 
     #region UInt32
@@ -83,12 +108,7 @@ public class BitPack
         {
             throw new ArgumentException();
         }
-        UInt64 be = GetUInt64_Be(nBits);
-        return (UInt32)((((be >>  0) & 0xff) << 24)
-                      + (((be >>  8) & 0xff) << 16)
-                      + (((be >> 16) & 0xff) << 8)
-                      + (((be >> 24) & 0xff) << 0)
-                      );
+        return (UInt32)GetUInt64_Le(nBits);
     }
     #endregion UInt32
 
@@ -108,11 +128,72 @@ public class BitPack
         {
             throw new ArgumentException();
         }
-        UInt64 be = GetUInt64_Be(nBits);
-        return (UInt16)((((be >> 0) & 0xff) << 8)
-                      + (((be >> 8) & 0xff) << 0)
-                      );
+        return (UInt16)GetUInt64_Le(nBits); ;
     }
+
+    public UInt16 GetUInt16_xLe(int nBits = 16)
+    {
+        UInt16 result = 0;
+
+        int bitCounter = 0;
+        int shift = 0;
+        byte b = 0;
+        while (nBits > 0)
+        {
+            if (bitCounter != 0 && (bitCounter % 8 == 0))
+            {
+                result += (UInt16)(b << shift);
+                shift += 8;
+                b = 0;
+            }
+
+            b <<= 1;
+            b |= (byte)(GetBool() ? 1U : 0U);
+
+            nBits--;
+            bitCounter++;
+        }
+
+        if ((bitCounter % 8 != 0))
+        {
+            result += (UInt16)(b << shift);
+        }
+
+        return result;
+    }
+
+    public UInt16 GetUInt16_xBe(int nBits = 16)
+    {
+        UInt16 result = 0;
+
+        int bitCounter = 0;
+        int shift = nBits & ~7;
+        byte b = 0;
+        while (nBits > 0)
+        {
+            if (bitCounter != 0 && (bitCounter % 8 == 0))
+            {
+                result += (UInt16)(b << shift);
+                shift -= 8;
+                b = 0;
+            }
+
+            b <<= 1;
+            b |= (byte)(GetBool() ? 1U : 0U);
+
+            nBits--;
+            bitCounter++;
+        }
+
+        if ((bitCounter % 8 != 0))
+        {
+            result += (UInt16)(b << shift);
+        }
+
+        return result;
+    }
+
+
     #endregion UInt16
 
     #region UInt8
