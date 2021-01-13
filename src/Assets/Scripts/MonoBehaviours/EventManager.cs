@@ -18,6 +18,12 @@ public class EventManager : MonoBehaviour
         Instance = this;
     }
 
+    public event Action<float[], UInt32> OnHeightsDecoded;
+    public void RaiseOnHeightsDecoded(float[] heights, UInt32 size)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnHeightsDecoded?.Invoke(heights, size));
+    }
+
     #region Agent
 
     public event Action<Agent> OnHealthChanged;

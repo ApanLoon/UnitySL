@@ -556,7 +556,18 @@ public class Surface
 
             SurfacePatch surfacePatch = PatchList[j * PatchesPerEdge + i];
             Patch.Decode (bitPack, groupHeader.PatchSize, (patchHeader.QuantWBits & 0xf) + 2, patchData);
+            //string s = "";
+            //for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
+            //{
+            //    if ((k % groupHeader.PatchSize) == 0)
+            //    {
+            //        s += "\n";
+            //    }
+            //    s += $"{patchData[k]:x8}, ";
+            //}
+            //Logger.LogDebug(s);
 
+            Patch.DeCompress (SurfaceZ, surfacePatch.DataZStart, patchData, patchHeader);
             string s = "";
             for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
             {
@@ -564,31 +575,34 @@ public class Surface
                 {
                     s += "\n";
                 }
-                s += $"{patchData[k]:x8}, ";
+                s += $"{SurfaceZ[surfacePatch.DataZStart + k]}, ";
             }
             Logger.LogDebug(s);
-            //decompress_patch (SurfaceZ, patch.DataZStart, patchData, ph);
 
-            //// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.
-            //patchp->updateNorthEdge();
-            //patchp->updateEastEdge();
-            //if (patchp->getNeighborPatch(WEST))
-            //{
-            //    patchp->getNeighborPatch(WEST)->updateEastEdge();
-            //}
-            //if (patchp->getNeighborPatch(SOUTHWEST))
-            //{
-            //    patchp->getNeighborPatch(SOUTHWEST)->updateEastEdge();
-            //    patchp->getNeighborPatch(SOUTHWEST)->updateNorthEdge();
-            //}
-            //if (patchp->getNeighborPatch(SOUTH))
-            //{
-            //    patchp->getNeighborPatch(SOUTH)->updateNorthEdge();
-            //}
+
+            // Update edges for neighbours.  Need to guarantee that this gets done before we generate vertical stats.
+            surfacePatch.UpdateNorthEdge();
+            surfacePatch.UpdateEastEdge();
+            if (surfacePatch.GetNeighbourPatch(DirectionIndex.West) != null)
+            {
+                surfacePatch.GetNeighbourPatch(DirectionIndex.West).UpdateEastEdge();
+            }
+            if (surfacePatch.GetNeighbourPatch(DirectionIndex.SouthWest) != null)
+            {
+                surfacePatch.GetNeighbourPatch(DirectionIndex.SouthWest).UpdateEastEdge();
+                surfacePatch.GetNeighbourPatch(DirectionIndex.SouthWest).UpdateNorthEdge();
+            }
+            if (surfacePatch.GetNeighbourPatch(DirectionIndex.South) != null)
+            {
+                surfacePatch.GetNeighbourPatch(DirectionIndex.South).UpdateNorthEdge();
+            }
 
             //// Dirty patch statistics, and flag that the patch has data.
             //patchp->dirtyZ();
             //patchp->setHasReceivedData();
         }
+
+        //TODO: Bogus event for debug purpose (generate a texture):
+        EventManager.Instance.RaiseOnHeightsDecoded(SurfaceZ, GridsPerEdge);
     }
 }
