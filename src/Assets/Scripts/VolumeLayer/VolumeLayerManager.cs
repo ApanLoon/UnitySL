@@ -48,7 +48,7 @@ public class VolumeLayerManager
             BitPack bitPack = new BitPack(vlData.Data);
 
             GroupHeader gh = new GroupHeader (bitPack);
-            Logger.LogDebug($"VolumeLayerManager.UnpackLayerData: {gh}");
+            //Logger.LogDebug($"VolumeLayerManager.UnpackLayerData: {gh}");
 
             switch (vlData.LayerType)
             {
@@ -63,5 +63,12 @@ public class VolumeLayerManager
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+
+        //TODO: Bogus event for debug purpose (generate a texture):
+        Surface surface = Agent.CurrentPlayer.Region.Land;
+        surface.IdleUpdate(0f);
+        EventManager.Instance.RaiseOnHeightsDecoded(surface.SurfaceZ, surface.GridsPerEdge, surface.MinZ, surface.MaxZ);
+
     }
 }

@@ -9,7 +9,7 @@ public class HeightImage : MonoBehaviour
         EventManager.Instance.OnHeightsDecoded += OnHeightsDecoded;
     }
 
-    protected void OnHeightsDecoded(float[] heights, uint width)
+    protected void OnHeightsDecoded(float[] heights, uint width, float minHeight, float maxHeight)
     {
         Texture2D texture = new Texture2D((int)width, (int)width, TextureFormat.RGBA32, false);
         Color[] pixels = texture.GetPixels();
@@ -19,7 +19,7 @@ public class HeightImage : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 float height = heights[y * width + x];
-                float scaledHeight = height / 30f;
+                float scaledHeight = Mathf.InverseLerp(minHeight, maxHeight, height);
                 pixels[y * width + x] = new Color(scaledHeight, scaledHeight, scaledHeight, 1f);
             }
         }

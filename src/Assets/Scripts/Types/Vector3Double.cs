@@ -15,4 +15,9 @@
     {
         return $"({x}, {y}, {z})";
     }
+
+    public Vector3Double Subtract (Vector3Double value)
+    {
+        return new Vector3Double(x - value.x, y - value.y, z - value.z);
+    }
 }

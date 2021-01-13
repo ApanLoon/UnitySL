@@ -285,6 +285,24 @@ public class Region : IDisposable
             (float)(globalPosition.z - Handle.Y));
     }
 
+
+
+
+    /// <summary>
+    ///  This gets called when the height field changes.
+    /// </summary>
+    public void DirtyHeights()
+    {
+        // Property lines need to be reconstructed when the land changes.
+        //if (ParcelOverlay)
+        //{
+        //    ParcelOverlay.SetDirty();
+        //}
+    }
+
+
+
+
     protected static async void OnRegionHandshakeMessage(RegionHandshakeMessage message)
     {
         Region region = Agent.CurrentPlayer?.Region;

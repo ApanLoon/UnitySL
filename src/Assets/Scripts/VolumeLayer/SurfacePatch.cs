@@ -116,6 +116,123 @@ public class SurfacePatch
         }
     }
 
+
+    // Called when a patch has changed its height field
+    // data.
+    public void UpdateVerticalStats()
+    {
+        if (DirtyZStats == false)
+        {
+            return;
+        }
+
+        UInt32 grids_per_patch_edge = Surface.GridsPerPatchEdge;
+        UInt32 grids_per_edge = Surface.GridsPerEdge;
+        float meters_per_grid = Surface.MetersPerGrid;
+
+        UInt32 i;
+        UInt32 j;
+        UInt32 k;
+        float z;
+        float total;
+
+//        llassert(mDataZ);
+        z = DataZ[0];
+
+        MinZ = z;
+        MaxZ = z;
+
+        k = 0;
+        total = 0.0f;
+
+        // Iterate to +1 because we need to do the edges correctly.
+        for (j = 0; j < (grids_per_patch_edge + 1); j++)
+        {
+            for (i = 0; i < (grids_per_patch_edge + 1); i++)
+            {
+                z = DataZ[i + j * grids_per_edge];
+
+                MinZ = Mathf.Min(z, MinZ);
+                MaxZ = Mathf.Max(z, MaxZ);
+                total += z;
+                k++;
+            }
+        }
+        MeanZ = total / (float)k;
+        // TODO: CenterRegion.V[VZ] = 0.5f * (MinZ + MaxZ);
+
+        Vector3 diam_vec = new Vector3 (meters_per_grid * grids_per_patch_edge,
+                                        meters_per_grid* grids_per_patch_edge,
+                                        MaxZ - MinZ);
+        Radius = diam_vec.magnitude * 0.5f;
+
+        Surface.MaxZ = Mathf.Max (MaxZ, Surface.MaxZ);
+        Surface.MinZ = Mathf.Min (MinZ, Surface.MinZ);
+        Surface.HasZData = true;
+        // TODO: Surface.Region.CalculateCenterGlobal();
+
+        //if (mVObjp)
+        //{
+        //    mVObjp->dirtyPatch();
+        //}
+        DirtyZStats = false;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns>true if we did NOT update the texture</returns>
+    public bool UpdateTexture()
+    {
+        if (SurfaceTextureUpdate == false)
+        {
+            return true;
+        }
+
+        float metersPerGrid = Surface.MetersPerGrid;
+        float gridsPerPatchEdge = (float)Surface.GridsPerPatchEdge;
+
+        if (   GetNeighbourPatch(DirectionIndex.East)  == null && !GetNeighbourPatch (DirectionIndex.East).HasReceivedData
+            || GetNeighbourPatch(DirectionIndex.West)  == null && !GetNeighbourPatch (DirectionIndex.West).HasReceivedData
+            || GetNeighbourPatch(DirectionIndex.South) == null && !GetNeighbourPatch (DirectionIndex.South).HasReceivedData
+            || GetNeighbourPatch(DirectionIndex.North) == null && !GetNeighbourPatch (DirectionIndex.North).HasReceivedData)
+        {
+            return false;
+        }
+
+        Region region = Surface.Region;
+        Vector3Double originRegion = OriginGlobal.Subtract (Surface.OriginGlobal);
+
+        // Have to figure out a better way to deal with these edge conditions...
+
+        //if (HeightsGenerated == true)
+        //{
+        //    return false;
+        //}
+
+        float patchSize = metersPerGrid * (gridsPerPatchEdge + 1);
+        //TODO: VLComposition comp = region.Composition;
+        // TODO: if (comp.GenerateHeights ((float) originRegion.x, (float) originRegion.y, patchSize, patchSize) == false)  // TODO: Should y be z?
+        //{
+        //    return false;
+        //}
+
+        HeightsGenerated = true;
+
+        // TODO: if (comp.GenerateComposition())
+        //{
+        //    if (VObjp)
+        //    {
+        //        VObjp->dirtyGeom();
+        //        Pipeline.markGLRebuild(mVObjp);
+        //        return true;
+        //    }
+        //}
+
+        return false;
+    }
+
+
     public void DirtyZ()
     {
         SurfaceTextureUpdate = true;
@@ -151,8 +268,8 @@ public class SurfacePatch
     {
         // These are outside of the loop in case we're still waiting for a dirty from the
         // texture being updated...
-        // TODO: 
-        //if (VObjp)
+
+        // TODO: if (VObjp)
         //{
         //    VObjp.DirtyGeom();
         //}
@@ -288,4 +405,10 @@ public class SurfacePatch
         DataNorm = dataNorm;
         DataNormStart = dataNormStart;
     }
+
+    public void ClearDirty()
+    {
+        Dirty = false;
+    }
+
 }

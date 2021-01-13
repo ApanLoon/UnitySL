@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 //        .   __.
@@ -82,11 +83,11 @@ public class Surface
     public float DetailTextureScale;    //  Number of times to repeat detail texture across this surface 
 
 
-    protected Vector3Double OriginGlobal;       // In absolute frame
+    public Vector3Double OriginGlobal { get; protected set; }       // In absolute frame
     protected SurfacePatch[] PatchList;     // Array of all patches
 
     // Array of grid data, mGridsPerEdge * mGridsPerEdge
-    protected float[] SurfaceZ;
+    public float[] SurfaceZ { get; protected set; } //TODO: In Indra this is protected and there are getters for individual values. I made this public so that I can access it when creating the dummy height map image.
 
     // Array of grid normals, mGridsPerEdge * mGridsPerEdge
     protected Vector3[] Norm;
@@ -103,21 +104,21 @@ public class Surface
     protected UInt32 VisiblePatchCount;
 
     public UInt32 GridsPerPatchEdge { get; protected set; }         // Number of grid points on a side of a patch
-    protected float MetersPerGrid;             // Converts (i,j) indecies to distance
-    protected float MetersPerEdge;             // = mMetersPerGrid * (mGridsPerEdge-1)
+    public float MetersPerGrid { get; protected set; }             // Converts (i,j) indecies to distance
+    public float MetersPerEdge { get; protected set; }             // = mMetersPerGrid * (mGridsPerEdge-1)
 
     //protected LLPatchVertexArray mPVArray;
 
-    protected bool HasZData;             // We've received any patch data for this surface.
-    protected float MinZ;                  // min z for this region (during the session)
-    protected float MaxZ;                  // max z for this region (during the session)
+    public bool HasZData { get; set; }              // We've received any patch data for this surface.
+    public float MinZ { get; set; }                 // min z for this region (during the session)
+    public float MaxZ { get; set; }                 // max z for this region (during the session)
 
-    protected int SurfacePatchUpdateCount;					// Number of frames since last update.
-
-
+    protected int SurfacePatchUpdateCount;          // Number of frames since last update.
 
 
-    protected Region Region;  // Patch whose coordinate system this surface is using.
+
+
+    public Region Region { get; protected set; }  // Patch whose coordinate system this surface is using.
 
     public Surface (SurfaceType surfaceType, Region region)
     {
@@ -519,6 +520,52 @@ public class Surface
         DirtyPatchList.Add (patch);
     }
 
+
+    public bool IdleUpdate (float maxUpdateTime)
+    {
+        //if (!gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_TERRAIN))
+        //{
+        //    return FALSE;
+        //}
+
+        // Perform idle time update of non-critical stuff.
+        // In this case, texture and normal updates.
+        //LLTimer update_timer;
+        bool didUpdate = false;
+
+        // If the Z height data has changed, we need to rebuild our
+        // property line vertex arrays.
+        if (DirtyPatchList.Count > 0)
+        {
+            Region.DirtyHeights();
+        }
+
+        // Always call updateNormals() / updateVerticalStats()
+        //  every frame to avoid artifacts
+
+        HashSet<SurfacePatch> patchesToKeep = new HashSet<SurfacePatch>();
+        foreach (SurfacePatch surfacePatch in DirtyPatchList)
+        {
+            // TODO: surfacePatch.UpdateNormals();
+            surfacePatch.UpdateVerticalStats();
+            if (maxUpdateTime > 0f
+//                && update_timer.getElapsedTimeF32() < max_update_time
+                && surfacePatch.UpdateTexture() == false)
+            {
+                patchesToKeep.Add(surfacePatch);
+                continue;
+            }
+
+            didUpdate = true;
+            surfacePatch.ClearDirty();
+        }
+        DirtyPatchList = patchesToKeep;
+
+        return didUpdate;
+    }
+
+
+
     /// <summary>
     /// Decompresses all the patches in the given BitPack and assigns heights and normals to the surface.
     /// </summary>
@@ -538,7 +585,7 @@ public class Surface
         while (true)
         {
             PatchHeader patchHeader = new PatchHeader (bitPack);
-            Logger.LogDebug($"Surface.DecompressPatches: {patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
+            //Logger.LogDebug($"Surface.DecompressPatches: {patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
 
             if (patchHeader.IsEnd)
             {
@@ -550,7 +597,7 @@ public class Surface
 
             if ((i >= PatchesPerEdge) || (j >= PatchesPerEdge))
             {
-                Logger.LogWarning($"Surface.DecompressPatches: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
+                //Logger.LogWarning($"Surface.DecompressPatches: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
                 return;
             }
 
@@ -568,16 +615,16 @@ public class Surface
             //Logger.LogDebug(s);
 
             Patch.DeCompress (SurfaceZ, surfacePatch.DataZStart, patchData, patchHeader);
-            string s = "";
-            for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
-            {
-                if ((k % groupHeader.PatchSize) == 0)
-                {
-                    s += "\n";
-                }
-                s += $"{SurfaceZ[surfacePatch.DataZStart + k]}, ";
-            }
-            Logger.LogDebug(s);
+            //string s = "";
+            //for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
+            //{
+            //    if ((k % groupHeader.PatchSize) == 0)
+            //    {
+            //        s += "\n";
+            //    }
+            //    s += $"{SurfaceZ[surfacePatch.DataZStart + k]}, ";
+            //}
+            //Logger.LogDebug(s);
 
 
             // Update edges for neighbours.  Need to guarantee that this gets done before we generate vertical stats.
@@ -598,11 +645,8 @@ public class Surface
             }
 
             //// Dirty patch statistics, and flag that the patch has data.
-            //patchp->dirtyZ();
-            //patchp->setHasReceivedData();
+            surfacePatch.DirtyZ();
+            surfacePatch.HasReceivedData = true;
         }
-
-        //TODO: Bogus event for debug purpose (generate a texture):
-        EventManager.Instance.RaiseOnHeightsDecoded(SurfaceZ, GridsPerEdge);
     }
 }
