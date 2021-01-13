@@ -146,7 +146,8 @@ public class Patch
     /// <param name="patchData">Array to place the decoded values in</param>
     public static void Decode (BitPack bitPack, int patchSize, int wordBits, int[] patchData)
     {
-        Logger.LogDebug($"Patch.Decode: patchSize={patchSize}, wordBits={wordBits}");
+        //Logger.LogDebug($"Patch.Decode: patchSize={patchSize}, wordBits={wordBits}");
+
         // TODO: Different for Big Endian?
         int i;
         int j;

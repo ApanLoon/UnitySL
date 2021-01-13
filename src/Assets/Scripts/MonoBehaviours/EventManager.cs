@@ -18,10 +18,10 @@ public class EventManager : MonoBehaviour
         Instance = this;
     }
 
-    public event Action<float[], UInt32, float, float> OnHeightsDecoded;
-    public void RaiseOnHeightsDecoded(float[] heights, UInt32 size, float minHeight, float maxHeight)
+    public event Action<Region, float[], UInt32, float, float> OnHeightsDecoded;
+    public void RaiseOnHeightsDecoded(Region region, float[] heights, UInt32 size, float minHeight, float maxHeight)
     {
-        ThreadManager.ExecuteOnMainThread(() => OnHeightsDecoded?.Invoke(heights, size, minHeight, maxHeight));
+        ThreadManager.ExecuteOnMainThread(() => OnHeightsDecoded?.Invoke(region, heights, size, minHeight, maxHeight));
     }
 
     #region Agent

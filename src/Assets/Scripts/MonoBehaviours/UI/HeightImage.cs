@@ -9,8 +9,13 @@ public class HeightImage : MonoBehaviour
         EventManager.Instance.OnHeightsDecoded += OnHeightsDecoded;
     }
 
-    protected void OnHeightsDecoded(float[] heights, uint width, float minHeight, float maxHeight)
+    protected void OnHeightsDecoded(Region region, float[] heights, uint width, float minHeight, float maxHeight)
     {
+        if (region != Agent.CurrentPlayer.Region)
+        {
+            return;
+        }
+
         Texture2D texture = new Texture2D((int)width, (int)width, TextureFormat.RGBA32, false);
         Color[] pixels = texture.GetPixels();
 

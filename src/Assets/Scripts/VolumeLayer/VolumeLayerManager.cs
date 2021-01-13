@@ -66,9 +66,10 @@ public class VolumeLayerManager
 
 
         //TODO: Bogus event for debug purpose (generate a texture):
-        Surface surface = Agent.CurrentPlayer.Region.Land;
+        Region region = Agent.CurrentPlayer.Region;
+        Surface surface = region.Land;
         surface.IdleUpdate(0f);
-        EventManager.Instance.RaiseOnHeightsDecoded(surface.SurfaceZ, surface.GridsPerEdge, surface.MinZ, surface.MaxZ);
+        EventManager.Instance.RaiseOnHeightsDecoded(region, surface.SurfaceZ, surface.GridsPerEdge, surface.MinZ, surface.MaxZ);
 
     }
 }

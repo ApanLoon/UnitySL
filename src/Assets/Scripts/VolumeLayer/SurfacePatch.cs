@@ -159,7 +159,7 @@ public class SurfacePatch
             }
         }
         MeanZ = total / (float)k;
-        // TODO: CenterRegion.V[VZ] = 0.5f * (MinZ + MaxZ);
+        CenterRegion.y = 0.5f * (MinZ + MaxZ);
 
         Vector3 diam_vec = new Vector3 (meters_per_grid * grids_per_patch_edge,
                                         meters_per_grid* grids_per_patch_edge,
