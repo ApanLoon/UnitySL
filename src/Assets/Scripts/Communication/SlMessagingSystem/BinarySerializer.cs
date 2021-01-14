@@ -187,8 +187,6 @@ public static class BinarySerializer
                 ObjectUpdateMessage m = new ObjectUpdateMessage (flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
                 Guid guid;
-                string s;
-                int len;
 
                 m.RegionHandle = new RegionHandle (DeSerializeUInt64_Le (buf, ref o, length));
                 m.TimeDilation =                   DeSerializeUInt16_Le (buf, ref o, length);
@@ -196,6 +194,7 @@ public static class BinarySerializer
                 int nObjects = buf[o++];
                 for (int i = 0; i < nObjects; i++)
                 {
+                    int len;
                     ObjectUpdateMessage.ObjectData data = new ObjectUpdateMessage.ObjectData();
                     m.Objects.Add(data);
 
@@ -247,14 +246,14 @@ public static class BinarySerializer
                         data.TextureAnims.Add(buf[o++]);
                     }
 
-                    o = DeSerialize(out s, 2,    buf, o, length); data.NameValue = s;
-                    len =                              DeSerializeUInt16_Le (buf, ref o, length);
+                    data.NameValue = DeSerializeString(2, buf, ref o, length);
+                    len =            DeSerializeUInt16_Le (buf, ref o, length);
                     data.Data2 = new byte[len];
                     Array.Copy (buf, o, data.Data2, 0, len);
                     o += len;
-                    o = DeSerialize(out s, 1,    buf, o, length); data.Text = s;
+                    data.Text = DeSerializeString (1,    buf, ref o, length);
                     data.TextColour = DeSerializeColor(buf, ref o, length);
-                    o = DeSerialize(out s, 1,    buf, o, length); data.MediaUrl = s;
+                    data.MediaUrl = DeSerializeString (1,    buf, ref o, length);
 
                     len = buf[o++];
                     data.ParticleSystemData = new byte[len];
@@ -566,16 +565,15 @@ public static class BinarySerializer
                 ChatFromSimulatorMessage m = new ChatFromSimulatorMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                string s;
                 Guid guid;
-                o = DeSerialize(out s, 1,    buf, o, length); m.FromName = s;
+                m.FromName = DeSerializeString (1,    buf, ref o, length);
                 o = DeSerialize(out guid,             buf, o, length); m.SourceId = guid;
                 o = DeSerialize(out guid,             buf, o, length); m.OwnerId = guid;
                 m.SourceType   = (ChatSourceType)    buf[o++];
                 m.ChatType     = (ChatType)          buf[o++];
                 m.AudibleLevel = (ChatAudibleLevel)  buf[o++];
                 m.Position = DeSerializeVector3     (buf, ref o, length);
-                o = DeSerialize(out s, 2,    buf, o, length); m.Message = s;
+                m.Message = DeSerializeString (2,    buf, ref o, length);
 
                 Logger.LogDebug($"ChatFromSimulator: FromName={m.FromName}, Message={m.Message}, ChatType={m.ChatType}, AudibleLevel={m.AudibleLevel}, SourceType={m.SourceType}, SourceId={m.SourceId}, OwnerId={m.OwnerId}");
 
@@ -590,12 +588,11 @@ public static class BinarySerializer
                 RegionHandshakeMessage m = new RegionHandshakeMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                string s;
                 Guid guid;
 
                 m.RegionFlags = (RegionFlags)DeSerializeUInt32_Le (buf, ref o, length);
                 m.SimAccess = (SimAccess)buf[o++];
-                o = DeSerialize(out s, 1, buf, o, length); m.SimName = s;
+                m.SimName = DeSerializeString (1, buf, ref o, length);
                 o = DeSerialize(out guid, buf, o, length); m.SimOwner = guid;
                 m.IsEstateManager = buf[o++] != 0;
                 m.WaterHeight = DeSerializeFloat_Le(buf, ref o, length);
@@ -620,11 +617,11 @@ public static class BinarySerializer
 
                 o = DeSerialize(out guid, buf, o, length); m.RegionId = guid;
 
-                m.CpuClassId = DeSerializeInt32_Le (buf, ref o, length);
-                m.CpuRatio = DeSerializeInt32_Le (buf, ref o, length);
-                o = DeSerialize(out s, 1, buf, o, length); m.ColoName = s;
-                o = DeSerialize(out s, 1, buf, o, length); m.ProductSku = s;
-                o = DeSerialize(out s, 1, buf, o, length); m.ProductName = s;
+                m.CpuClassId  = DeSerializeInt32_Le (buf, ref o, length);
+                m.CpuRatio    = DeSerializeInt32_Le (buf, ref o, length);
+                m.ColoName    = DeSerializeString (1, buf, ref o, length);
+                m.ProductSku  = DeSerializeString (1, buf, ref o, length);
+                m.ProductName = DeSerializeString (1, buf, ref o, length);
 
                 int n = buf[o++];
                 for (int i = 0; i < n; i++)
@@ -690,7 +687,6 @@ public static class BinarySerializer
                 int o = offset;
 
                 Guid guid;
-                string s;
 
                 o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
                 o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
@@ -698,7 +694,7 @@ public static class BinarySerializer
                 m.LookAt   = DeSerializeVector3 (buf, ref o, length);
                 m.RegionHandle = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
                 m.TimeStamp = DeSerializeDateTime(buf, ref o, length);
-                o = DeSerialize(out s, 2,    buf, o, length); m.ChannelVersion = s;
+                m.ChannelVersion = DeSerializeString (2,    buf, ref o, length);
                 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
@@ -775,16 +771,15 @@ public static class BinarySerializer
                 int o = offset;
 
                 Guid guid;
-                string s;
 
                 o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
-                o = DeSerialize(out s, 1,    buf, o, length); m.FirstName = s;
-                o = DeSerialize(out s, 1,    buf, o, length); m.LastName = s;
-                o = DeSerialize(out s, 1,    buf, o, length); m.GroupTitle = s;
+                m.FirstName   = DeSerializeString (1,    buf, ref o, length);
+                m.LastName    = DeSerializeString (1,    buf, ref o, length);
+                m.GroupTitle  = DeSerializeString (1,    buf, ref o, length);
                 o = DeSerialize(out guid,             buf, o, length); m.ActiveGroupId = guid;
                 m.GroupPowers = DeSerializeUInt64_Le (buf, ref o, length);
-                o = DeSerialize(out s, 1,    buf, o, length); m.GroupName = s;
-
+                m.GroupName   = DeSerializeString (1,    buf, ref o, length);
+                Logger.LogDebug($"AgentDataUpdate: FirstName={m.FirstName}, LastName={m.LastName}, GroupTitle={m.GroupTitle}, GroupName={m.GroupName}");
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
         },
@@ -1172,27 +1167,25 @@ public static class BinarySerializer
     #endregion Double
 
     #region String
-    public static int DeSerialize(out string s, uint lengthCount, byte[] buffer, int offset, int length)
+    public static string DeSerializeString (uint lengthCount, byte[] buffer, ref int offset, int length)
     {
-        int o = offset;
         int len;
         switch (lengthCount)
         {
             case 1:
-                len = buffer[o++];
+                len = buffer[offset++];
                 break;
 
             case 2:
-                len = DeSerializeUInt16_Le(buffer, ref o, length);
+                len = DeSerializeUInt16_Le(buffer, ref offset, length);
                 break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(lengthCount), lengthCount, "Valid values are 1 and 2");
         }
 
-        s = Encoding.UTF8.GetString(buffer, o, len).Replace("\0", "");
-        o += len;
-        return o;
+        offset += len;
+        return Encoding.UTF8.GetString(buffer, offset, len).Replace("\0", "");
     }
     #endregion String
 
