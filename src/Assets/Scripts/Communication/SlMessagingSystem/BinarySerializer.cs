@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using UnityEngine;
@@ -186,7 +187,6 @@ public static class BinarySerializer
             {
                 ObjectUpdateMessage m = new ObjectUpdateMessage (flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
-                Guid guid;
 
                 m.RegionHandle = new RegionHandle (DeSerializeUInt64_Le (buf, ref o, length));
                 m.TimeDilation =                   DeSerializeUInt16_Le (buf, ref o, length);
@@ -201,7 +201,7 @@ public static class BinarySerializer
                     data.ObjectId =                       DeSerializeUInt32_Le (buf, ref o, length);
                     data.State = buf[o++];
 
-                    o =                                DeSerialize(out guid, buf, o, length); data.FullId  = guid;
+                    data.FullId =                         DeSerializeGuid (buf, ref o, length);
                     data.Crc =                            DeSerializeUInt32_Le (buf, ref o, length);
                     data.PCode       = buf[o++];
                     data.Material    = buf[o++];
@@ -265,8 +265,8 @@ public static class BinarySerializer
                     Array.Copy (buf, o, data.ExtraParameters, 0, len);
                     o += len;
 
-                    o = DeSerialize(out guid, buf, o, length); data.SoundId = guid;
-                    o = DeSerialize(out guid, buf, o, length); data.OwnerId = guid;
+                    data.SoundId = DeSerializeGuid (buf, ref o, length);
+                    data.OwnerId = DeSerializeGuid (buf, ref o, length);
                     data.Gain = DeSerializeUInt32_Le (buf, ref o, buf.Length);
                     data.SoundFlags = (SoundFlags) buf[o++];
                     data.Radius = DeSerializeFloat_Le(buf, ref o, length);
@@ -324,12 +324,11 @@ public static class BinarySerializer
                 SoundTriggerMessage m = new SoundTriggerMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-                o = DeSerialize(out guid, buf, o, length); m.SoundId  = guid;
-                o = DeSerialize(out guid, buf, o, length); m.OwnerId  = guid;
-                o = DeSerialize(out guid, buf, o, length); m.ObjectId = guid;
-                o = DeSerialize(out guid, buf, o, length); m.ParentId = guid;
-                m.Handle = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
+                m.SoundId  = DeSerializeGuid (buf, ref o, length);
+                m.OwnerId  = DeSerializeGuid (buf, ref o, length);
+                m.ObjectId = DeSerializeGuid (buf, ref o, length);
+                m.ParentId = DeSerializeGuid (buf, ref o, length);
+                m.Handle   = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
                 m.Position = DeSerializeVector3 (buf, ref o, buf.Length);
                 //Logger.LogDebug($"SoundTriggerMessage: SoundId={m.SoundId} OwnerId={m.OwnerId} ObjectId={m.ObjectId} ParentId={m.ParentId} Handle={m.Handle} Gain={m.Gain}");
 
@@ -343,7 +342,6 @@ public static class BinarySerializer
             {
                 CoarseLocationUpdateMessage m = new CoarseLocationUpdateMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
-                Guid guid;
 
                 byte nLocations = buf[o++];
                 for (byte i = 0; i < nLocations; i++)
@@ -365,7 +363,7 @@ public static class BinarySerializer
                 byte nAgents = buf[o++];
                 for (byte i = 0; i < nAgents; i++)
                 {
-                    o = DeSerialize(out guid, buf, o, length);
+                    Guid guid = DeSerializeGuid (buf, ref o, length);
                     if (i < nLocations)
                     {
                         m.Locations[i].AgentId = guid;
@@ -391,11 +389,10 @@ public static class BinarySerializer
                 AttachedSoundMessage m = new AttachedSoundMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-                o = DeSerialize(out guid, buf, o, length); m.SoundId = guid;
-                o = DeSerialize(out guid, buf, o, length); m.ObjectId = guid;
-                o = DeSerialize(out guid, buf, o, length); m.OwnerId = guid;
-                m.Gain = DeSerializeUInt32_Le (buf, ref o, buf.Length);
+                m.SoundId    = DeSerializeGuid      (buf, ref o, length);
+                m.ObjectId   = DeSerializeGuid      (buf, ref o, length);
+                m.OwnerId    = DeSerializeGuid      (buf, ref o, length);
+                m.Gain       = DeSerializeUInt32_Le (buf, ref o, buf.Length);
                 m.SoundFlags = (SoundFlags) buf[o++];
                 //Logger.LogDebug($"AttachedSoundMessage: SoundId={m.SoundId} ObjectId={m.ObjectId} OwnerId={m.OwnerId} Gain={m.Gain} Flags={m.SoundFlags}");
 
@@ -409,15 +406,14 @@ public static class BinarySerializer
             {
                 PreloadSoundMessage m = new PreloadSoundMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
-                Guid guid;
 
                 byte nSounds = buf[o++];
                 for (byte i = 0; i < nSounds; i++)
                 {
                     PreloadSoundMessage.SoundInfo si = new PreloadSoundMessage.SoundInfo();
-                    o = DeSerialize(out guid, buf, o, length); si.ObjectId = guid;
-                    o = DeSerialize(out guid, buf, o, length); si.OwnerId = guid;
-                    o = DeSerialize(out guid, buf, o, length); si.SoundId = guid;
+                    si.ObjectId = DeSerializeGuid (buf, ref o, length);
+                    si.OwnerId  = DeSerializeGuid (buf, ref o, length);
+                    si.SoundId  = DeSerializeGuid (buf, ref o, length);
                     m.Sounds.Add(si);
                     // Logger.LogDebug($"PreloadSoundMessage: ObjectId={si.ObjectId} OwnerId={si.OwnerId} SoundId={si.SoundId}");
                 }
@@ -433,20 +429,17 @@ public static class BinarySerializer
                 ViewerEffectMessage m = new ViewerEffectMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
-                o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
+                m.AgentId = DeSerializeGuid (buf, ref o, length);
+                m.SessionId = DeSerializeGuid (buf, ref o, length);
 
                 byte nEffects = buf[o++];
                 for (byte i = 0; i < nEffects; i++)
                 {
-                    Guid effectId;
-                    o = DeSerialize(out guid,             buf, o, length); effectId = guid;
-                    Guid agentId;
-                    o = DeSerialize(out guid,             buf, o, length); agentId = guid;
+                    Guid effectId         = DeSerializeGuid (buf, ref o, length);
+                    Guid agentId          = DeSerializeGuid (buf, ref o, length);
                     ViewerEffectType type = (ViewerEffectType) buf[o++];
-                    float duration = DeSerializeFloat_Le (buf, ref o, length);
-                    Color color = DeSerializeColor       (buf, ref o, length);
+                    float duration        = DeSerializeFloat_Le (buf, ref o, length);
+                    Color color           = DeSerializeColor       (buf, ref o, length);
 
                     byte typeDataLength = buf[o++];
                     ViewerEffect effect = null;
@@ -475,17 +468,17 @@ public static class BinarySerializer
                         case ViewerEffectType.EffectSpiral:
                         case ViewerEffectType.EffectEdit:
                             ViewerEffectSpiral spiralEffect = new ViewerEffectSpiral();
-                            o = DeSerialize(out guid,             buf, o, length); spiralEffect.SourceObjectId = guid;
-                            o = DeSerialize(out guid,             buf, o, length); spiralEffect.TargetObjectId = guid;
-                            spiralEffect.PositionGlobal = DeSerializeVector3Double(buf, ref o, length);
+                            spiralEffect.SourceObjectId = DeSerializeGuid          (buf, ref o, length);
+                            spiralEffect.TargetObjectId = DeSerializeGuid          (buf, ref o, length);
+                            spiralEffect.PositionGlobal = DeSerializeVector3Double (buf, ref o, length);
                             effect = spiralEffect;
                             break;
 
                         case ViewerEffectType.EffectLookAt:
                             ViewerEffectLookAt lookAtEffect = new ViewerEffectLookAt();
-                            o = DeSerialize(out guid,             buf, o, length); lookAtEffect.SourceAvatarId = guid;
-                            o = DeSerialize(out guid,             buf, o, length); lookAtEffect.TargetObjectId = guid;
-                            lookAtEffect.TargetPosition = DeSerializeVector3Double(buf, ref o, length);
+                            lookAtEffect.SourceAvatarId = DeSerializeGuid          (buf, ref o, length);
+                            lookAtEffect.TargetObjectId = DeSerializeGuid          (buf, ref o, length);
+                            lookAtEffect.TargetPosition = DeSerializeVector3Double (buf, ref o, length);
                             lookAtEffect.LookAtType = (ViewerEffectLookAtType) buf[o++];
                             effect = lookAtEffect;
                             break;
@@ -530,17 +523,15 @@ public static class BinarySerializer
         },
 
         {
-            MessageId.UseCircuitCode, // 0xffff0003
+            MessageId.UseCircuitCode, // 0xffff0003 // TODO: Should I ever receive this?
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {
                 UseCircuitCodeMessage m = new UseCircuitCodeMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
                 m.CircuitCode = DeSerializeUInt32_Le (buf, ref o, buf.Length);
-                Guid guid;
-                o = DeSerialize(out guid, buf, o, length); m.SessionId = guid;
-                o = DeSerialize(out guid, buf, o, length); m.AgentId = guid;
-
+                m.SessionId   = DeSerializeGuid      (buf, ref o, length);
+                m.AgentId     = DeSerializeGuid      (buf, ref o, length);
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
         },
@@ -565,15 +556,14 @@ public static class BinarySerializer
                 ChatFromSimulatorMessage m = new ChatFromSimulatorMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-                m.FromName = DeSerializeString (1,    buf, ref o, length);
-                o = DeSerialize(out guid,             buf, o, length); m.SourceId = guid;
-                o = DeSerialize(out guid,             buf, o, length); m.OwnerId = guid;
-                m.SourceType   = (ChatSourceType)    buf[o++];
-                m.ChatType     = (ChatType)          buf[o++];
-                m.AudibleLevel = (ChatAudibleLevel)  buf[o++];
-                m.Position = DeSerializeVector3     (buf, ref o, length);
-                m.Message = DeSerializeString (2,    buf, ref o, length);
+                m.FromName     = DeSerializeString  (1,    buf, ref o, length);
+                m.SourceId     = DeSerializeGuid    (buf, ref o, length);
+                m.OwnerId      = DeSerializeGuid    (                 buf, ref o, length);
+                m.SourceType   = (ChatSourceType)   buf[o++];
+                m.ChatType     = (ChatType)         buf[o++];
+                m.AudibleLevel = (ChatAudibleLevel) buf[o++];
+                m.Position     = DeSerializeVector3 (               buf, ref o, length);
+                m.Message      = DeSerializeString  (2,    buf, ref o, length);
 
                 Logger.LogDebug($"ChatFromSimulator: FromName={m.FromName}, Message={m.Message}, ChatType={m.ChatType}, AudibleLevel={m.AudibleLevel}, SourceType={m.SourceType}, SourceId={m.SourceId}, OwnerId={m.OwnerId}");
 
@@ -588,40 +578,38 @@ public static class BinarySerializer
                 RegionHandshakeMessage m = new RegionHandshakeMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
+                m.RegionFlags = (RegionFlags) DeSerializeUInt32_Le (buf, ref o, length);
+                m.SimAccess   = (SimAccess)   buf[o++];
+                m.SimName              = DeSerializeString   (1, buf, ref o, length);
+                m.SimOwner             = DeSerializeGuid     (buf, ref o, length);
+                m.IsEstateManager      = buf[o++] != 0;
+                m.WaterHeight          = DeSerializeFloat_Le (buf, ref o, length);
+                m.BillableFactor       = DeSerializeFloat_Le (buf, ref o, length);
+                m.CacheId              = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainBase0         = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainBase1         = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainBase2         = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainBase3         = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainDetail0       = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainDetail1       = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainDetail2       = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainDetail3       = DeSerializeGuid     (buf, ref o, length);
+                m.TerrainStartHeight00 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainStartHeight01 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainStartHeight10 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainStartHeight11 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainHeightRange00 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainHeightRange01 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainHeightRange10 = DeSerializeFloat_Le (buf, ref o, length);
+                m.TerrainHeightRange11 = DeSerializeFloat_Le (buf, ref o, length);
 
-                m.RegionFlags = (RegionFlags)DeSerializeUInt32_Le (buf, ref o, length);
-                m.SimAccess = (SimAccess)buf[o++];
-                m.SimName = DeSerializeString (1, buf, ref o, length);
-                o = DeSerialize(out guid, buf, o, length); m.SimOwner = guid;
-                m.IsEstateManager = buf[o++] != 0;
-                m.WaterHeight = DeSerializeFloat_Le(buf, ref o, length);
-                m.BillableFactor = DeSerializeFloat_Le(buf, ref o, length);
-                o = DeSerialize(out guid, buf, o, length); m.CacheId = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainBase0 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainBase1 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainBase2 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainBase3 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail0 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail1 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail2 = guid;
-                o = DeSerialize(out guid, buf, o, length); m.TerrainDetail3 = guid;
-                m.TerrainStartHeight00 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainStartHeight01 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainStartHeight10 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainStartHeight11 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainHeightRange00 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainHeightRange01 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainHeightRange10 = DeSerializeFloat_Le(buf, ref o, length);
-                m.TerrainHeightRange11 = DeSerializeFloat_Le(buf, ref o, length);
+                m.RegionId             = DeSerializeGuid     (buf, ref o, length);
 
-                o = DeSerialize(out guid, buf, o, length); m.RegionId = guid;
-
-                m.CpuClassId  = DeSerializeInt32_Le (buf, ref o, length);
-                m.CpuRatio    = DeSerializeInt32_Le (buf, ref o, length);
-                m.ColoName    = DeSerializeString (1, buf, ref o, length);
-                m.ProductSku  = DeSerializeString (1, buf, ref o, length);
-                m.ProductName = DeSerializeString (1, buf, ref o, length);
+                m.CpuClassId           = DeSerializeInt32_Le (buf, ref o, length);
+                m.CpuRatio             = DeSerializeInt32_Le (buf, ref o, length);
+                m.ColoName             = DeSerializeString (1, buf, ref o, length);
+                m.ProductSku           = DeSerializeString (1, buf, ref o, length);
+                m.ProductName          = DeSerializeString (1, buf, ref o, length);
 
                 int n = buf[o++];
                 for (int i = 0; i < n; i++)
@@ -685,16 +673,14 @@ public static class BinarySerializer
             {
                 AgentMovementCompleteMessage m = new AgentMovementCompleteMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
-
-                Guid guid;
-
-                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
-                o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
-                m.Position = DeSerializeVector3 (buf, ref o, length);
-                m.LookAt   = DeSerializeVector3 (buf, ref o, length);
-                m.RegionHandle = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
-                m.TimeStamp = DeSerializeDateTime(buf, ref o, length);
-                m.ChannelVersion = DeSerializeString (2,    buf, ref o, length);
+                
+                m.AgentId        = DeSerializeGuid     (buf, ref o, length);
+                m.SessionId      = DeSerializeGuid     (buf, ref o, length); 
+                m.Position       = DeSerializeVector3  (buf, ref o, length);
+                m.LookAt         = DeSerializeVector3  (buf, ref o, length);
+                m.RegionHandle   = new RegionHandle(DeSerializeUInt64_Le(buf, ref o, length));
+                m.TimeStamp      = DeSerializeDateTime (buf, ref o, length);
+                m.ChannelVersion = DeSerializeString   (2,    buf, ref o, length);
                 
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
@@ -707,14 +693,12 @@ public static class BinarySerializer
                 LogoutReplyMessage m = new LogoutReplyMessage (flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
-                o = DeSerialize(out guid,             buf, o, length); m.SessionId = guid;
+                m.AgentId   = DeSerializeGuid (buf, ref o, length);
+                m.SessionId = DeSerializeGuid (buf, ref o, length);
                 byte nItems = buf[o++];
                 for (byte i = 0; i < nItems; i++)
                 {
-                    o = DeSerialize(out guid,             buf, o, length);
-                    m.InventoryItems.Add(guid);
+                    m.InventoryItems.Add (DeSerializeGuid (buf, ref o, length));
                 }
                 Logger.LogDebug($"LogoutReplyMessage: AgentId={m.AgentId}, SessionId={m.SessionId}, InventoryItems={string.Join (", ", m.InventoryItems)}");
                 return new DeSerializerResult(){Message = m, Offset = o};
@@ -728,14 +712,11 @@ public static class BinarySerializer
                 OnlineNotificationMessage m = new OnlineNotificationMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-
                 byte nAgents = buf[o++];
                 for (byte i = 0; i < nAgents; i++)
                 {
-                    o = DeSerialize(out guid,             buf, o, length);
-                    m.Agents.Add(guid);
-                    Logger.LogDebug($"OnlineNotificationMessage: AgentId={guid}");
+                    m.Agents.Add(DeSerializeGuid (buf, ref o, length));
+                    Logger.LogDebug($"OnlineNotification: {m.Agents[m.Agents.Count - 1]}");
                 }
 
                 return new DeSerializerResult(){Message = m, Offset = o};
@@ -749,14 +730,11 @@ public static class BinarySerializer
                 OfflineNotificationMessage m = new OfflineNotificationMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
 
-                Guid guid;
-
                 byte nAgents = buf[o++];
                 for (byte i = 0; i < nAgents; i++)
                 {
-                    o = DeSerialize(out guid,             buf, o, length);
-                    m.Agents.Add(guid);
-                    Logger.LogDebug($"OfflineNotificationMessage: AgentId={guid}");
+                   m.Agents.Add (DeSerializeGuid (buf, ref o, length));
+                   Logger.LogDebug($"OfflineNotification: {m.Agents[m.Agents.Count - 1]}");
                 }
 
                 return new DeSerializerResult(){Message = m, Offset = o};
@@ -769,17 +747,15 @@ public static class BinarySerializer
             {
                 AgentDataUpdateMessage m = new AgentDataUpdateMessage(flags, sequenceNumber, extraHeader, frequency, id);
                 int o = offset;
+                m.AgentId       = DeSerializeGuid      (buf, ref o, length);
+                m.FirstName     = DeSerializeString    (1,    buf, ref o, length);
+                m.LastName      = DeSerializeString    (1,    buf, ref o, length);
+                m.GroupTitle    = DeSerializeString    (1,    buf, ref o, length);
+                m.ActiveGroupId = DeSerializeGuid      (buf, ref o, length);
+                m.GroupPowers   = DeSerializeUInt64_Le (buf, ref o, length);
+                m.GroupName     = DeSerializeString    (1,    buf, ref o, length);
 
-                Guid guid;
-
-                o = DeSerialize(out guid,             buf, o, length); m.AgentId = guid;
-                m.FirstName   = DeSerializeString (1,    buf, ref o, length);
-                m.LastName    = DeSerializeString (1,    buf, ref o, length);
-                m.GroupTitle  = DeSerializeString (1,    buf, ref o, length);
-                o = DeSerialize(out guid,             buf, o, length); m.ActiveGroupId = guid;
-                m.GroupPowers = DeSerializeUInt64_Le (buf, ref o, length);
-                m.GroupName   = DeSerializeString (1,    buf, ref o, length);
-                Logger.LogDebug($"AgentDataUpdate: FirstName={m.FirstName}, LastName={m.LastName}, GroupTitle={m.GroupTitle}, GroupName={m.GroupName}");
+                //Logger.LogDebug($"AgentDataUpdate: AgentId={m.AgentId}, FirstName={m.FirstName}, LastName={m.LastName}, GroupTitle={m.GroupTitle}, ActiveGroupId={m.ActiveGroupId}, GroupName={m.GroupName}");
                 return new DeSerializerResult(){Message = m, Offset = o};
             }
         },
@@ -1184,8 +1160,9 @@ public static class BinarySerializer
                 throw new ArgumentOutOfRangeException(nameof(lengthCount), lengthCount, "Valid values are 1 and 2");
         }
 
+        string s = Encoding.UTF8.GetString(buffer, offset, len).Replace("\0", "");
         offset += len;
-        return Encoding.UTF8.GetString(buffer, offset, len).Replace("\0", "");
+        return s;
     }
     #endregion String
 
@@ -1237,35 +1214,62 @@ public static class BinarySerializer
         return o;
     }
 
-    public static int DeSerialize(out Guid guid, byte[] buffer, int offset, int length)
+    public static Guid DeSerializeGuid(byte[] buffer, ref int offset, int length)
     {
-        int o = offset;
         byte[] buf = new byte[16];
         // Weird order
-        buf[3]  = buffer[o++];
-        buf[2]  = buffer[o++];
-        buf[1]  = buffer[o++];
-        buf[0]  = buffer[o++];
+        buf[3] = buffer[offset++];
+        buf[2] = buffer[offset++];
+        buf[1] = buffer[offset++];
+        buf[0] = buffer[offset++];
 
-        buf[5]  = buffer[o++];
-        buf[4]  = buffer[o++];
+        buf[5] = buffer[offset++];
+        buf[4] = buffer[offset++];
 
-        buf[7]  = buffer[o++];
-        buf[6]  = buffer[o++];
+        buf[7] = buffer[offset++];
+        buf[6] = buffer[offset++];
 
-        buf[8]  = buffer[o++];
-        buf[9]  = buffer[o++];
+        buf[8] = buffer[offset++];
+        buf[9] = buffer[offset++];
 
-        buf[10] = buffer[o++];
-        buf[11] = buffer[o++];
-        buf[12] = buffer[o++];
-        buf[13] = buffer[o++];
-        buf[14] = buffer[o++];
-        buf[15] = buffer[o++];
+        buf[10] = buffer[offset++];
+        buf[11] = buffer[offset++];
+        buf[12] = buffer[offset++];
+        buf[13] = buffer[offset++];
+        buf[14] = buffer[offset++];
+        buf[15] = buffer[offset++];
 
-        guid = new Guid(buf);
-        return o;
+        return new Guid(buf);
     }
+    //public static int DeSerialize(out Guid guid, byte[] buffer, int offset, int length)
+    //{
+    //    int o = offset;
+    //    byte[] buf = new byte[16];
+    //    // Weird order
+    //    buf[3]  = buffer[o++];
+    //    buf[2]  = buffer[o++];
+    //    buf[1]  = buffer[o++];
+    //    buf[0]  = buffer[o++];
+
+    //    buf[5]  = buffer[o++];
+    //    buf[4]  = buffer[o++];
+
+    //    buf[7]  = buffer[o++];
+    //    buf[6]  = buffer[o++];
+
+    //    buf[8]  = buffer[o++];
+    //    buf[9]  = buffer[o++];
+
+    //    buf[10] = buffer[o++];
+    //    buf[11] = buffer[o++];
+    //    buf[12] = buffer[o++];
+    //    buf[13] = buffer[o++];
+    //    buf[14] = buffer[o++];
+    //    buf[15] = buffer[o++];
+
+    //    guid = new Guid(buf);
+    //    return o;
+    //}
     #endregion Guid
 
     #region Vector3
