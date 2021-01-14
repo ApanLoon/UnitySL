@@ -181,6 +181,144 @@ public static class BinarySerializer
         },
 
         {
+            MessageId.ObjectUpdate, // 0x0000000c
+            (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+            {
+                ObjectUpdateMessage m = new ObjectUpdateMessage (flags, sequenceNumber, extraHeader, frequency, id);
+                int o = offset;
+                Guid guid;
+                string s;
+                int len;
+
+                m.RegionHandle = new RegionHandle (DeSerializeUInt64_Le (buf, ref o, length));
+                m.TimeDilation =                   DeSerializeUInt16_Le (buf, ref o, length);
+
+                int nObjects = buf[o++];
+                for (int i = 0; i < nObjects; i++)
+                {
+                    ObjectUpdateMessage.ObjectData data = new ObjectUpdateMessage.ObjectData();
+                    m.Objects.Add(data);
+
+                    data.ObjectId =                       DeSerializeUInt32_Le (buf, ref o, length);
+                    data.State = buf[o++];
+
+                    o =                                DeSerialize(out guid, buf, o, length); data.FullId  = guid;
+                    data.Crc =                            DeSerializeUInt32_Le (buf, ref o, length);
+                    data.PCode       = buf[o++];
+                    data.Material    = buf[o++];
+                    data.ClickAction = buf[o++];
+                    data.Scale       =                    DeSerializeVector3 (buf, ref o, buf.Length);
+                    len = buf[o++];
+                    data.Data1 = new byte[len];
+                    Array.Copy (buf, o, data.Data1, 0, len);
+                    o += len;
+
+                    data.ParentId =                       DeSerializeUInt32_Le (buf, ref o, length);
+                    data.UpdateFlags  =                   DeSerializeUInt32_Le (buf, ref o, length);
+
+                    data.PathCurve = buf[o++];
+                    data.ProfileCurve = buf[o++];
+                    data.PathBegin =                      DeSerializeUInt16_Le (buf, ref o, length);
+                    data.PathEnd   =                      DeSerializeUInt16_Le (buf, ref o, length);
+                    data.PathScaleX = buf[o++];
+                    data.PathScaleY = buf[o++];
+                    data.PathShearX = buf[o++];
+                    data.PathShearY = buf[o++];
+                    data.PathTwist = (sbyte) buf[o++];
+                    data.PathTwistBegin = (sbyte) buf[o++];
+                    data.PathRadiusOffset = (sbyte) buf[o++];
+                    data.PathTaperX = (sbyte)buf[o++];
+                    data.PathTaperY = (sbyte)buf[o++];
+                    data.PathRevolutions = buf[o++];
+                    data.PathSkew = (sbyte)buf[o++];
+                    data.ProfileBegin  =                  DeSerializeUInt16_Le (buf, ref o, length);
+                    data.ProfileEnd    =                  DeSerializeUInt16_Le (buf, ref o, length);
+                    data.ProfileHollow =                  DeSerializeUInt16_Le (buf, ref o, length);
+
+                    len =                              DeSerializeUInt16_Le (buf, ref o, length);
+                    for (int j = 0; j < len; j++)
+                    {
+                        data.TextureEntries.Add(buf[o++]);
+                    }
+
+                    len = buf[o++];
+                    for (int j = 0; j < len; j++)
+                    {
+                        data.TextureAnims.Add(buf[o++]);
+                    }
+
+                    o = DeSerialize(out s, 2,    buf, o, length); data.NameValue = s;
+                    len =                              DeSerializeUInt16_Le (buf, ref o, length);
+                    data.Data2 = new byte[len];
+                    Array.Copy (buf, o, data.Data2, 0, len);
+                    o += len;
+                    o = DeSerialize(out s, 1,    buf, o, length); data.Text = s;
+                    data.TextColour = DeSerializeColor(buf, ref o, length);
+                    o = DeSerialize(out s, 1,    buf, o, length); data.MediaUrl = s;
+
+                    len = buf[o++];
+                    data.ParticleSystemData = new byte[len];
+                    Array.Copy (buf, o, data.ParticleSystemData, 0, len);
+                    o += len;
+
+                    len = buf[o++];
+                    data.ExtraParameters = new byte[len];
+                    Array.Copy (buf, o, data.ExtraParameters, 0, len);
+                    o += len;
+
+                    o = DeSerialize(out guid, buf, o, length); data.SoundId = guid;
+                    o = DeSerialize(out guid, buf, o, length); data.OwnerId = guid;
+                    data.Gain = DeSerializeUInt32_Le (buf, ref o, buf.Length);
+                    data.SoundFlags = (SoundFlags) buf[o++];
+                    data.Radius = DeSerializeFloat_Le(buf, ref o, length);
+
+                    data.JointType = buf[o++];
+                    data.JointPivot =                    DeSerializeVector3 (buf, ref o, buf.Length);
+                    data.JointAxisOrAnchor =             DeSerializeVector3 (buf, ref o, buf.Length);
+                }
+
+                //s = $"ObjectUpdateMessage: UpdateType={m.UpdateType}, RegionHandle={m.RegionHandle}, TimeDilation={m.TimeDilation}";
+                //foreach (ObjectUpdateMessage.ObjectData data in m.Objects)
+                //{
+                //    s += $"\n                     ObjectId={data.ObjectId}, State={data.State}"
+                //       + $"\n                     FullId={data.FullId}, Crc={data.Crc}, PCode={data.PCode}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}, Data1({data.Data1.Length})"
+                //       + $"\n                     ParentId={data.ParentId}, UpdateFlags={data.UpdateFlags}"
+                //       + $"\n                     PathCurve={data.PathCurve}, ProfileCurve={data.ProfileCurve}, Path=({data.PathBegin}-{data.PathEnd}), PathScale=({data.PathScaleX}, {data.PathScaleY}), PathShear=({data.PathShearX}, {data.PathShearY}), PathTwist={data.PathTwist}, PathTwistBegin={data.PathTwistBegin}, PathRadiusOffset={data.PathRadiusOffset}, PathTaper=({data.PathTaperX}, {data.PathTaperY}), PathRevolutions={data.PathRevolutions}, PathSkew={data.PathSkew}, Profile=({data.ProfileBegin}-{data.ProfileEnd}), Hollow={data.ProfileHollow}"
+                //       + $"\n                     TextureEntries({data.TextureEntries.Count})"
+                //       + $"\n                     TextureAnims({data.TextureAnims.Count})"
+                //       + $"\n                     NameValue={data.NameValue.Replace("\n", "\\n")}, Data2({data.Data2.Length}), Text={data.Text}, TextColour={data.TextColour}, MediaUrl={data.MediaUrl}"
+                //       + $"\n                     ParticleSystemData({data.ParticleSystemData.Length})"
+                //       + $"\n                     ExtraParams({data.ExtraParameters.Length})"
+                //       + $"\n                     SoundId={data.SoundId}, OwnerId={data.OwnerId}, Gain={data.Gain}, Flags={data.SoundFlags}, Radius={data.Radius}"
+                //       + $"\n                     JointType={data.JointType}, JointPivot={data.JointPivot}, JointAxisOrAnchor={data.JointAxisOrAnchor}"
+                //    ;
+                //}
+                //Logger.LogDebug(s);
+
+                return new DeSerializerResult(){Message = m, Offset = o};
+            }
+        },
+
+        //{
+        //    MessageId.ObjectUpdateCompressed, // 0x0000000d
+        //    (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
+        //    {
+        //        ObjectUpdateCompressedMessage m = new ObjectUpdateCompressedMessage(flags, sequenceNumber, extraHeader, frequency, id);
+        //        int o = offset;
+
+        //        m.RegionHandle = new RegionHandle (DeSerializeUInt64_Le (buf, ref o, length));
+        //        m.TimeDilation =                   DeSerializeUInt16_Le (buf, ref o, length);
+        //        //m.UpdateFlags  =                   DeSerializeUInt32_Le (buf, ref o, length);
+        //        UInt16 len     =                   DeSerializeUInt16_Le (buf, ref o, length);
+        //        //TODO: Parse the compressed data
+
+        //        Logger.LogError("ObjectUpdateCompressed: Not completely parsed");
+
+        //        return new DeSerializerResult(){Message = m, Offset = o};
+        //    }
+        //},
+
+        {
             MessageId.SoundTrigger, // 0x0000001d
             (buf, offset, length, flags, sequenceNumber, extraHeader, frequency, id) =>
             {

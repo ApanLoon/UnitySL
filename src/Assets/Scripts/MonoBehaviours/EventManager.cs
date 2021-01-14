@@ -54,6 +54,10 @@ public class EventManager : MonoBehaviour
     #endregion Messages
     #endregion Agent
 
+    #region Object
+    public event Action<ObjectUpdateMessage> OnObjectUpdateMessage;
+    #endregion Object
+
     #region Region
     public event Action<Region> OnRegionDataChanged;
 
@@ -104,24 +108,26 @@ public class EventManager : MonoBehaviour
 
     protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
     {
-        {MessageId.SoundTrigger,                 (m) => Instance.OnSoundTriggerMessage?.Invoke          ((SoundTriggerMessage)m)  },
+        {MessageId.ObjectUpdate,                 (m) => Instance.OnObjectUpdateMessage?.Invoke           ((ObjectUpdateMessage)m)            },
+        //{MessageId.ObjectUpdateCompressed,       (m) => Instance.OnObjectUpdateMessage?.Invoke           ((ObjectUpdateMessage)m)            },
+        {MessageId.SoundTrigger,                 (m) => Instance.OnSoundTriggerMessage?.Invoke           ((SoundTriggerMessage)m)            },
 
-        {MessageId.CoarseLocationUpdate,         (m) => Instance.OnCoarseLocationUpdateMessage?.Invoke  ((CoarseLocationUpdateMessage)m)  },
-        {MessageId.LayerData,                    (m) => Instance.OnLayerDataMessage?.Invoke             ((LayerDataMessage)m)             },
-        {MessageId.AttachedSound,                (m) => Instance.OnAttachedSoundMessage?.Invoke         ((AttachedSoundMessage)m)         },
-        {MessageId.PreloadSound,                 (m) => Instance.OnPreloadSoundMessage?.Invoke          ((PreloadSoundMessage)m)          },
+        {MessageId.CoarseLocationUpdate,         (m) => Instance.OnCoarseLocationUpdateMessage?.Invoke   ((CoarseLocationUpdateMessage)m)    },
+        {MessageId.LayerData,                    (m) => Instance.OnLayerDataMessage?.Invoke              ((LayerDataMessage)m)               },
+        {MessageId.AttachedSound,                (m) => Instance.OnAttachedSoundMessage?.Invoke          ((AttachedSoundMessage)m)           },
+        {MessageId.PreloadSound,                 (m) => Instance.OnPreloadSoundMessage?.Invoke           ((PreloadSoundMessage)m)            },
 
-        {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke          ((ViewerEffectMessage)m)          },
-        {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                ((HealthMessage)m)                },
-        {MessageId.ChatFromSimulator,            (m) => Instance.OnChatFromSimulatorMessage?.Invoke     ((ChatFromSimulatorMessage)m)     },
-        {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke       ((RegionHandshakeMessage)m)       },
-        {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke   ((SimulatorViewerTimeMessage)m)   },
-        {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke   ((ScriptControlChangeMessage)m)   },
-        {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke ((AgentMovementCompleteMessage)m) },
-        {MessageId.LogoutReply,                  (m) => Instance.OnLogoutReplyMessage?.Invoke           ((LogoutReplyMessage)m)           },
-        {MessageId.OnlineNotification,           (m) => Instance.OnOnlineNotificationMessage?.Invoke    ((OnlineNotificationMessage)m)    },
-        {MessageId.OfflineNotification,          (m) => Instance.OnOfflineNotificationMessage?.Invoke   ((OfflineNotificationMessage)m)   },
-        {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke       ((AgentDataUpdateMessage)m)       },
+        {MessageId.ViewerEffect,                 (m) => Instance.OnViewerEffectMessage?.Invoke           ((ViewerEffectMessage)m)            },
+        {MessageId.HealthMessage,                (m) => Instance.OnHealthMessage?.Invoke                 ((HealthMessage)m)                  },
+        {MessageId.ChatFromSimulator,            (m) => Instance.OnChatFromSimulatorMessage?.Invoke      ((ChatFromSimulatorMessage)m)       },
+        {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke        ((RegionHandshakeMessage)m)         },
+        {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke    ((SimulatorViewerTimeMessage)m)     },
+        {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke    ((ScriptControlChangeMessage)m)     },
+        {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke  ((AgentMovementCompleteMessage)m)   },
+        {MessageId.LogoutReply,                  (m) => Instance.OnLogoutReplyMessage?.Invoke            ((LogoutReplyMessage)m)             },
+        {MessageId.OnlineNotification,           (m) => Instance.OnOnlineNotificationMessage?.Invoke     ((OnlineNotificationMessage)m)      },
+        {MessageId.OfflineNotification,          (m) => Instance.OnOfflineNotificationMessage?.Invoke    ((OfflineNotificationMessage)m)     },
+        {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke        ((AgentDataUpdateMessage)m)         },
     };
 
     public void RaiseOnMessage(Message message)

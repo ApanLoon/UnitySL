@@ -7,6 +7,8 @@ public enum MessageId : UInt32
     CompletePingCheck            = 0x00000002,
     AgentUpdate                  = 0x00000004,
     LayerData                    = 0x0000000b,
+    ObjectUpdate                 = 0x0000000c,
+    //ObjectUpdateCompressed       = 0x0000000d,
     SoundTrigger                 = 0x0000001d,
 
     CoarseLocationUpdate         = 0x0000ff06,

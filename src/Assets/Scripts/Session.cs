@@ -243,7 +243,8 @@ public class Session
         //msg->setHandlerFuncFast(_PREHASH_ImageData, LLViewerTextureList::receiveImageHeader);
         //msg->setHandlerFuncFast(_PREHASH_ImagePacket, LLViewerTextureList::receiveImagePacket);
         //msg->setHandlerFuncFast(_PREHASH_ObjectUpdate, process_object_update);
-        //msg->setHandlerFunc("ObjectUpdateCompressed", process_compressed_object_update);
+
+        EventManager.Instance.OnObjectUpdateMessage += ProcessObjectUpdate;
         //msg->setHandlerFunc("ObjectUpdateCached", process_cached_object_update);
         //msg->setHandlerFuncFast(_PREHASH_ImprovedTerseObjectUpdate, process_terse_object_update_improved);
         //msg->setHandlerFunc("SimStats", process_sim_stats);
@@ -410,6 +411,11 @@ public class Session
         //msg->setHandlerFunc("LargeGenericMessage", process_large_generic_message);
 
         //msg->setHandlerFuncFast(_PREHASH_FeatureDisabled, process_feature_disabled_message);
+    }
+
+    protected void ProcessObjectUpdate (ObjectUpdateMessage obj)
+    {
+        
     }
 
     protected void ProcessLayerData(LayerDataMessage message) // TODO: This should not be here
