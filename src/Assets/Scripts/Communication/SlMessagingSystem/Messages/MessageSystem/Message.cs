@@ -369,24 +369,24 @@ public class Message
 
     public override string ToString()
     {
-        string idString;
+        string idNumber;
         switch (Frequency)
         {
             case MessageFrequency.High:
-                idString = ((byte)MessageId).ToString();
+                idNumber = ((byte)MessageId).ToString();
                 break;
             case MessageFrequency.Medium:
-                idString = ((byte)MessageId).ToString();
+                idNumber = ((byte)MessageId).ToString();
                 break;
             case MessageFrequency.Low:
-                idString = ((UInt16)MessageId).ToString();
+                idNumber = ((UInt16)MessageId).ToString();
                 break;
             case MessageFrequency.Fixed:
-                idString = ((UInt32)MessageId).ToString("x8");
+                idNumber = ((UInt32)MessageId).ToString("x8");
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        return $"{MessageId} {Frequency} {idString} Seq={SequenceNumber}, Flags={Flags}";
+        return $"{MessageId} ({Frequency} {idNumber}) Seq={SequenceNumber}, Flags={Flags}";
     }
 }

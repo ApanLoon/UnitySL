@@ -182,7 +182,7 @@ public class ObjectUpdateMessage : Message
 
     public override string ToString()
     {
-        string s = $"ObjectUpdateMessage: UpdateType={UpdateType}, RegionHandle={RegionHandle}, TimeDilation={TimeDilation}";
+        string s = $"{base.ToString()}: UpdateType={UpdateType}, RegionHandle={RegionHandle}, TimeDilation={TimeDilation}";
         foreach (ObjectUpdateMessage.ObjectData data in Objects)
         {
             s += $"\n                     ObjectId={data.ObjectId}, State={data.State}"
