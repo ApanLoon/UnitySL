@@ -358,6 +358,12 @@ public static class BinarySerializer
         int len;
         switch (lengthCount)
         {
+            case 0: // NUL-terminated
+                len = offset;
+                while (buffer[len++] != 0) { }
+                len -= offset;
+                break;
+
             case 1:
                 len = buffer[offset++];
                 break;
@@ -532,6 +538,22 @@ public static class BinarySerializer
         offset = Serialize_Le (v.z, buffer, offset, length);
         offset = Serialize_Le (v.y, buffer, offset, length);
         return offset;
+    }
+    public static Quaternion DeSerializeQuaternion (byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4 * 3)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeQuaternion: Not enough bytes in buffer.");
+        }
+
+        Quaternion v = new Quaternion // Convert handedness:
+        {
+            x = DeSerializeFloat_Le(buffer, ref offset, length),
+            z = DeSerializeFloat_Le(buffer, ref offset, length),
+            y = DeSerializeFloat_Le(buffer, ref offset, length),
+            w = 1f
+        };
+        return v;
     }
     #endregion Quaternion
 
