@@ -16,15 +16,15 @@ public class RegionHandshakeReplyMessage : Message
 
     public RegionHandshakeReplyMessage(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags replyFlags)
     {
-        Id = MessageId.RegionHandshakeReply;
+        MessageId = MessageId.RegionHandshakeReply;
         Flags = PacketFlags.Reliable; // TODO: message_template.msg says that this should be ZeroCoded but I don't have a way of doing that yet and Firestorm doesn't do it
-        Frequency = MessageFrequency.Low;
 
         AgentId    = agentId;
         SessionId  = sessionId;
         ReplyFlags = replyFlags;
     }
 
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -43,5 +43,5 @@ public class RegionHandshakeReplyMessage : Message
 
         return o - offset;
     }
-
+    #endregion Serialise
 }

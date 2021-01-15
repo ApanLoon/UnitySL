@@ -7,31 +7,14 @@ public class LogoutRequestMessage : Message
 
     public LogoutRequestMessage (Guid agentId, Guid sessionId)
     {
-        Id = MessageId.LogoutRequest;
+        MessageId = MessageId.LogoutRequest;
         Flags = PacketFlags.Reliable;
-        Frequency = MessageFrequency.Low;
 
         AgentId = agentId;
         SessionId = sessionId;
     }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public LogoutRequestMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
-    {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
-    }
-
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -48,4 +31,5 @@ public class LogoutRequestMessage : Message
 
         return o - offset;
     }
+    #endregion Serialise
 }

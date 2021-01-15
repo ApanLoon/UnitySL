@@ -7,9 +7,8 @@ public class OfflineNotificationMessage : Message
 
     public OfflineNotificationMessage()
     {
-        Id = MessageId.OfflineNotification;
+        MessageId = MessageId.OfflineNotification;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

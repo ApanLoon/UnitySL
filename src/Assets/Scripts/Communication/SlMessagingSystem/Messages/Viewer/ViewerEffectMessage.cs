@@ -88,9 +88,8 @@ public class ViewerEffectMessage : Message
 
     public ViewerEffectMessage()
     {
-        Id = MessageId.ViewerEffect;
+        MessageId = MessageId.ViewerEffect;
         Flags = 0;
-        Frequency = MessageFrequency.Medium;
     }
 
     #region DeSerialise

@@ -36,9 +36,8 @@ public class AgentUpdateMessage : Message
                                AgentControlFlags controlFlags,
                                AgentUpdateFlags  updateFlags)
     {
-        Id = MessageId.AgentUpdate;
+        MessageId = MessageId.AgentUpdate;
         Flags = PacketFlags.Reliable; // TODO: Should be zero-coded
-        Frequency = MessageFrequency.High;
 
         AgentId        = agentId;
         SessionId      = sessionId;
@@ -54,23 +53,7 @@ public class AgentUpdateMessage : Message
         UpdateFlags    = updateFlags;
     }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public AgentUpdateMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
-    {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
-    }
-
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -107,4 +90,5 @@ public class AgentUpdateMessage : Message
 
         return o - offset;
     }
+    #endregion Serialise
 }

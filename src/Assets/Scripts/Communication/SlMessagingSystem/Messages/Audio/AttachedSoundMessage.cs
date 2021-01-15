@@ -23,9 +23,8 @@ public class AttachedSoundMessage : Message
 
     public AttachedSoundMessage()
     {
-        Id = MessageId.AttachedSound;
+        MessageId = MessageId.AttachedSound;
         Flags = 0;
-        Frequency = MessageFrequency.Medium;
     }
 
     #region DeSerialise

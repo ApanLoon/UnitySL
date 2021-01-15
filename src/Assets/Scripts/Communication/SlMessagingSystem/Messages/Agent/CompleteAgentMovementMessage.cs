@@ -9,32 +9,15 @@ public class CompleteAgentMovementMessage : Message
 
     public CompleteAgentMovementMessage(Guid agentId, Guid sessionId, UInt32 circuitCode)
     {
-        Id = MessageId.CompleteAgentMovement;
+        MessageId = MessageId.CompleteAgentMovement;
         Flags = PacketFlags.Reliable;
-        Frequency = MessageFrequency.Low;
 
         AgentId = agentId;
         SessionId = sessionId;
         CircuitCode = circuitCode;
     }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public CompleteAgentMovementMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
-    {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
-    }
-
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -53,6 +36,7 @@ public class CompleteAgentMovementMessage : Message
 
         return o - offset;
     }
+    #endregion Serialise
 
     public override string ToString()
     {

@@ -46,9 +46,8 @@ public class RegionHandshakeMessage : Message
 
     public RegionHandshakeMessage()
     {
-        Id = MessageId.RegionHandshake;
+        MessageId = MessageId.RegionHandshake;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

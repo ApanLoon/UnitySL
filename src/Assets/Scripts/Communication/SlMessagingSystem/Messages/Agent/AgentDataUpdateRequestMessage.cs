@@ -7,9 +7,8 @@ public class AgentDataUpdateRequestMessage : Message
 
     public AgentDataUpdateRequestMessage(Guid agentId, Guid sessionId)
     {
-        Id = MessageId.AgentDataUpdateRequest;
+        MessageId = MessageId.AgentDataUpdateRequest;
         Flags = PacketFlags.Reliable;
-        Frequency = MessageFrequency.Low;
 
         AgentId = agentId;
         SessionId = sessionId;

@@ -7,9 +7,8 @@ public class PacketAckMessage : Message
 
     public PacketAckMessage()
     {
-        Id = MessageId.PacketAck;
+        MessageId = MessageId.PacketAck;
         Flags = 0;
-        Frequency = MessageFrequency.Fixed;
     }
 
     public void AddPacketAck(UInt32 sequenceNumber)

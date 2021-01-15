@@ -14,30 +14,13 @@ public class OpenCircuitMessage : Message
             throw new Exception("OpenCircuitMessage.Constructor: Only IP v4 is supported.");
         }
 
-        Id = MessageId.OpenCircuit;
+        MessageId = MessageId.OpenCircuit;
         Flags = PacketFlags.Reliable;
-        Frequency = MessageFrequency.Fixed;
         Address = address;
         Port = port;
     }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public OpenCircuitMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
-    {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
-    }
-
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -65,6 +48,7 @@ public class OpenCircuitMessage : Message
 
         return o - offset;
     }
+    #endregion Serialise
 
     public override string ToString()
     {

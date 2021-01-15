@@ -4,9 +4,8 @@
 
     public HealthMessage()
     {
-        Id = MessageId.HealthMessage;
+        MessageId = MessageId.HealthMessage;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

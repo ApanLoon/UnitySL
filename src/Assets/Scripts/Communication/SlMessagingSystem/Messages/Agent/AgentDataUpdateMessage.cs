@@ -18,9 +18,8 @@ public class AgentDataUpdateMessage : Message
 
     public AgentDataUpdateMessage()
     {
-        Id = MessageId.AgentDataUpdate;
+        MessageId = MessageId.AgentDataUpdate;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
     
     #region DeSerialise

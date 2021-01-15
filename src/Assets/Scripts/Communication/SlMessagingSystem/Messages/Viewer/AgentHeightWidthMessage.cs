@@ -13,9 +13,8 @@ public class AgentHeightWidthMessage : Message
 
     public AgentHeightWidthMessage(Guid agentId, Guid sessionId, UInt32 circuitCode, UInt32 genCounter, UInt16 height, UInt16 width)
     {
-        Id = MessageId.AgentHeightWidth;
+        MessageId = MessageId.AgentHeightWidth;
         Flags = PacketFlags.Reliable;
-        Frequency = MessageFrequency.Low;
 
         AgentId = agentId;
         SessionId = sessionId;

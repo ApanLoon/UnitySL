@@ -42,9 +42,8 @@ public class ChatFromSimulatorMessage : Message
 
     public ChatFromSimulatorMessage()
     {
-        Id = MessageId.ChatFromSimulator;
+        MessageId = MessageId.ChatFromSimulator;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

@@ -14,9 +14,8 @@ public class ScriptControlChangeMessage : Message
 
     public ScriptControlChangeMessage()
     {
-        Id = MessageId.ScriptControlChange;
+        MessageId = MessageId.ScriptControlChange;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

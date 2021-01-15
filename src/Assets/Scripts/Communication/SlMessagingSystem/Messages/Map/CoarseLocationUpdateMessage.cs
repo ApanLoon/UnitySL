@@ -19,9 +19,8 @@ public class CoarseLocationUpdateMessage : Message
 
     public CoarseLocationUpdateMessage()
     {
-        Id = MessageId.CoarseLocationUpdate;
+        MessageId = MessageId.CoarseLocationUpdate;
         Flags = 0;
-        Frequency = MessageFrequency.Medium;
     }
 
     #region DeSerialise

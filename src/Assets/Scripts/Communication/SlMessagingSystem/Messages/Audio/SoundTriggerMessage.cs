@@ -13,9 +13,8 @@ public class SoundTriggerMessage : Message
 
     public SoundTriggerMessage()
     {
-        Id = MessageId.SoundTrigger;
+        MessageId = MessageId.SoundTrigger;
         Flags = 0;
-        Frequency = MessageFrequency.High;
     }
 
     #region DeSerialise

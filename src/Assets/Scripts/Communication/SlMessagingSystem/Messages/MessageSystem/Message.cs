@@ -78,8 +78,32 @@ public class Message
 
 
     public string Name { get; set; }
-    public MessageFrequency Frequency { get; set; }
-    public MessageId Id { get; set; }
+
+    public MessageFrequency Frequency
+    {
+        get
+        {
+            UInt32 id = (UInt32)MessageId;
+            if (id >= 0xfffffffa)
+            {
+                return MessageFrequency.Fixed;
+            }
+
+            if (id >= 0xffff0000)
+            {
+                return MessageFrequency.Low;
+            }
+
+            if (id >= 0xff00)
+            {
+                return MessageFrequency.Medium;
+            }
+
+            return MessageFrequency.High;
+        }
+    }
+
+    public MessageId MessageId { get; set; }
     public MessageTrustLevel TrustLevel { get; set; }
 
     public List<UInt32> Acks { get; set; } = new List<UInt32>();
@@ -142,7 +166,7 @@ public class Message
         o = BinarySerializer.Serialize_Be (SequenceNumber, buffer, o, length);
         buffer[o++] = (byte)(ExtraHeader?.Length ?? 0);
 
-        UInt32 id = (UInt32)Id;
+        UInt32 id = (UInt32)MessageId;
         if (Frequency == MessageFrequency.Fixed || Frequency == MessageFrequency.Low)
         {
             buffer[o++] = (byte)(id >> 24);
@@ -308,8 +332,7 @@ public class Message
                 Flags          = packetFlags,
                 SequenceNumber = sequenceNumber,
                 Acks           = acks,
-                ExtraHeader    = extraHeader,
-                Frequency      = frequency
+                ExtraHeader    = extraHeader
             };
         }
         MessageId messageId = (MessageId)id;
@@ -331,7 +354,6 @@ public class Message
         message.Flags          = packetFlags;
         message.SequenceNumber = sequenceNumber;
         message.ExtraHeader    = extraHeader;
-        message.Frequency      = frequency;
         message.Acks           = acks;
 
         message.DeSerialise (dataBuffer, ref dataOffset, dataLen);
@@ -351,20 +373,20 @@ public class Message
         switch (Frequency)
         {
             case MessageFrequency.High:
-                idString = ((byte)Id).ToString();
+                idString = ((byte)MessageId).ToString();
                 break;
             case MessageFrequency.Medium:
-                idString = ((byte)Id).ToString();
+                idString = ((byte)MessageId).ToString();
                 break;
             case MessageFrequency.Low:
-                idString = ((UInt16)Id).ToString();
+                idString = ((UInt16)MessageId).ToString();
                 break;
             case MessageFrequency.Fixed:
-                idString = ((UInt32)Id).ToString("x8");
+                idString = ((UInt32)MessageId).ToString("x8");
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        return $"{Id} {Frequency} {idString} Seq={SequenceNumber}, Flags={Flags}";
+        return $"{MessageId} {Frequency} {idString} Seq={SequenceNumber}, Flags={Flags}";
     }
 }

@@ -7,9 +7,8 @@ public class OnlineNotificationMessage : Message
 
     public OnlineNotificationMessage()
     {
-        Id = MessageId.OnlineNotification;
+        MessageId = MessageId.OnlineNotification;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

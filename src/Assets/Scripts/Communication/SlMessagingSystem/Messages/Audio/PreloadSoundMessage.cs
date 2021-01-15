@@ -14,9 +14,8 @@ public class PreloadSoundMessage : Message
 
     public PreloadSoundMessage()
     {
-        Id = MessageId.PreloadSound;
+        MessageId = MessageId.PreloadSound;
         Flags = 0;
-        Frequency = MessageFrequency.Medium;
     }
 
     #region DeSerialise

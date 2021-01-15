@@ -8,32 +8,15 @@ public class UseCircuitCodeMessage : Message
 
     public UseCircuitCodeMessage(UInt32 circuitCode, Guid sessionId, Guid agentId)
     {
-        Id = MessageId.UseCircuitCode;
+        MessageId = MessageId.UseCircuitCode;
         Flags = PacketFlags.Reliable;
-        Frequency = MessageFrequency.Low;
 
         CircuitCode = circuitCode;
         SessionId = sessionId;
         AgentId = agentId;
     }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public UseCircuitCodeMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
-    {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
-    }
-
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -46,10 +29,11 @@ public class UseCircuitCodeMessage : Message
         int o = offset;
         o += base.Serialize(buffer, offset, length);
 
-        o = BinarySerializer.Serialize_Le(CircuitCode, buffer, o, length);
-        o = BinarySerializer.Serialize(SessionId, buffer, o, length);
-        o = BinarySerializer.Serialize(AgentId, buffer, o, length);
+        o = BinarySerializer.Serialize_Le (CircuitCode, buffer, o, length);
+        o = BinarySerializer.Serialize    (SessionId, buffer, o, length);
+        o = BinarySerializer.Serialize    (AgentId, buffer, o, length);
 
         return o - offset;
     }
+    #endregion Serialise
 }

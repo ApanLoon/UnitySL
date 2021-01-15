@@ -3,9 +3,8 @@ public class ObjectUpdateCompressedMessage : ObjectUpdateMessage
 {
     public ObjectUpdateCompressedMessage()
     {
-        Id = MessageId.ObjectUpdateCompressed;
+        MessageId = MessageId.ObjectUpdateCompressed;
         Flags = 0;
-        Frequency = MessageFrequency.High;
 
         UpdateType = ObjectUpdateType.OUT_FULL_COMPRESSED;
     }

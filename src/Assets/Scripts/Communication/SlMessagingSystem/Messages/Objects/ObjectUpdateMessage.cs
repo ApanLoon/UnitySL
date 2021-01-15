@@ -83,9 +83,8 @@ public class ObjectUpdateMessage : Message
 
     public ObjectUpdateMessage()
     {
-        Id = MessageId.ObjectUpdate;
+        MessageId = MessageId.ObjectUpdate;
         Flags = 0;
-        Frequency = MessageFrequency.High;
     }
 
     #region DeSerialise

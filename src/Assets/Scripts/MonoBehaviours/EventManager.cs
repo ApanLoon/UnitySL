@@ -132,11 +132,11 @@ public class EventManager : MonoBehaviour
 
     public void RaiseOnMessage(Message message)
     {
-        if (HandlerByMessageId.ContainsKey(message.Id) == false)
+        if (HandlerByMessageId.ContainsKey(message.MessageId) == false)
         {
             return;
         }
 
-        ThreadManager.ExecuteOnMainThread(() => HandlerByMessageId[message.Id](message));
+        ThreadManager.ExecuteOnMainThread(() => HandlerByMessageId[message.MessageId](message));
     }
 }

@@ -4,9 +4,8 @@
 
     public CompletePingCheckMessage()
     {
-        Id = MessageId.CompletePingCheck;
+        MessageId = MessageId.CompletePingCheck;
         Flags = 0;
-        Frequency = MessageFrequency.High;
     }
 
     public CompletePingCheckMessage(byte pingId) : this()

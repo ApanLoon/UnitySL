@@ -15,9 +15,8 @@ public class SimulatorViewerTimeMessage : Message
 
     public SimulatorViewerTimeMessage()
     {
-        Id = MessageId.SimulatorViewerTimeMessage;
+        MessageId = MessageId.SimulatorViewerTimeMessage;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

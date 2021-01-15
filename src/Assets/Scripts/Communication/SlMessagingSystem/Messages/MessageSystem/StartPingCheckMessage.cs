@@ -7,9 +7,8 @@ public class StartPingCheckMessage : Message
 
     public StartPingCheckMessage()
     {
-        Id = MessageId.StartPingCheck;
+        MessageId = MessageId.StartPingCheck;
         Flags = 0;
-        Frequency = MessageFrequency.High;
     }
 
     #region DeSerialise

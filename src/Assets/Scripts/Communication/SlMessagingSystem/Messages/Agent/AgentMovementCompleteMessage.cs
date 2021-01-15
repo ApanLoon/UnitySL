@@ -13,9 +13,8 @@ public class AgentMovementCompleteMessage : Message
 
     public AgentMovementCompleteMessage()
     {
-        Id = MessageId.AgentMovementCompleteMessage;
+        MessageId = MessageId.AgentMovementCompleteMessage;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise

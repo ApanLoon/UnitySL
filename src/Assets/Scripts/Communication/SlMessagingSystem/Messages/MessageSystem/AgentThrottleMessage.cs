@@ -17,9 +17,8 @@ public class AgentThrottleMessage : Message
 
     public AgentThrottleMessage(Guid agentId, Guid sessionId, UInt32 circuitCode, UInt32 genCounter, float resend, float land, float wind, float cloud, float task, float texture, float asset)
     {
-        Id = MessageId.AgentThrottle;
+        MessageId = MessageId.AgentThrottle;
         Flags = PacketFlags.Reliable; //TODO: Could be zerocoded
-        Frequency = MessageFrequency.Low;
 
         AgentId = agentId;
         SessionId = sessionId;
@@ -36,6 +35,7 @@ public class AgentThrottleMessage : Message
         Asset = asset;
     }
 
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -68,4 +68,5 @@ public class AgentThrottleMessage : Message
 
         return o - offset;
     }
+    #endregion Serialise
 }

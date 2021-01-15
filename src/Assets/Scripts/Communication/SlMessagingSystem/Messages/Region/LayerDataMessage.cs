@@ -8,9 +8,8 @@ public class LayerDataMessage : Message
 
     public LayerDataMessage()
     {
-        Id = MessageId.LayerData;
+        MessageId = MessageId.LayerData;
         Flags = 0;
-        Frequency = MessageFrequency.High;
     }
 
     #region DeSerialise

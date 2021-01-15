@@ -9,9 +9,8 @@ public class LogoutReplyMessage : Message
 
     public LogoutReplyMessage()
     {
-        Id = MessageId.LogoutRequest;
+        MessageId = MessageId.LogoutRequest;
         Flags = 0;
-        Frequency = MessageFrequency.Low;
     }
 
     #region DeSerialise
