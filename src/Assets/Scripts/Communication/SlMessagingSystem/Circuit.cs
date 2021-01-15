@@ -264,13 +264,12 @@ public class Circuit : IDisposable
 
     public void ReceiveData(byte[] buf)
     {
-        Message message = BinarySerializer.DeSerializeMessage(buf, 0);
+        int offset = 0;
+        Message message = Message.DeSerializeMessage (buf, ref offset);
         if (message == null)
         {
             return;
         }
-
-        //Logger.LogInfo($"Circuit.ReceiveData: {message}");
 
         switch (message)
         {

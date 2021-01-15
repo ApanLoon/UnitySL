@@ -8,7 +8,7 @@ public enum MessageId : UInt32
     AgentUpdate                  = 0x00000004,
     LayerData                    = 0x0000000b,
     ObjectUpdate                 = 0x0000000c,
-    //ObjectUpdateCompressed       = 0x0000000d,
+    ObjectUpdateCompressed       = 0x0000000d,
     SoundTrigger                 = 0x0000001d,
 
     CoarseLocationUpdate         = 0x0000ff06,
@@ -93,6 +93,7 @@ public class Message
         Acks.Add(sequenceNumber);
     }
 
+    #region Serailise
     public virtual int GetSerializedLength()
     {
         int size = 1                           // Flags
@@ -138,11 +139,7 @@ public class Message
         }
 
         buffer[o++] = (byte)Flags;
-        o = BinarySerializer.Serialize_Be(SequenceNumber, buffer, o, length);
-        //buffer[o++] = (byte)(SequenceNumber >> 24);
-        //buffer[o++] = (byte)(SequenceNumber >> 16);
-        //buffer[o++] = (byte)(SequenceNumber >> 8);
-        //buffer[o++] = (byte)(SequenceNumber >> 0);
+        o = BinarySerializer.Serialize_Be (SequenceNumber, buffer, o, length);
         buffer[o++] = (byte)(ExtraHeader?.Length ?? 0);
 
         UInt32 id = (UInt32)Id;
@@ -162,6 +159,191 @@ public class Message
 
         return o - offset;
     }
+    #endregion Serailise
+
+    #region DeSerialise
+    /// <summary>
+    /// Keeps track of messageIds we received but can't decode yet.
+    /// </summary>
+    public static HashSet<UInt32> UnknownMessageIds = new HashSet<uint>();
+
+    protected static Dictionary<MessageId, Func<Message>> MessageCreator = new Dictionary<MessageId, Func<Message>>
+    {
+        { MessageId.StartPingCheck,               () => new StartPingCheckMessage()        },
+        { MessageId.CompletePingCheck,            () => new CompletePingCheckMessage()     },
+        { MessageId.LayerData,                    () => new LayerDataMessage()             },
+        { MessageId.ObjectUpdate,                 () => new ObjectUpdateMessage()          },
+        { MessageId.SoundTrigger,                 () => new SoundTriggerMessage()          },
+        { MessageId.CoarseLocationUpdate,         () => new CoarseLocationUpdateMessage()  },
+        { MessageId.AttachedSound,                () => new AttachedSoundMessage()         },
+        { MessageId.PreloadSound,                 () => new PreloadSoundMessage()          },
+        { MessageId.ViewerEffect,                 () => new ViewerEffectMessage()          },
+        { MessageId.HealthMessage,                () => new HealthMessage()                },
+        { MessageId.ChatFromSimulator,            () => new ChatFromSimulatorMessage()     },
+        { MessageId.RegionHandshake,              () => new RegionHandshakeMessage()       },
+        { MessageId.SimulatorViewerTimeMessage,   () => new SimulatorViewerTimeMessage()   },
+        { MessageId.ScriptControlChange,          () => new ScriptControlChangeMessage()   },
+        { MessageId.AgentMovementCompleteMessage, () => new AgentMovementCompleteMessage() },
+        { MessageId.LogoutReply,                  () => new LogoutReplyMessage()           },
+        { MessageId.OnlineNotification,           () => new OnlineNotificationMessage()    },
+        { MessageId.OfflineNotification,          () => new OfflineNotificationMessage()   },
+        { MessageId.AgentDataUpdate,              () => new AgentDataUpdateMessage()       },
+        { MessageId.PacketAck,                    () => new PacketAckMessage()             },
+    };
+
+/* Blank message snippet to copy from for new messages:
+
+    public X()
+    {
+        Id = MessageId.X;
+        Flags = 0;
+        Frequency = MessageFrequency.X;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: Y={Y}, Z={Z}";
+    }
+*/
+
+    /// <summary>
+    /// Creates a message based on the data in the given buffer.
+    /// </summary>
+    /// <param name="buf"></param>
+    /// <param name="o"></param>
+    /// <returns></returns>
+    public static Message DeSerializeMessage (byte[] buf, ref int o)
+    {
+        if (buf.Length - o < 6)
+        {
+            throw new Exception("Message.CreateMessage: Not enough room in buffer.");
+        }
+
+        #region Header
+        PacketFlags packetFlags = (PacketFlags)buf[o++];
+        UInt32 sequenceNumber = (((UInt32)buf[o++]) << 24)
+                              + (((UInt32)buf[o++]) << 16)
+                              + (((UInt32)buf[o++]) << 8)
+                              + (((UInt32)buf[o++]) << 0);
+        byte extraHeaderLength = buf[o++];
+        byte[] extraHeader = new byte[extraHeaderLength];
+        for (int i = 0; i < extraHeaderLength; i++)
+        {
+            extraHeader[i] = buf[o++];
+        }
+        #endregion Header
+
+        #region AppendedAcks
+        List<UInt32> acks = new List<UInt32>();
+        int ackLength = 0;
+        if ((packetFlags & PacketFlags.Ack) != 0)
+        {
+            byte nAcks = buf[buf.Length - 1];
+            ackLength = nAcks * 4 + 1;
+            int ackOffset = buf.Length - ackLength;
+            for (int i = 0; i < nAcks; i++)
+            {
+                UInt32 ack = BinarySerializer.DeSerializeUInt32_Be(buf, ref ackOffset, buf.Length);
+                acks.Add(ack);
+            }
+        }
+        #endregion AppendedAcks
+
+        #region MessageId
+        MessageFrequency frequency = MessageFrequency.High;
+        UInt32 id = buf[o++];
+        if (id == 0xff)
+        {
+            id = (id << 8) + buf[o++];
+            frequency = MessageFrequency.Medium;
+
+            if (id == 0xffff)
+            {
+                id = id << 16;
+                id += ((UInt32)buf[o++]) << 8;
+                id += ((UInt32)buf[o++]) << 0;
+                frequency = id < 0xfffffffa ? MessageFrequency.Low : MessageFrequency.Fixed;
+            }
+        }
+
+        if (id == (UInt32)MessageId.Wrapper)
+        {
+            id = 0xffff0000 + buf[o++];
+        }
+
+        if (Enum.IsDefined(typeof(MessageId), id) == false || MessageCreator.ContainsKey ((MessageId)id) == false)
+        {
+            string idString = "";
+            switch (frequency)
+            {
+                case MessageFrequency.High:
+                case MessageFrequency.Medium:
+                    idString = $"{frequency} {id & 0xff} (0x{id:x8})";
+                    break;
+
+                case MessageFrequency.Low:
+                    idString = $"{frequency} {id & 0xffff} (0x{id:x8})";
+                    break;
+
+                case MessageFrequency.Fixed:
+                    idString = $"{frequency} 0x{id:x8}";
+                    break;
+            }
+
+            // Only log unknown messages the first time to reduce spam and lag:
+            if (UnknownMessageIds.Contains(id) == false)
+            {
+                Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id {idString}");
+                UnknownMessageIds.Add(id);
+            }
+
+            return new Message
+            {
+                Flags          = packetFlags,
+                SequenceNumber = sequenceNumber,
+                Acks           = acks,
+                ExtraHeader    = extraHeader,
+                Frequency      = frequency
+            };
+        }
+        MessageId messageId = (MessageId)id;
+        #endregion MessageId
+
+        #region DataBuffer
+        byte[] dataBuffer = buf;
+        int dataOffset = o;
+        int dataLen = buf.Length - ackLength;
+        if ((packetFlags & PacketFlags.ZeroCode) != 0)
+        {
+            dataBuffer = BinarySerializer.ExpandZerocode (buf, o, dataLen - o);
+            dataOffset = 0;
+            dataLen = dataBuffer.Length;
+        }
+        #endregion DataBuffer
+
+        Message message = MessageCreator[messageId]();
+        message.Flags          = packetFlags;
+        message.SequenceNumber = sequenceNumber;
+        message.ExtraHeader    = extraHeader;
+        message.Frequency      = frequency;
+        message.Acks           = acks;
+
+        message.DeSerialise (dataBuffer, ref dataOffset, dataLen);
+        //Logger.LogDebug ($"Message.DeSerialiseMessage: {message}");
+        return message;
+    }
+
+    protected virtual void DeSerialise(byte[] buf, ref int offset, int length)
+    {
+        throw new NotImplementedException("Top level Message.DeSerialise called!");
+    }
+    #endregion DeSerialise
 
     public override string ToString()
     {
@@ -183,6 +365,6 @@ public class Message
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        return $"{Id} {Frequency} {idString}";
+        return $"{Id} {Frequency} {idString} Seq={SequenceNumber}, Flags={Flags}";
     }
 }

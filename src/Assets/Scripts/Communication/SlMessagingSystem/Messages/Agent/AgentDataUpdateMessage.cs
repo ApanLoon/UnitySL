@@ -16,22 +16,27 @@ public class AgentDataUpdateMessage : Message
 
     public string GroupName { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public AgentDataUpdateMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public AgentDataUpdateMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.AgentDataUpdate;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
     }
+    
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        AgentId       = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+        FirstName     = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
+        LastName      = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
+        GroupTitle    = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
+        ActiveGroupId = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+        GroupPowers   = BinarySerializer.DeSerializeUInt64_Le (buf, ref o, length);
+        GroupName     = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
+
+        Logger.LogDebug($"AgentDataUpdate: AgentId={AgentId}, FirstName={FirstName}, LastName={LastName}, GroupTitle={GroupTitle}, ActiveGroupId={ActiveGroupId}, GroupName={GroupName}");
+    }
+    #endregion DeSerialise
 
     public override string ToString()
     {

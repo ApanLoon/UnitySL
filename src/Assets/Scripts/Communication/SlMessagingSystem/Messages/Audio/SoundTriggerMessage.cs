@@ -11,20 +11,27 @@ public class SoundTriggerMessage : Message
     public Vector3 Position { get; set; }
     public float Gain { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public SoundTriggerMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public SoundTriggerMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.SoundTrigger;
+        Flags = 0;
+        Frequency = MessageFrequency.High;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        SoundId  = BinarySerializer.DeSerializeGuid    (buf, ref o, length);
+        OwnerId  = BinarySerializer.DeSerializeGuid    (buf, ref o, length);
+        ObjectId = BinarySerializer.DeSerializeGuid    (buf, ref o, length);
+        ParentId = BinarySerializer.DeSerializeGuid    (buf, ref o, length);
+        Handle   = new RegionHandle(BinarySerializer.DeSerializeUInt64_Le(buf, ref o, length));
+        Position = BinarySerializer.DeSerializeVector3 (buf, ref o, buf.Length);
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: SoundId={SoundId}, OwnerId={OwnerId}, ObjectId={ObjectId}, ParentId={ParentId}, RegionHandle={Handle}, Position={Position}, Gain={Gain}";
     }
 }

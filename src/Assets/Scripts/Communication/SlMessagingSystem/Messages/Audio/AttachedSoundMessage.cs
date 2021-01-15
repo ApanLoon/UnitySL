@@ -21,20 +21,26 @@ public class AttachedSoundMessage : Message
     public float Gain { get; set; }
     public SoundFlags SoundFlags { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public AttachedSoundMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public AttachedSoundMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.AttachedSound;
+        Flags = 0;
+        Frequency = MessageFrequency.Medium;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        SoundId  = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+        ObjectId = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+        OwnerId  = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+        Gain     = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, buf.Length);
+        SoundFlags = (SoundFlags)buf[o++];
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: SoundId={SoundId}, ObjectId={ObjectId}, OwnerId={OwnerId}, Gain={Gain}, SoundFlags={SoundFlags}";
     }
 }

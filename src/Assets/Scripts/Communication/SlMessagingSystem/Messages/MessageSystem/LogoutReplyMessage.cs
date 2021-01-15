@@ -7,21 +7,34 @@ public class LogoutReplyMessage : Message
     public Guid SessionId { get; set; }
     public List<Guid> InventoryItems { get; set; } = new List<Guid>();
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public LogoutReplyMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public LogoutReplyMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.LogoutRequest;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
     }
 
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        AgentId                  = BinarySerializer.DeSerializeGuid (buf, ref o, length);
+        SessionId                = BinarySerializer.DeSerializeGuid (buf, ref o, length);
+        byte nItems              = buf[o++];
+        for (byte i = 0; i < nItems; i++)
+        {
+            InventoryItems.Add(BinarySerializer.DeSerializeGuid (buf, ref o, length));
+        }
+        Logger.LogDebug(ToString());
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        string s = $"{base.ToString()}: AgentId={AgentId}, SessionId={SessionId}";
+        foreach (Guid item in InventoryItems)
+        {
+            s += $"\n    ItemId={item}";
+        }
+        return s;
+    }
 }

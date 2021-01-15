@@ -44,26 +44,63 @@ public class RegionHandshakeMessage : Message
 
     public List<RegionInfo4> RegionInfo4 { get; protected set; } = new List<RegionInfo4>();
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public RegionHandshakeMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public RegionHandshakeMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.RegionHandshake;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
     }
 
+    #region DeSerialise
+    protected override void DeSerialise (byte[] buf, ref int o, int length)
+    {
+        RegionFlags          = (RegionFlags)BinarySerializer.DeSerializeUInt32_Le(buf, ref o, length);
+        SimAccess            = (SimAccess)buf[o++];
+        SimName              = BinarySerializer.DeSerializeString   (buf, ref o, length, 1);
+        SimOwner             = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        IsEstateManager      = buf[o++] != 0;
+        WaterHeight          = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        BillableFactor       = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        CacheId              = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainBase0         = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainBase1         = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainBase2         = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainBase3         = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainDetail0       = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainDetail1       = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainDetail2       = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainDetail3       = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        TerrainStartHeight00 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainStartHeight01 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainStartHeight10 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainStartHeight11 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainHeightRange00 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainHeightRange01 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainHeightRange10 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        TerrainHeightRange11 = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+
+        RegionId             = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+
+        CpuClassId           = BinarySerializer.DeSerializeInt32_Le (buf, ref o, length);
+        CpuRatio             = BinarySerializer.DeSerializeInt32_Le (buf, ref o, length);
+        ColoName             = BinarySerializer.DeSerializeString   (buf, ref o, length, 1);
+        ProductSku           = BinarySerializer.DeSerializeString   (buf, ref o, length, 1);
+        ProductName          = BinarySerializer.DeSerializeString   (buf, ref o, length, 1);
+
+        int n = buf[o++];
+        for (int i = 0; i < n; i++)
+        {
+            RegionInfo4 info = new RegionInfo4
+            {
+                RegionFlagsExtended = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length),
+                RegionProtocols     = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length)
+            };
+            RegionInfo4.Add (info);
+        }
+    }
+    #endregion DeSerialise
     public override string ToString()
     {
         return $"{base.ToString()}: SimName={SimName}";
     }
-
 }

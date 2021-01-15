@@ -12,33 +12,16 @@ public class PacketAckMessage : Message
         Frequency = MessageFrequency.Fixed;
     }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public PacketAckMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
-    {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
-    }
-
     public void AddPacketAck(UInt32 sequenceNumber)
     {
         if (PacketAcks.Count >= 255)
         {
             throw new Exception("PacketAckMessasge: Too many acks in a single message. Max is 255.");
         }
-        PacketAcks.Add(sequenceNumber);
+        PacketAcks.Add (sequenceNumber);
     }
 
-    #region Serialize
+    #region Serialise
     public override int GetSerializedLength()
     {
         return base.GetSerializedLength()
@@ -48,7 +31,7 @@ public class PacketAckMessage : Message
     public override int Serialize(byte[] buffer, int offset, int length)
     {
         int o = offset;
-        o += base.Serialize(buffer, offset, length);
+        o += base.Serialize (buffer, offset, length);
 
         buffer[o++] = (byte)PacketAcks.Count;
         foreach (UInt32 sequenceNumber in PacketAcks)
@@ -57,5 +40,18 @@ public class PacketAckMessage : Message
         }
         return o - offset;
     }
-    #endregion Serialize
+    #endregion Serialise
+
+    #region DeSerialise
+    protected override void DeSerialise (byte[] buf, ref int offset, int length)
+    {
+        byte nAcks = buf[offset++];
+        for (int i = 0; i < nAcks; i++)
+        {
+            UInt32 ack = BinarySerializer.DeSerializeUInt32_Le (buf, ref offset, buf.Length);
+
+            PacketAcks.Add(ack);
+        }
+    }
+    #endregion DeSerialise
 }

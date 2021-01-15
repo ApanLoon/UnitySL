@@ -40,20 +40,31 @@ public class ChatFromSimulatorMessage : Message
     public Vector3 Position { get; set; }
     public string Message { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public ChatFromSimulatorMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public ChatFromSimulatorMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.ChatFromSimulator;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        FromName     = BinarySerializer.DeSerializeString(buf, ref o, length, 1);
+        SourceId     = BinarySerializer.DeSerializeGuid(buf, ref o, length);
+        OwnerId      = BinarySerializer.DeSerializeGuid(buf, ref o, length);
+        SourceType   = (ChatSourceType)buf[o++];
+        ChatType     = (ChatType)buf[o++];
+        AudibleLevel = (ChatAudibleLevel)buf[o++];
+        Position     = BinarySerializer.DeSerializeVector3(buf, ref o, length);
+        Message      = BinarySerializer.DeSerializeString(buf, ref o, length, 2);
+
+        Logger.LogDebug (ToString());
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: FromName={FromName}, SourceId={SourceId}, OwnerId={OwnerId}, SourceType={SourceType}, ChatType={ChatType}, AudibleLevel={AudibleLevel}, Position={Position}, Message={Message}";
     }
 }

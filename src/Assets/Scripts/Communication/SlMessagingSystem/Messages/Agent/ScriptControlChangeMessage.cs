@@ -12,20 +12,38 @@ public class ScriptControlChangeMessage : Message
 {
     public List<ControlsChange> Controls { get; set; } = new List<ControlsChange>();
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public ScriptControlChangeMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public ScriptControlChangeMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.ScriptControlChange;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        byte nControls = buf[o++];
+        for (byte i = 0; i < nControls; i++)
+        {
+            ControlsChange c = new ControlsChange();
+            c.TakeControls = buf[o++] == 1;
+            c.ControlFlags = (AgentControlFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
+            c.PassToAgent  = buf[o++] == 1;
+            Controls.Add(c);
+            //Logger.LogDebug($"ScriptControlChangeMessage: TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
+        }
+
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        string s = $"{base.ToString()}:";
+        foreach (ControlsChange control in Controls)
+        {
+            s += $"\n    TakeControls={control.TakeControls}, ControlFlags={control.ControlFlags}, PassToAgent={control.PassToAgent}";
+        }
+
+        return s;
     }
 }

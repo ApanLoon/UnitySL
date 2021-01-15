@@ -1,23 +1,23 @@
-﻿using System;
-
-public class HealthMessage : Message
+﻿public class HealthMessage : Message
 {
     public float Health { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public HealthMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public HealthMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.HealthMessage;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        Health = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: Health={Health}";
     }
 }

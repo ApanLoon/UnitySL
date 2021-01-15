@@ -13,20 +13,29 @@ public class SimulatorViewerTimeMessage : Message
     public float SunPhase { get; set; }
     public Vector3 SunAngVelocity { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public SimulatorViewerTimeMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public SimulatorViewerTimeMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.SimulatorViewerTimeMessage;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        UsecSinceStart = BinarySerializer.DeSerializeUInt64_Le (buf, ref o, length);
+        SecPerDay      = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
+        SecPerYear     = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
+        SunDirection   = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
+        SunPhase       = BinarySerializer.DeSerializeFloat_Le  (buf, ref o, length);
+        SunAngVelocity = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
+        Logger.LogDebug(ToString());
+
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}: UsecSinceStart={UsecSinceStart}, SecPerDay={SecPerDay}, SecPerYear={SecPerYear}, SunDirection={SunDirection}, SunPhase={SunPhase}, SunAngVelocity={SunAngVelocity}";
     }
 }

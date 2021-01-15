@@ -5,20 +5,32 @@ public class OnlineNotificationMessage : Message
 {
     public List<Guid> Agents { get; set; } = new List<Guid>();
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public OnlineNotificationMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public OnlineNotificationMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.OnlineNotification;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        byte nAgents = buf[o++];
+        for (byte i = 0; i < nAgents; i++)
+        {
+            Agents.Add (BinarySerializer.DeSerializeGuid (buf, ref o, length));
+            Logger.LogDebug(ToString());
+        }
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        string s = $"{base.ToString()}:";
+        foreach (Guid agent in Agents)
+        {
+            s += $"\n    AgentId={agent}";
+        }
+        return s;
     }
 }

@@ -11,22 +11,25 @@ public class AgentMovementCompleteMessage : Message
     public DateTime TimeStamp { get; set; }
     public string ChannelVersion { get; set; }
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public AgentMovementCompleteMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public AgentMovementCompleteMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.AgentMovementCompleteMessage;
+        Flags = 0;
+        Frequency = MessageFrequency.Low;
     }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        AgentId        = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        SessionId      = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
+        Position       = BinarySerializer.DeSerializeVector3  (buf, ref o, length);
+        LookAt         = BinarySerializer.DeSerializeVector3  (buf, ref o, length);
+        RegionHandle   = new RegionHandle(BinarySerializer.DeSerializeUInt64_Le(buf, ref o, length));
+        TimeStamp      = BinarySerializer.DeSerializeDateTime (buf, ref o, length);
+        ChannelVersion = BinarySerializer.DeSerializeString   (buf, ref o, length, 2);
+    }
+    #endregion DeSerialise
 
     public override string ToString()
     {

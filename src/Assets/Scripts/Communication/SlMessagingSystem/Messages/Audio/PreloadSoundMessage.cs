@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NUnit.Framework;
 
 public class PreloadSoundMessage : Message
 {
@@ -13,20 +12,38 @@ public class PreloadSoundMessage : Message
 
     public List<SoundInfo> Sounds { get; set; } = new List<SoundInfo>();
 
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public PreloadSoundMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+    public PreloadSoundMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.PreloadSound;
+        Flags = 0;
+        Frequency = MessageFrequency.Medium;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        byte nSounds = buf[o++];
+        for (byte i = 0; i < nSounds; i++)
+        {
+            PreloadSoundMessage.SoundInfo si = new PreloadSoundMessage.SoundInfo
+            {
+                ObjectId = BinarySerializer.DeSerializeGuid (buf, ref o, length),
+                OwnerId  = BinarySerializer.DeSerializeGuid (buf, ref o, length),
+                SoundId  = BinarySerializer.DeSerializeGuid (buf, ref o, length)
+            };
+            Sounds.Add(si);
+            // Logger.LogDebug($"PreloadSoundMessage: ObjectId={si.ObjectId} OwnerId={si.OwnerId} SoundId={si.SoundId}");
+        }
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        string s = $"{base.ToString()}:";
+        foreach (SoundInfo sound in Sounds)
+        {
+            s += $"ObjectId={sound.ObjectId}, OwnerId={sound.OwnerId}, SoundId={sound.SoundId}";
+        }
+        return s;
     }
 }

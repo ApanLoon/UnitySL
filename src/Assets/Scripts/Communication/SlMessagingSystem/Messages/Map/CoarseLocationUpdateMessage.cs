@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NUnit.Framework;
 
 public class CoarseLocation
 {
@@ -17,21 +16,57 @@ public class CoarseLocation
 public class CoarseLocationUpdateMessage : Message
 {
     public List<CoarseLocation> Locations = new List<CoarseLocation>();
-    
-    /// <summary>
-    /// Use this when de-serializing.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="sequenceNumber"></param>
-    /// <param name="extraHeader"></param>
-    /// <param name="frequency"></param>
-    /// <param name="id"></param>
-    public CoarseLocationUpdateMessage(PacketFlags flags, UInt32 sequenceNumber, byte[] extraHeader, MessageFrequency frequency, MessageId id)
+
+    public CoarseLocationUpdateMessage()
     {
-        Flags = flags;
-        SequenceNumber = sequenceNumber;
-        ExtraHeader = extraHeader;
-        Frequency = frequency;
-        Id = id;
+        Id = MessageId.CoarseLocationUpdate;
+        Flags = 0;
+        Frequency = MessageFrequency.Medium;
+    }
+
+    #region DeSerialise
+    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    {
+        byte nLocations = buf[o++];
+        for (byte i = 0; i < nLocations; i++)
+        {
+            Locations.Add (new CoarseLocation
+            {
+                Position = BinarySerializer.DeSerializeVector3Byte (buf, ref o, buf.Length)
+            });
+        }
+        int youIndex     = BinarySerializer.DeSerializeInt16_Le    (buf, ref o, buf.Length);
+        int preyIndex    = BinarySerializer.DeSerializeInt16_Le    (buf, ref o, buf.Length);
+
+        byte nAgents = buf[o++];
+        for (byte i = 0; i < nAgents; i++)
+        {
+            Guid guid    = BinarySerializer.DeSerializeGuid        (buf, ref o, length);
+            if (i < nLocations)
+            {
+                Locations[i].AgentId = guid;
+            }
+        }
+
+        if (youIndex > 0 && youIndex < nLocations - 1)
+        {
+            Locations[youIndex].IsYou = true;
+        }
+
+        if (preyIndex > 0 && preyIndex < nLocations - 1)
+        {
+            Locations[preyIndex].IsPrey = true;
+        }
+    }
+    #endregion DeSerialise
+
+    public override string ToString()
+    {
+        string s = $"{base.ToString()}:";
+        foreach (CoarseLocation location in Locations)
+        {
+            s += $"\n    AgentId={location.AgentId}, Positon={location.Position}, IsYou={location.IsYou}, IsPrey={location.IsPrey}";
+        }
+        return s;
     }
 }
