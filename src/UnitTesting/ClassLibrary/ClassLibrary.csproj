@@ -5,6 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\Assets\Scripts\Types\BitPack.cs" Link="BitPack.cs" />
+    <Compile Include="..\..\UnitySL\Assets\Scripts\Types\BitPack.cs" Link="BitPack.cs" />
   </ItemGroup>
 </Project>
