@@ -10,6 +10,6 @@ Wow, I see people are cloning this repository. It would be nice to talk with som
 I would appreciate to have someone to discuss things with! 
 
 ## Community
-Discussion forums/threads, discoord server, etc for talking about this project ot SL Viewer development in general:
+Discussion forums/threads, discord server, etc for talking about this project ot SL Viewer development in general:
 
-* ???
+* Discord: https://discord.gg/dhaUcWME9V courtesy of [Siccity](https://github.com/Siccity)
