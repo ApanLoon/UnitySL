@@ -18,14 +18,18 @@ public class DebugLog : MonoBehaviour
     [SerializeField] protected Color ErrorColour   = Color.red;
 
     [Header("Object Bindings")]
-    [SerializeField] protected TMP_Text LogText;
+    [SerializeField] protected Transform LogTextContainer;
     [SerializeField] protected Scrollbar LogHorizontalScrollbar;
     [SerializeField] protected Scrollbar LogVerticalScrollbar;
-    
+
+    [SerializeField] protected GameObject LogTextPrefab;
+
     protected float Timer = 0f;
     protected float TimeToLog = 0f;
 
     protected Dictionary<Logger.LogLevel, string> LogLevelToColour = new Dictionary<Logger.LogLevel, string>();
+    protected List<GameObject> LogTextObjects = new List<GameObject>();
+    protected TMP_Text CurrentLogText;
     
     private void Start()
     {
@@ -34,11 +38,25 @@ public class DebugLog : MonoBehaviour
         LogLevelToColour[Logger.LogLevel.Warning] = WarningColour.ToRtfString();
         LogLevelToColour[Logger.LogLevel.Error]   = ErrorColour.ToRtfString();
 
-        LogText.text = ""; // Remove the Lorem ipsum
+        // Remove the Lorem ipsum:
+        foreach (Transform child in LogTextContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
+        AppdendLogTextObject();
+
         LogHorizontalScrollbar.value = 0f;
         LogVerticalScrollbar.value = 0f;
 
         Logger.OnLog += LogMessage;
+    }
+
+    protected void AppdendLogTextObject()
+    {
+        GameObject go = Instantiate(LogTextPrefab, LogTextContainer);
+        LogTextObjects.Add(go);
+        CurrentLogText = go.GetComponent<TMP_Text>();
     }
 
     private void Update()
@@ -64,18 +82,12 @@ public class DebugLog : MonoBehaviour
     protected void LogMessage(Logger.LogLevel logLevel, string message)
     {
         bool autoScroll = Mathf.Abs(LogVerticalScrollbar.value) < 0.1f;
-        LogText.text += $"{LogLevelToColour[logLevel]}{DateTime.Now:T} {logLevel} {message}\n";
-
-        //TODO: Ugly truncation:
-        if (MaxLogLength > 0 && LogText.text.Length > MaxLogLength)
+        if (CurrentLogText.text.Length > MaxLogLength)
         {
-            int start = LogText.text.Length - MaxLogLength;
-            while (start < LogText.text.Length && LogText.text[start] != '\n')
-            {
-                start++;
-            }
-            LogText.text = LogText.text.Substring(start);
+            AppdendLogTextObject();
         }
+
+        CurrentLogText.text += $"{LogLevelToColour[logLevel]}{DateTime.Now:T} {logLevel} {message}\n";
 
         if (autoScroll)
         {
