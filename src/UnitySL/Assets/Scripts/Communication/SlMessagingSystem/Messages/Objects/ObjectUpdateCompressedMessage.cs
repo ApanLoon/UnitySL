@@ -208,7 +208,7 @@ public class ObjectUpdateCompressedMessage : ObjectUpdateMessage
 
             data.IsAttachment = (compressedFlags & CompressedFlags.HasNameValues) != 0 && data.ParentId != 0;
         }
-        Logger.LogDebug(logMessage);
+        //Logger.LogDebug(logMessage);
     }
     #endregion DeSerialise
 

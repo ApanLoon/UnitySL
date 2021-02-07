@@ -71,14 +71,8 @@ public class VolumeLayerManager
         for (int i = 0; i < LayerData.Count; i++)
         {
             VolumeLayerData vlData = LayerData[i];
-
-            File.WriteAllBytes($"VolumeLayer_{vlData.LayerType}_{i}.bin", vlData.Data);
-            File.WriteAllText($"VolumeLayer_{vlData.LayerType}_{i}.c", BytesToC(vlData.Data));
-
             BitPack bitPack = new BitPack(vlData.Data);
-
             GroupHeader gh = new GroupHeader (bitPack);
-            //Logger.LogDebug($"VolumeLayerManager.UnpackLayerData: {gh}");
 
             switch (vlData.LayerType)
             {

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 
 //        .   __.
@@ -117,6 +115,10 @@ public class Surface
     protected int SurfacePatchUpdateCount;          // Number of frames since last update.
 
 
+    /// <summary>
+    /// Use ONLY for unit testing.
+    /// </summary>
+    public float[] _SurfaceZ => SurfaceZ;
 
 
     public Region Region { get; protected set; }  // Patch whose coordinate system this surface is using.
@@ -575,8 +577,6 @@ public class Surface
     /// <param name="isLargePatch"></param>
     public void DecompressPatches (BitPack bitPack, GroupHeader groupHeader, bool isLargePatch)
     {
-        string s = $"{groupHeader}\n";
-
         int j;
         int i;
         int[] patchData = new int[Patch.LARGE_PATCH_SIZE * Patch.LARGE_PATCH_SIZE]; // Large enough for a maximum sized patch
@@ -606,30 +606,8 @@ public class Surface
 
             SurfacePatch surfacePatch = PatchList[j * PatchesPerEdge + i];
             Patch.Decode (bitPack, groupHeader.PatchSize, (patchHeader.QuantWBits & 0xf) + 2, patchData);
-            //s += "\n";
-            //for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
-            //{
-            //    if ((k % groupHeader.PatchSize) == 0)
-            //    {
-            //        s += "\n";
-            //    }
-            //    s += $"{patchData[k]:x8}, ";
-            //}
-            //Logger.LogDebug(s);
 
             Patch.DeCompress (SurfaceZ, surfacePatch.DataZStart, patchData, patchHeader);
-            s += $"\n{patchHeader}\n";
-            for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
-            {
-                if ((k % groupHeader.PatchSize) == 0)
-                {
-                    s += "\n";
-                }
-                s += $"{SurfaceZ[surfacePatch.DataZStart + k]}, ";
-            }
-            File.WriteAllText($"VolumeLayer_{groupHeader.LayerType}_{surfacePatch.DataZStart:x8}_heights.txt", s);
-            //Logger.LogDebug(s);
-
 
             // Update edges for neighbours.  Need to guarantee that this gets done before we generate vertical stats.
             surfacePatch.UpdateNorthEdge();
