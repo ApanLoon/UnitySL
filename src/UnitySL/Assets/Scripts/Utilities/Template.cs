@@ -42,9 +42,8 @@ public class Template<T> where T : MonoBehaviour
     {
         T obj;
         if (pool.Count > 0) obj = pool.Pop();
-        else obj = GameObject.Instantiate(template);
+        else obj = GameObject.Instantiate(template, template.transform.parent);
         Transform t = obj.transform;
-        t.SetParent(template.transform.parent);
         t.localPosition = Vector3.zero;
         t.localScale = Vector3.one;
         t.localRotation = Quaternion.identity;
