@@ -55,7 +55,7 @@ public class UIMessageLog : MonoBehaviour
 	{
 		// Attempt to determine whether autoscroll should be active or not
 		if (scrollRect.horizontalScrollbar is UIScrollBar hScrollBar && hScrollBar.isDragging) autoscroll = Mathf.Abs(hScrollBar.value) < 0.001f;
-		else if (scrollRect.verticalScrollbar is UIScrollBar vScrollBar && vScrollBar.isDragging) autoscroll = = Mathf.Abs(vScrollBar.value) < 0.001f;
+		else if (scrollRect.verticalScrollbar is UIScrollBar vScrollBar && vScrollBar.isDragging) autoscroll = Mathf.Abs(vScrollBar.value) < 0.001f;
 
 		// Update contents using pooled labels
 		UpdateContent();
