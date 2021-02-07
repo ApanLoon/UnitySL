@@ -15,6 +15,19 @@ public class Patch
     protected static float[] PatchICosines        = new float [LARGE_PATCH_SIZE * LARGE_PATCH_SIZE];
     protected static int[]   DeCopyMatrix         = new int   [LARGE_PATCH_SIZE * LARGE_PATCH_SIZE];
 
+    /// <summary>
+    /// Use ONLY for unit testing!
+    /// </summary>
+    public static float[] _PatchDequantizeTable => PatchDequantizeTable;
+    /// <summary>
+    /// Use ONLY for unit testing!
+    /// </summary>
+    public static float[] _PatchICosines => PatchICosines;
+    /// <summary>
+    /// Use ONLY for unit testing!
+    /// </summary>
+    public static int[] _DeCopyMatrix => DeCopyMatrix;
+
     protected static GroupHeader GroupHeader;
 
     public static void InitPatchDecompressor (int size)
