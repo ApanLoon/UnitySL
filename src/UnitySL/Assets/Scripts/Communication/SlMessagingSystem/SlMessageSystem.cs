@@ -140,8 +140,16 @@ public class SlMessageSystem : IDisposable
             {
                 try
                 {
-                    OutgoingMessage om = OutGoingMessages.Dequeue();
-                    await Send(om.MessageBytes, om.Circuit);
+                    OutgoingMessage om = null;
+                    lock (OutGoingMessages)
+                    {
+                        om = OutGoingMessages.Dequeue();
+                    }
+
+                    if (om != null && om.MessageBytes != null && om.Circuit != null)
+                    {
+                        await Send(om.MessageBytes, om.Circuit);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -188,7 +196,10 @@ public class SlMessageSystem : IDisposable
 
     public void EnqueueMessage(Circuit circuit, byte[] messageBytes)
     {
-        OutGoingMessages.Enqueue(new OutgoingMessage(){Circuit = circuit, MessageBytes = messageBytes });
+        lock (OutGoingMessages)
+        {
+            OutGoingMessages.Enqueue(new OutgoingMessage(){Circuit = circuit, MessageBytes = messageBytes });
+        }
     }
 
 
