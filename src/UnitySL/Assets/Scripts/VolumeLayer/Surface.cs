@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -574,6 +575,8 @@ public class Surface
     /// <param name="isLargePatch"></param>
     public void DecompressPatches (BitPack bitPack, GroupHeader groupHeader, bool isLargePatch)
     {
+        string s = $"{groupHeader}\n";
+
         int j;
         int i;
         int[] patchData = new int[Patch.LARGE_PATCH_SIZE * Patch.LARGE_PATCH_SIZE]; // Large enough for a maximum sized patch
@@ -603,7 +606,7 @@ public class Surface
 
             SurfacePatch surfacePatch = PatchList[j * PatchesPerEdge + i];
             Patch.Decode (bitPack, groupHeader.PatchSize, (patchHeader.QuantWBits & 0xf) + 2, patchData);
-            //string s = "";
+            //s += "\n";
             //for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
             //{
             //    if ((k % groupHeader.PatchSize) == 0)
@@ -615,15 +618,16 @@ public class Surface
             //Logger.LogDebug(s);
 
             Patch.DeCompress (SurfaceZ, surfacePatch.DataZStart, patchData, patchHeader);
-            //string s = "";
-            //for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
-            //{
-            //    if ((k % groupHeader.PatchSize) == 0)
-            //    {
-            //        s += "\n";
-            //    }
-            //    s += $"{SurfaceZ[surfacePatch.DataZStart + k]}, ";
-            //}
+            s += $"\n{patchHeader}\n";
+            for (int k = 0; k < groupHeader.PatchSize * groupHeader.PatchSize; k++)
+            {
+                if ((k % groupHeader.PatchSize) == 0)
+                {
+                    s += "\n";
+                }
+                s += $"{SurfaceZ[surfacePatch.DataZStart + k]}, ";
+            }
+            File.WriteAllText($"VolumeLayer_{groupHeader.LayerType}_{surfacePatch.DataZStart:x8}_heights.txt", s);
             //Logger.LogDebug(s);
 
 

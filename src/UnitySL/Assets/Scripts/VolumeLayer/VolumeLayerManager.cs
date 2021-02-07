@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 public enum LayerType : byte
 {
@@ -38,6 +39,31 @@ public class VolumeLayerManager
         LayerData.Add(vlData);
     }
 
+    public static string BytesToC(byte[] data, string name = "buffer", string type = "U8")
+    {
+        string s = $"    {type} {name}[{data.Length}] =\n    {{\n";
+        for (int i = 0; i < data.Length; i++)
+        {
+            if (i % 16 == 0)
+            {
+                if (i > 0)
+                {
+                    s += "\n";
+                }
+
+                s += "        ";
+            }
+            else if (i % 8 == 0)
+            {
+                s += " ";
+            }
+
+            s += $"0x{data[i]:x2}, ";
+        }
+
+        s += "\n    };\n";
+        return s;
+    }
 
     public static void UnpackLayerData()
     {
@@ -45,6 +71,10 @@ public class VolumeLayerManager
         for (int i = 0; i < LayerData.Count; i++)
         {
             VolumeLayerData vlData = LayerData[i];
+
+            File.WriteAllBytes($"VolumeLayer_{vlData.LayerType}_{i}.bin", vlData.Data);
+            File.WriteAllText($"VolumeLayer_{vlData.LayerType}_{i}.c", BytesToC(vlData.Data));
+
             BitPack bitPack = new BitPack(vlData.Data);
 
             GroupHeader gh = new GroupHeader (bitPack);
