@@ -143,6 +143,15 @@ public class Circuit : IDisposable
         await SendReliable(message);
     }
 
+    public async Task SendChatFromViewer(string message, ChatType chatType, Int32 channel)
+    {
+        Guid agentId = Session.Instance.AgentId;
+        Guid sessionId = Session.Instance.SessionId;
+
+        ChatFromViewerMessage msg = new ChatFromViewerMessage(agentId, sessionId, message, chatType, channel);
+        await SendReliable(msg);
+    }
+
     public async Task SendAgentThrottle()
     {
         Guid agentId = Session.Instance.AgentId;
