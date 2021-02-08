@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Assets.Scripts.Agents;
 using SLViewerLib.Communication.XmlRpc;
 using SLViewerLib.Communication.XmlRpc.DataTypes;
-using UnityEngine;
 
 public class Login
 {
@@ -228,6 +228,30 @@ public class Login
 
         #endregion Region
 
+        #region BuddyList
+
+        if (responseData.Has("buddy-list") && responseData["buddy-list"] is XmlRpcArray)
+        {
+            loginResponse.BuddyList.Clear();
+            foreach (XmlRpcValue value in (XmlRpcArray)responseData["buddy-list"])
+            {
+                if (value is XmlRpcStruct == false
+                    || ((XmlRpcStruct)value).Has("buddy_id")           == false || ((XmlRpcStruct)value)["buddy_id"]           is XmlRpcString  == false
+                    || ((XmlRpcStruct)value).Has("buddy_rights_given") == false || ((XmlRpcStruct)value)["buddy_rights_given"] is XmlRpcInteger == false
+                    || ((XmlRpcStruct)value).Has("buddy_rights_has")   == false || ((XmlRpcStruct)value)["buddy_rights_has"]   is XmlRpcInteger == false
+                    )
+                {
+                    continue;
+                }
+
+                XmlRpcStruct data = (XmlRpcStruct) value;
+                Guid buddyId = Guid.Parse(data["buddy_id"].AsString);
+                Relationship.Rights toAgent   = (Relationship.Rights)((XmlRpcInteger)data["buddy_rights_given"]).Value;
+                Relationship.Rights fromAgent = (Relationship.Rights)((XmlRpcInteger)data["buddy_rights_has"]).Value;
+                loginResponse.BuddyList[buddyId] = new Relationship(toAgent, fromAgent, false);
+            }
+        }
+        #endregion BuddyList
 
         // TODO: Parse more things, see llstartup.cpp line 3439 and onwards
 

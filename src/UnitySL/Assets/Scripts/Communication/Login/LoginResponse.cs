@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Assets.Scripts.Agents;
 
 public class LoginResponse
 {
@@ -23,4 +25,6 @@ public class LoginResponse
     public UInt32 CircuitCode { get; set; }
     public string SeedCapability { get; set; }
     #endregion Region
+
+    public Dictionary<Guid, Relationship> BuddyList { get; set; } = new Dictionary<Guid, Relationship>();
 }

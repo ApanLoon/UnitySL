@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Assets.Scripts.Agents;
 
 public class Session
 {
@@ -33,7 +34,6 @@ public class Session
 
         Login login = new Login();
         LoginResponse loginResponse = await login.Connect(uri, credential, slurl, getInventoryLibrary, godMode);
-
 
         if (loginResponse.LoginSucceeded == false)
         {
@@ -133,7 +133,10 @@ public class Session
         Logger.LogDebug("INVENTORY_SEND---------------------");
 
         //TODO: Fill in inventory skeleton and request details
-        //TODO: Fill in buddy list skeleton and request details
+        
+        //Fill in buddy list skeleton and request details:
+        AvatarTracker.Instance.AddBuddyList(loginResponse.BuddyList);
+
         //TODO: Request mute list
         //TODO: Request money balance
 
