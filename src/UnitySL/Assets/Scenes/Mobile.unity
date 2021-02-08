@@ -438,7 +438,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -864,6 +864,7 @@ GameObject:
   - component: {fileID: 241608868}
   - component: {fileID: 241608867}
   - component: {fileID: 241608866}
+  - component: {fileID: 241608869}
   m_Layer: 5
   m_Name: '[Login]'
   m_TagString: Untagged
@@ -947,6 +948,18 @@ MonoBehaviour:
   savedCredentials:
     template: {fileID: 202956470}
   loginButton: {fileID: 2063586151}
+--- !u!225 &241608869
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241608864}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &249480563
 GameObject:
   m_ObjectHideFlags: 0
@@ -1435,7 +1448,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1937,11 +1950,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 2063586151}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_HighlightedColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_PressedColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_SelectedColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_DisabledColor: {r: 1, g: 1, b: 1, a: 0.2}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -1956,7 +1969,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 591797015}
+  m_TargetGraphic: {fileID: 80770254}
   m_TextViewport: {fileID: 600366039}
   m_TextComponent: {fileID: 249480565}
   m_Placeholder: {fileID: 374410842}
@@ -4467,11 +4480,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 591797017}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_HighlightedColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_PressedColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_SelectedColor: {r: 0, g: 0.6037736, b: 0.44701573, a: 1}
+    m_DisabledColor: {r: 1, g: 1, b: 1, a: 0.2}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -4486,7 +4499,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 1528740437}
+  m_TargetGraphic: {fileID: 377976858}
   m_TextViewport: {fileID: 977728282}
   m_TextComponent: {fileID: 1766601197}
   m_Placeholder: {fileID: 1091019894}
