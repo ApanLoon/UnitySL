@@ -134,8 +134,11 @@ public class Session
 
         //TODO: Fill in inventory skeleton and request details
         
-        //Fill in buddy list skeleton and request details:
+        //Fill in buddy list skeleton and request names:
         AvatarTracker.Instance.AddBuddyList(loginResponse.BuddyList);
+
+        // Set up callbacks:
+        AvatarTracker.Instance.RegisterCallbacks();
 
         //TODO: Request mute list
         //TODO: Request money balance
@@ -174,7 +177,10 @@ public class Session
         //TODO: Make map view observe friends
         //TODO: Stop Away animation
         //TODO: Clear control flag Away
-        //TODO: Observe friends
+        
+        // Observe friends
+        Agent.CurrentPlayer.ObserveFriends();
+        
         //TODO: Retrieve land description
         //TODO: Send hover height to capability "AgentPreferences"
 
