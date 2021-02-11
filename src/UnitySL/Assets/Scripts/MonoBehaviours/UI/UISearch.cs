@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Xml;
 using System.Xml.Serialization;
 using System;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
+
 
 public enum MaturityRating { PG = 1, Mature = 2, Adult = 4 }
 
@@ -50,53 +53,31 @@ public class UISearch : MonoBehaviour
         // Manually pull these out for now till we figure what else to do.
         text = Regex.Replace(text, "&nbsp;", "");
 
-        XmlSerializer serializer = new XmlSerializer(typeof(SearchResultXML.Html));
-
-        // convert string to stream
-        byte[] byteArray = Encoding.UTF8.GetBytes(text);
-        //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
-        MemoryStream stream = new MemoryStream(byteArray);
-        SearchResultXML.Html results = serializer.Deserialize(stream) as SearchResultXML.Html;
-        SearchResultXML.ResultsDiv resultsContainer = results.Body.Wrapper.Divs.Find(x => x.Class == "results_container");
-        if (resultsContainer == null)
-        {
-            OnFail("No results found in XML");
-            return;
-        }
-		foreach(var r in resultsContainer.Results) {
-			Debug.LogWarning(r.Class);
-
-		}
-        List<SearchResultXML.ResultDiv> resultsPlaces = resultsContainer.Results.FindAll(x => x.Class == "result place_icon");
-        List<SearchResultXML.ResultDiv> resultsGroups = resultsContainer.Results.FindAll(x => x.Class == "result group_icon");
-        List<SearchResultXML.ResultDiv> resultsResidents = resultsContainer.Results.FindAll(x => x.Class == "result resident_icon");
-        List<SearchResultXML.ResultDiv> resultsRegions = resultsContainer.Results.FindAll(x => x.Class == "result region_icon");
+        XmlDocument document = new XmlDocument();
+        document.Load(new StringReader(text));
 
         items.Clear();
-        Debug.Log(resultsPlaces.Count);
-        foreach (SearchResultXML.ResultDiv div in resultsPlaces)
+        foreach (XmlNode node in document["html"]["body"]["div"].ChildNodes.Cast<XmlNode>().First(x => x.Attributes["class"].InnerText == "results_container"))
         {
-            UISearchItem item = items.InstantiateTemplate();
-            item.label.text = div.a.Href.Trim();
+
+            if (node.Attributes["class"].InnerText == "result place_icon")
+            {
+                UISearchItem item = items.InstantiateTemplate();
+                item.label.text = node["h3"].InnerText.Trim();
+
+                Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
+                string guid = uri.Segments.Last();
+                Debug.Log(uri + " = " + guid);
+
+                Place place = new Place(guid, node["h3"].InnerText.Trim(), node["p"].InnerText.Trim());
+                item.button.onClick.AddListener(() => PreviewPlace(place));
+            }
         }
-        Debug.Log(resultsGroups.Count);
-        foreach (SearchResultXML.ResultDiv div in resultsGroups)
-        {
-            UISearchItem item = items.InstantiateTemplate();
-            item.label.text = div.a.Href.Trim();
-        }
-        Debug.Log(resultsResidents.Count);
-        foreach (SearchResultXML.ResultDiv div in resultsResidents)
-        {
-            UISearchItem item = items.InstantiateTemplate();
-            item.label.text = div.a.Href.Trim();
-        }
-        Debug.Log(resultsRegions.Count);
-        foreach (SearchResultXML.ResultDiv div in resultsRegions)
-        {
-            UISearchItem item = items.InstantiateTemplate();
-            item.label.text = div.a.Href.Trim();
-        }
+    }
+
+    public void PreviewPlace(Place place)
+    {
+        place.FetchDetails(Debug.Log, x => Debug.Log(x.snapshot));
     }
 
     [Serializable] public class UISearchItemTemplate : Template<UISearchItem> { };
