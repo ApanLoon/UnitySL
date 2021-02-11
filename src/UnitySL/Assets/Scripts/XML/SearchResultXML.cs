@@ -27,23 +27,48 @@ public class SearchResultXML
     }
 
     [XmlRoot(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
-    public class Div
+    public class Wrapper
+    {
+        [XmlAttribute(AttributeName = "class")]
+        public string Class { get; set; }
+        [XmlElement(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
+        public List<ResultsDiv> Divs { get; set; }
+    }
+
+    [XmlRoot(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
+    public class ResultsDiv
+    {
+        [XmlAttribute(AttributeName = "class")]
+        public string Class { get; set; }
+        [XmlElement(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
+        public List<ResultDiv> Results { get; set; }
+    }
+
+    [XmlRoot(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
+    public class ResultDiv
     {
         [XmlAttribute(AttributeName = "class")]
         public string Class { get; set; }
         [XmlText]
         public string Text { get; set; }
-        [XmlElement(ElementName = "h2", Namespace = "http://www.w3.org/1999/xhtml")]
-        public string H2 { get; set; }
-        [XmlElement(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
-        public List<Div> Divs { get; set; }
+        [XmlElement(ElementName = "a", Namespace = "http://www.w3.org/1999/xhtml")]
+        public A a { get; set; }
+    }
+
+    [XmlRoot(ElementName = "a", Namespace = "http://www.w3.org/1999/xhtml")]
+    public class A
+    {
+        [XmlAttribute(AttributeName = "href")]
+        public string Href { get; set; }
+        [XmlText]
+        public string Text { get; set; }
     }
 
     [XmlRoot(ElementName = "body", Namespace = "http://www.w3.org/1999/xhtml")]
     public class Body
     {
         [XmlElement(ElementName = "div", Namespace = "http://www.w3.org/1999/xhtml")]
-        public Div Wrapper { get; set; }
+        public Wrapper Wrapper { get; set; }
     }
 
     [XmlRoot(ElementName = "html", Namespace = "http://www.w3.org/1999/xhtml")]
