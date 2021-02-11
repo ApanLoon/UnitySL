@@ -119,6 +119,8 @@ public class Session
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await region.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
         Logger.LogInfo("UseCircuitCode was acked.");
+
+        AvatarNameCache.Instance.Start();
         #endregion SeedCapabilitiesGranted
 
         #region AgentSend
@@ -193,6 +195,7 @@ public class Session
 
         await Task.Delay(3000);
         Logger.LogDebug("POST----------------");
+
         // TODO: This is in the application loop in Indra:
         VolumeLayerManager.UnpackLayerData();
 

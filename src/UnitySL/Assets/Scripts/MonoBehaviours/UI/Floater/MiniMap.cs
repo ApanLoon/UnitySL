@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Agents;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -62,8 +63,10 @@ public class MiniMap : MonoBehaviour
             }
             mi.Image.color = c;
 
-            mi.Text.text = location.AgentId.ToString(); // TODO: Look up name
-            
+            mi.Text.text = location.AgentId.ToString();
+
+            AvatarNameCache.Instance.Get(location.AgentId, OnNameReceived);
+
         }
 
         // Force visibility of prey and you:
@@ -87,6 +90,14 @@ public class MiniMap : MonoBehaviour
                 Destroy(MarkerInfoByAgentId[key].GameObject);
                 MarkerInfoByAgentId.Remove(key);
             }
+        }
+    }
+
+    protected void OnNameReceived(Guid agentId, AvatarName avatarName)
+    {
+        if (MarkerInfoByAgentId.ContainsKey(agentId))
+        {
+            MarkerInfoByAgentId[agentId].Text.text = avatarName.DisplayName;
         }
     }
 

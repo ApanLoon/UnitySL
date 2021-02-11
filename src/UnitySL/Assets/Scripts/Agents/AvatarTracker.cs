@@ -78,16 +78,18 @@ namespace Assets.Scripts.Agents
                 {
                     BuddyInfo[agentId] = kv.Value;
 
-                    //TODO: Do things with AvatarNameCache
-                    //// pre-request name for notifications?
-                    //LLAvatarName av_name;
-                    //LLAvatarNameCache::get(agent_id, &av_name);
+                    AvatarNameCache.Instance.Get(agentId, OnAvatarNameReceived);
 
                     AddChangedMask (FriendObserver.ChangeType.Add, agentId);
                     
                     Logger.LogDebug($"Added buddy {agentId}, {(BuddyInfo[agentId].IsOnline ? "Online" : "Offline")}, TO: {BuddyInfo[agentId].GrantToAgent}, FROM: {BuddyInfo[agentId].GrantFromAgent}");
                 }
             }
+        }
+
+        protected void OnAvatarNameReceived (Guid agentId, AvatarName avatarName)
+        {
+            Logger.LogDebug($"AvatarTracker.OnAvatarNameReceived: FirstName=\"{avatarName.FirstName}\", LastName=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
         }
 
 
