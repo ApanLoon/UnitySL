@@ -15,8 +15,6 @@ public class Place
     public string description { get; private set; }
     public string region { get; private set; }
     public Vector3Int location { get; private set; }
-    /// <summary> Url </summary>
-    public string snapshot { get; private set; }
     public string parcel { get; private set; }
     public string parcelid { get; private set; }
     public string area { get; private set; }
@@ -39,6 +37,7 @@ public class Place
         this.description = description;
     }
 
+    /// <summary> Perform a http request to fetch the details about this place. Results are cached and will be returned immediately if called again. </summary>
     public void FetchDetails(Action<string> onError, Action<Place> onSuccess)
     {
         if (fetched) onSuccess(this);
@@ -51,14 +50,23 @@ public class Place
 
     private void ApplyFetchResult(string result)
     {
+
+        title = FindTitle(result);
         region = FindMeta(result, "region");
         if (TryParseLocation(FindMeta(result, "location"), out Vector3Int location)) this.location = location;
         parcel = FindMeta(result, "parcel");
         parcelid = FindMeta(result, "parcelid");
         area = FindMeta(result, "area");
-        ownerid  = FindMeta(result, "ownerid");
-        ownertype  = FindMeta(result, "ownertype");
-        Debug.Log(location);
+        ownerid = FindMeta(result, "ownerid");
+        ownertype = FindMeta(result, "ownertype");
+        owner = FindMeta(result, "owner");
+        category = FindMeta(result, "category");
+    }
+
+    private string FindTitle(string text)
+    {
+        Match match = Regex.Match(text, $"<title>\\s*(.+?)\\s*<\\/title>");
+        return match.Groups[1].Value;
     }
 
     private string FindMeta(string text, string name)

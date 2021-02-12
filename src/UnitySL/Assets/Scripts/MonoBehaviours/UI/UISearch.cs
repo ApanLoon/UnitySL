@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.Xml;
 using System.Xml.Serialization;
@@ -24,10 +25,15 @@ public class UISearch : MonoBehaviour
     public bool pg;
     public bool mature;
     public bool adult;
+    public TMP_Text title;
+    public TMP_Text description;
+    public RawImage map;
+    public ButtonTemplate resultButtons;
 
     private void Start()
     {
         items.Initialize();
+        resultButtons.Initialize();
     }
 
     public void Search()
@@ -37,7 +43,7 @@ public class UISearch : MonoBehaviour
         if (mature) rating |= MaturityRating.Mature;
         if (adult) rating |= MaturityRating.Adult;
         WWWFormPlus form = new WWWFormPlus();
-        string url = $"http://search.secondlife.com/client_search.php?q=hippo&start={start}&mat={(int)rating}&output=xml_no_dtd&client = raw_xml_frontend&s={category.ToString()}";
+        string url = $"http://search.secondlife.com/client_search.php?q={searchInput.text}&start={start}&mat={(int)rating}&output=xml_no_dtd&client = raw_xml_frontend&s={category.ToString()}";
         Debug.Log(url);
         form.Request(url, OnFail, OnSuccess);
     }
@@ -59,26 +65,56 @@ public class UISearch : MonoBehaviour
         items.Clear();
         foreach (XmlNode node in document["html"]["body"]["div"].ChildNodes.Cast<XmlNode>().First(x => x.Attributes["class"].InnerText == "results_container"))
         {
+            UISearchItem item = items.InstantiateTemplate();
+            item.label.text = node["h3"].InnerText.Trim();
 
             if (node.Attributes["class"].InnerText == "result place_icon")
             {
-                UISearchItem item = items.InstantiateTemplate();
-                item.label.text = node["h3"].InnerText.Trim();
+                item.label.text = "[P] " + item.label.text;
 
                 Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
                 string guid = uri.Segments.Last();
-                Debug.Log(uri + " = " + guid);
 
                 Place place = new Place(guid, node["h3"].InnerText.Trim(), node["p"].InnerText.Trim());
                 item.button.onClick.AddListener(() => PreviewPlace(place));
+            }
+            else
+            {
+                Debug.LogWarning("Search result of type '" + node.Attributes["class"].InnerText + "' not supported yet.");
             }
         }
     }
 
     public void PreviewPlace(Place place)
     {
-        place.FetchDetails(Debug.Log, x => Debug.Log(x.snapshot));
+        place.FetchDetails(Debug.Log, PreviewPlaceDetailed);
+    }
+
+    public void PreviewPlaceDetailed(Place place)
+    {
+        // Title
+        title.text = place.title;
+
+        // Description
+        description.text = place.description;
+
+        // Image
+        Regionn region = new Regionn(place.region);
+        region.GetMap(Debug.LogWarning, x => map.texture = x);
+
+        // Buttons
+        resultButtons.Clear();
+        Button linkButton = resultButtons.InstantiateTemplate();
+        linkButton.onClick.AddListener(() => Application.OpenURL($"https://world.secondlife.com/place/{place.guid}"));
+        linkButton.GetComponentInChildren<TMP_Text>().text = "Link to page";
+        Button findButton = resultButtons.InstantiateTemplate();
+        findButton.onClick.AddListener(() => Application.OpenURL($"https://maps.secondlife.com/secondlife/{place.region}/{place.location.x}/{place.location.y}/{place.location.z}/"));
+        findButton.GetComponentInChildren<TMP_Text>().text = "Find on map";
+        Button tpButton = resultButtons.InstantiateTemplate();
+        findButton.onClick.AddListener(() => Application.OpenURL($"secondlife:///app/teleport/{place.region}/{place.location.x}/{place.location.y}/{place.location.z}/"));
+        findButton.GetComponentInChildren<TMP_Text>().text = "Teleport";
     }
 
     [Serializable] public class UISearchItemTemplate : Template<UISearchItem> { };
+    [Serializable] public class ButtonTemplate : Template<Button> { };
 }

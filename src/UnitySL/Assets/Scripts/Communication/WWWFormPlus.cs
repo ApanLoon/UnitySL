@@ -144,6 +144,11 @@ public class WWWFormPlus
         else PostRequest(url, onError, onSuccess).RunCoroutine();
     }
 
+    public static void RequestTexture(string url, Action<string> onError, Action<Texture2D> onSuccess)
+    {
+        GetRequestTexture(url, onError, onSuccess).RunCoroutine();
+    }
+
     private IEnumerator PostRequest(string url, Action<string> onError, Action<string> onSuccess)
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Post(url, this))
@@ -164,18 +169,36 @@ public class WWWFormPlus
 
     private IEnumerator GetRequest(string url, Action<string> onError, Action<string> onSuccess)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        using (UnityWebRequest uwr = UnityWebRequest.Get(url))
         {
             // Request and wait for the desired page.
-            yield return webRequest.SendWebRequest();
+            yield return uwr.SendWebRequest();
 
-            if (webRequest.isNetworkError)
+            if (uwr.isNetworkError)
             {
-                onError?.Invoke($"({webRequest.responseCode}) {webRequest.error}");
+                onError?.Invoke($"({uwr.responseCode}) {uwr.error}");
             }
             else
             {
-                onSuccess?.Invoke(webRequest.downloadHandler.text);
+                onSuccess?.Invoke(uwr.downloadHandler.text);
+            }
+        }
+    }
+
+    private static IEnumerator GetRequestTexture(string url, Action<string> onError, Action<Texture2D> onSuccess)
+    {
+        using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(url))
+        {
+            // Request and wait for the desired page.
+            yield return uwr.SendWebRequest();
+
+            if (uwr.isNetworkError)
+            {
+                onError?.Invoke($"({uwr.responseCode}) {uwr.error}");
+            }
+            else
+            {
+                onSuccess?.Invoke(DownloadHandlerTexture.GetContent(uwr));
             }
         }
     }
