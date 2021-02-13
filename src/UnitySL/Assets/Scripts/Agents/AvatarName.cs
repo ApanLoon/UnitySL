@@ -20,7 +20,7 @@ namespace Assets.Scripts.Agents
 
         public string GetCompleteName (bool useParenthesis = true, bool forceCompleteName = false)
         {
-            bool useDisplayNames = true; // TODO: Get UseDisplayNames from settings
+            bool useDisplayNames = Settings.instance.general.useDisplayNames;
             if (!useDisplayNames && !forceCompleteName)
             {
                 return GetUserName();
@@ -32,7 +32,7 @@ namespace Assets.Scripts.Agents
             }
 
             string name = DisplayName;
-            bool useUserNames = true; // TODO: Get UseUserNames from settings
+            bool useUserNames = Settings.instance.general.useUserNames;
             if (useUserNames ||forceCompleteName)
             {
                 name += useParenthesis ? $" ({GetUserName()})" : $" [{GetUserName()}]";

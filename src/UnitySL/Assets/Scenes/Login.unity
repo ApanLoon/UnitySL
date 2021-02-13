@@ -5428,10 +5428,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1212380222}
     m_Modifications:
-    - target: {fileID: 638335616, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1238918952, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -5440,28 +5436,12 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1238918952, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1437738842, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1437738842, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1437738842, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1901994425, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1901994425, guid: 1c0769089497a724e8e9479aaa0dc7db, type: 3}
-      propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1565332467722461413, guid: 1c0769089497a724e8e9479aaa0dc7db,
@@ -5572,11 +5552,6 @@ PrefabInstance:
     - target: {fileID: 1565332467722461414, guid: 1c0769089497a724e8e9479aaa0dc7db,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6921911593922242345, guid: 1c0769089497a724e8e9479aaa0dc7db,
-        type: 3}
-      propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

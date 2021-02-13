@@ -76,6 +76,146 @@ namespace Assets.Scripts.Agents
             ChangedBuddyIds.Add(agentId);
         }
 
+        public void TerminateBuddy(Guid agentId)
+        {
+            //TODO: Send the "TerminateFriendship" Message through the circuit.
+        }
+
+        public Relationship GetBuddyInfo(Guid agentId)
+        {
+            return BuddyInfo.ContainsKey(agentId) ? BuddyInfo[agentId] : null;
+        }
+
+        public bool IsBuddy(Guid agentId)
+        {
+            return BuddyInfo.ContainsKey(agentId);
+        }
+
+        public void SetBuddyOnline(Guid agentId, bool isOnline)
+        {
+            if (BuddyInfo.ContainsKey(agentId) == false)
+            {
+                Logger.LogWarning($"!! No buddy info found for {agentId}, setting to {(isOnline ? "Online" : "Offline")}");
+                return;
+            }
+
+            Relationship info = BuddyInfo[agentId];
+            info.IsOnline = isOnline;
+            AddChangedMask(FriendObserver.ChangeType.Online, agentId);
+            Logger.LogDebug($"Set buddy {agentId} {(isOnline ? "Online" : "Offline")}");
+        }
+
+        public bool IsBuddyOnline(Guid agentId)
+        {
+            return BuddyInfo.ContainsKey(agentId) && BuddyInfo[agentId].IsOnline;
+        }
+
+        public void DeleteTrackingData()
+        {
+            CurrentTrackingData = null;
+        }
+
+        public void FindAgent()
+        {
+            if (CurrentTrackingData == null || CurrentTrackingData.AvatarId == Guid.Empty)
+            {
+                return;
+            }
+
+            // TODO: Send "FindAgent" message through circuit
+        }
+
+        public void AddObserver(FriendObserver observer)
+        {
+            if (observer == null)
+            {
+                return;
+            }
+            Observers.Add(observer);
+        }
+
+        public void RemoveObserver(FriendObserver observer)
+        {
+            if (observer == null)
+            {
+                return;
+            }
+
+            Observers.Remove(observer);
+        }
+
+        protected void NotifyObservers() // TODO: It is unclear when this is supposed to be called as we don't have an "idle loop"
+        {
+            if (_isNotifyObservers)
+            {
+                // Don't allow multiple calls.
+                // new masks and ids will be processed later from idle.
+                return;
+            }
+            _isNotifyObservers = true;
+
+            foreach (FriendObserver observer in Observers)
+            {
+                observer.Changed(ModifyMask);
+            }
+
+            foreach (Guid buddyId in ChangedBuddyIds)
+            {
+                NotifyParticularFriendObservers(buddyId);
+            }
+
+            ModifyMask = FriendObserver.ChangeType.None;
+            ChangedBuddyIds.Clear();
+            _isNotifyObservers = false;
+        }
+
+        public void AddParticularFriendObserver(Guid buddy_id, FriendObserver observer)
+        {
+            if (buddy_id != Guid.Empty && observer != null)
+            {
+                if (ParticularFriendObserverMap.ContainsKey(buddy_id) == false)
+                {
+                    ParticularFriendObserverMap[buddy_id] = new HashSet<FriendObserver>();
+                }
+                ParticularFriendObserverMap[buddy_id].Add(observer);
+            }
+        }
+
+        public void RemoveParticularFriendObserver(Guid buddy_id, FriendObserver observer)
+        {
+            if (buddy_id == Guid.Empty || observer == null)
+            {
+                return;
+            }
+
+            if (ParticularFriendObserverMap.ContainsKey(buddy_id) == false)
+            {
+                return;
+            }
+
+            ParticularFriendObserverMap[buddy_id].Remove(observer);
+
+            // purge empty sets from the map
+            if (ParticularFriendObserverMap[buddy_id].Count == 0)
+            {
+                ParticularFriendObserverMap.Remove(buddy_id);
+            }
+        }
+
+        protected void NotifyParticularFriendObservers(Guid buddy_id)
+        {
+            if (ParticularFriendObserverMap.ContainsKey(buddy_id) == false)
+            {
+                return;
+            }
+
+            // Notify observers interested in buddy_id.
+            foreach (FriendObserver observer in ParticularFriendObserverMap[buddy_id])
+            {
+                observer.Changed(ModifyMask);
+            }
+        }
+
         /// <summary>
         /// Applies a functor to every buddy in the buddy list. The functor may operate on or store the values the Add method is given.
         ///
@@ -115,7 +255,7 @@ namespace Assets.Scripts.Agents
         private void ProcessNotify(List<Guid> agents, bool isOnline)
         {
             int count = agents.Count;
-            bool chatNotify = true; //TODO: Fetch from settings: gSavedSettings.getBOOL("ChatOnlineNotification");
+            bool chatNotify = Settings.instance.chat.notifyOnlineStatus;
 
             Logger.LogDebug($"Received {count} online notifications **** ");
             if (count <= 0)
@@ -154,6 +294,7 @@ namespace Assets.Scripts.Agents
             if (chatNotify)
             {
                 // Look up the name of this agent for the notification
+                // Hmm.. Not quite this: AvatarNameCache.Instance.Get(agentId, (id, avatarName) => OnAvatarNameCacheNotify(id, avatarName, isOnline))
                 // TODO: LLAvatarNameCache::get(agent_id, boost::bind(&on_avatar_name_cache_notify, _1, _2, online, payload));
             }
 
@@ -162,122 +303,6 @@ namespace Assets.Scripts.Agents
             // TODO: Notify inventory observers: gInventory.notifyObservers();
 
         }
-
-        protected Relationship GetBuddyInfo(Guid agentId)
-        {
-            return BuddyInfo.ContainsKey(agentId) ? BuddyInfo[agentId] : null;
-        }
-
-        protected void SetBuddyOnline(Guid agentId, bool isOnline)
-        {
-            if (BuddyInfo.ContainsKey(agentId) == false)
-            {
-                Logger.LogWarning($"!! No buddy info found for {agentId}, setting to {(isOnline ? "Online" : "Offline")}");
-                return;
-            }
-
-            Relationship info = BuddyInfo[agentId];
-            info.IsOnline = isOnline;
-            AddChangedMask (FriendObserver.ChangeType.Online, agentId);
-            Logger.LogDebug($"Set buddy {agentId} {(isOnline ? "Online" : "Offline")}");
-        }
-
-        protected void DeleteTrackingData()
-        {
-            CurrentTrackingData = null;
-        }
-
-        public void AddObserver(FriendObserver observer)
-        {
-            if (observer == null)
-            {
-                return;
-            }
-            Observers.Add(observer);
-        }
-
-        public void RemoveObserver(FriendObserver observer)
-        {
-            if (observer == null)
-            {
-                return;
-            }
-
-            Observers.Remove(observer);
-        }
-
-        protected void NotifyObservers()
-        {
-            if (_isNotifyObservers)
-            {
-                // Don't allow multiple calls.
-                // new masks and ids will be processed later from idle.
-                return;
-            }
-            _isNotifyObservers = true;
-
-            foreach (FriendObserver observer in Observers)
-            {
-                observer.Changed(ModifyMask);
-            }
-
-            foreach (Guid buddyId in ChangedBuddyIds)
-            {
-                NotifyParticularFriendObservers(buddyId);
-            }
-
-            ModifyMask = FriendObserver.ChangeType.None;
-            ChangedBuddyIds.Clear();
-            _isNotifyObservers = false;
-        }
-
-        public void AddParticularFriendObserver (Guid buddy_id, FriendObserver observer)
-        {
-            if (buddy_id != Guid.Empty && observer != null)
-            {
-                if (ParticularFriendObserverMap.ContainsKey(buddy_id) == false)
-                {
-                    ParticularFriendObserverMap[buddy_id] = new HashSet<FriendObserver>();
-                }
-                ParticularFriendObserverMap[buddy_id].Add(observer);
-            }
-        }
-
-        public void RemoveParticularFriendObserver (Guid buddy_id, FriendObserver observer)
-        {
-            if (buddy_id == Guid.Empty || observer == null)
-            {
-                return;
-            }
-
-            if (ParticularFriendObserverMap.ContainsKey(buddy_id) == false)
-            {
-                return;
-            }
-
-            ParticularFriendObserverMap[buddy_id].Remove(observer);
-
-            // purge empty sets from the map
-            if (ParticularFriendObserverMap[buddy_id].Count == 0)
-            {
-                ParticularFriendObserverMap.Remove(buddy_id);
-            }
-        }
-
-        protected void NotifyParticularFriendObservers (Guid buddy_id)
-        {
-            if (ParticularFriendObserverMap.ContainsKey(buddy_id) == false)
-            {
-                return;
-            }
-
-            // Notify observers interested in buddy_id.
-            foreach (FriendObserver observer in ParticularFriendObserverMap[buddy_id])
-            {
-                observer.Changed(ModifyMask);
-            }
-        }
-
 
         #region Tracking
         public class TrackingData

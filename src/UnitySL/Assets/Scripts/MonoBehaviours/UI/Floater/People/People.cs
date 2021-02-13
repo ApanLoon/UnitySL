@@ -80,7 +80,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
                     }
                 });
             }
-            friendListItem.Set(name, AvatarTracker.Instance.BuddyInfo[agentId]);
+            friendListItem.Set(name, AvatarTracker.Instance.GetBuddyInfo(agentId));
         }
     }
 }
