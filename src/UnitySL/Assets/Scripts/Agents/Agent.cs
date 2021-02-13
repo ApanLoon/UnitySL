@@ -226,7 +226,7 @@ public class Agent :IDisposable
         }
     }
 
-    public class AgentFriendObserver : FriendObserver
+    public class AgentFriendObserver : AvatarTracker.FriendObserver
     {
         public override void Changed(ChangeType mask)
         {

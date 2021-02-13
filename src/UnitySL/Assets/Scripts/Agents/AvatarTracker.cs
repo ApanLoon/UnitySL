@@ -4,35 +4,6 @@ using System.Collections.Generic;
 
 namespace Assets.Scripts.Agents
 {
-    public class TrackingData
-    {
-        public bool HasData { get; set; }
-        public bool HasCoarseData { get; set; }
-
-        public Guid AvatarId { get; set; }
-        public string Name { get; set; }
-        public Vector3Double CoarseLocation { get; set; }
-    }
-
-    public class FriendObserver
-    {
-        [Flags]
-        public enum ChangeType : UInt32
-        {
-            None   = 0,
-            Add    = 1,
-            Remove = 2,
-            Online = 4,
-            Powers = 8,
-
-            All = 0xffffffff
-        }
-
-        public virtual void Changed(ChangeType changeType)
-        {
-        }
-    }
-
     public class AvatarTracker
     {
         public static AvatarTracker Instance { get; } = new AvatarTracker();
@@ -81,10 +52,11 @@ namespace Assets.Scripts.Agents
                     AvatarNameCache.Instance.Get(agentId, OnAvatarNameReceived);
 
                     AddChangedMask (FriendObserver.ChangeType.Add, agentId);
-                    
+
                     Logger.LogDebug($"Added buddy {agentId}, {(BuddyInfo[agentId].IsOnline ? "Online" : "Offline")}, TO: {BuddyInfo[agentId].GrantToAgent}, FROM: {BuddyInfo[agentId].GrantFromAgent}");
                 }
             }
+            NotifyObservers(); // TODO: Adding the change mask won't trigger observer notification as we don't have a main loop thingy.
         }
 
         protected void OnAvatarNameReceived (Guid agentId, AvatarName avatarName)
@@ -102,6 +74,21 @@ namespace Assets.Scripts.Agents
             }
 
             ChangedBuddyIds.Add(agentId);
+        }
+
+        /// <summary>
+        /// Applies a functor to every buddy in the buddy list. The functor may operate on or store the values the Add method is given.
+        ///
+        /// Do not actually modify the buddy list in the functor or bad things will happen.
+        /// 
+        /// </summary>
+        /// <param name="functor"></param>
+        public void ApplyFunctor (RelationshipFunctor functor)
+        {
+            foreach (KeyValuePair<Guid, Relationship> kv in BuddyInfo)
+            {
+                functor.Add(kv.Key, kv.Value);
+            }
         }
 
         public void RegisterCallbacks()
@@ -291,5 +278,121 @@ namespace Assets.Scripts.Agents
             }
         }
 
+
+        #region Tracking
+        public class TrackingData
+        {
+            public bool HasData { get; set; }
+            public bool HasCoarseData { get; set; }
+
+            public Guid AvatarId { get; set; }
+            public string Name { get; set; }
+            public Vector3Double CoarseLocation { get; set; }
+        }
+        #endregion Tracking
+
+        #region FriendObserver
+        public class FriendObserver
+        {
+            [Flags]
+            public enum ChangeType : UInt32
+            {
+                None = 0,
+                Add = 1,
+                Remove = 2,
+                Online = 4,
+                Powers = 8,
+
+                All = 0xffffffff
+            }
+
+            public virtual void Changed(ChangeType changeType)
+            {
+            }
+        }
+        #endregion FriendObserver
+
+        #region RelationshipFunctor
+        /// <summary>
+        /// This is used as a base class for doing operations on all buddies.
+        /// </summary>
+        public abstract class RelationshipFunctor
+        {
+            public abstract bool Add(Guid buddyId, Relationship relationship);
+        }
+
+        /// <summary>
+        /// Collect set of LLUUIDs we're a proxy for
+        /// </summary>
+        public class CollectProxyBuddies : RelationshipFunctor
+        {
+            public HashSet<Guid> Buddies { get; protected set; } = new HashSet<Guid>();
+            public override bool Add(Guid buddyId, Relationship relationship)
+            {
+                if (relationship.IsRightGrantedFrom(Relationship.Rights.ModifyObjects))
+                {
+                    Buddies.Add(buddyId);
+                }
+                return true;
+            }
+        };
+
+        /// <summary>
+        /// Collect dictionary sorted map of name -> agent_id for every online buddy
+        /// </summary>
+        public class CollectMappableBuddies : RelationshipFunctor
+        {
+            public Dictionary<Guid, string> Buddies { get; protected set; } = new Dictionary<Guid, string>();
+            public override bool Add(Guid buddyId, Relationship relationship)
+            {
+                if (relationship.IsOnline && relationship.IsRightGrantedFrom(Relationship.Rights.MapLocation))
+                {
+                    AvatarName avatarName = AvatarNameCache.Instance.GetImmediate(buddyId);
+                    Buddies[buddyId] = avatarName != null ? avatarName.DisplayName : "";
+                }
+
+                return true;
+            }
+        };
+
+        // Collect dictionary sorted map of name -> agent_id for every online buddy
+        public class CollectOnlineBuddies : RelationshipFunctor
+        {
+            public Dictionary<Guid, string> Buddies { get; protected set; } = new Dictionary<Guid, string>();
+            public override bool Add(Guid buddyId, Relationship relationship)
+            {
+                if (relationship.IsOnline)
+                {
+                    AvatarName avatarName = AvatarNameCache.Instance.GetImmediate(buddyId);
+                    Buddies[buddyId] = avatarName != null ? avatarName.GetUserName() : "";
+                }
+
+                return true;
+            }
+
+        };
+
+        // collect dictionary sorted map of name -> agent_id for every buddy, one map is offline and the other map is online.
+        public class CollectAllBuddies : RelationshipFunctor
+        {
+            public Dictionary<Guid, string> BuddiesOnline { get; protected set; } = new Dictionary<Guid, string>();
+            public Dictionary<Guid, string> BuddiesOffline { get; protected set; } = new Dictionary<Guid, string>();
+            public override bool Add(Guid buddyId, Relationship relationship)
+            {
+                AvatarName avatarName = AvatarNameCache.Instance.GetImmediate(buddyId);
+                if (relationship.IsOnline)
+                {
+                    BuddiesOnline[buddyId] = avatarName != null ? avatarName.GetCompleteName() : "";
+                }
+                else
+                {
+                    BuddiesOffline[buddyId] = avatarName != null ? avatarName.GetCompleteName() : "";
+                }
+
+                return true;
+            }
+        };
+
+        #endregion RelationshipFunctor
     }
 }

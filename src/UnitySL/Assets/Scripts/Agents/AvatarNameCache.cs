@@ -29,6 +29,17 @@ namespace Assets.Scripts.Agents
 
         protected Queue<Request> RequestsToProcess = new Queue<Request>();
 
+        /// <summary>
+        /// Requests a name for thew given agentId.
+        ///
+        /// If the name is cached, the callback will be called immediately. (on the main thread)
+        ///
+        /// If the name is not cached, a look up will be requested and the callback will be called
+        /// when the response arrives from the server. (On the main thread)
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         public bool Get(Guid agentId, Action<Guid, AvatarName> callback)
         {
             bool foundName = false;
@@ -62,6 +73,16 @@ namespace Assets.Scripts.Agents
             }
 
             return foundName;
+        }
+
+        /// <summary>
+        /// Returns the name if it is already cached or null if it isn't. Does NOT trigger a name look up.
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        public AvatarName GetImmediate(Guid agentId)
+        {
+            return NameCache.ContainsKey(agentId) ? NameCache[agentId] : null;
         }
 
         public AvatarNameCache()
@@ -297,14 +318,16 @@ namespace Assets.Scripts.Agents
                     switch (key)
                     {
                         case "username":
-                            if (child.Name != "string")
-                            {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected username type string, got \"{child.Name}\"");
-                            }
-                            else
-                            {
-                                avatarName.UserName = XmlRpcValue.EscapeString(child.InnerText.Trim()); // TODO: Not nice to depend on XmlRpc here
-                            }
+                            // We don't care about this since UserNames are always constructed.
+                            //
+                            //if (child.Name != "string")
+                            //{
+                            //    Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected username type string, got \"{child.Name}\"");
+                            //}
+                            //else
+                            //{
+                            //    avatarName.UserName = XmlRpcValue.EscapeString(child.InnerText.Trim()); // TODO: Not nice to depend on XmlRpc here
+                            //}
                             break;
 
                         case "display_name":
@@ -420,6 +443,5 @@ namespace Assets.Scripts.Agents
 
             // TODO: If we add the possibility to look up usernames, parse these here.
         }
-
     }
 }
