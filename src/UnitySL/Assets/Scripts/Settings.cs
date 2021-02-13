@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.IO;
 
@@ -12,8 +10,31 @@ public class Settings
 	public static Settings instance { get { return _instance != null ? _instance : _instance = Load(); } }
 	private static Settings _instance;
 
-	public Login login = new Login();
+	public Login   login   = new Login();
+	public General general = new General();
+	public Chat    chat    = new Chat();
 
+    [Serializable]
+    public class Login
+    {
+        public bool saveName = true;
+        public bool savePassword = false;
+    }
+
+    [Serializable]
+    public class General
+    {
+        public bool useDisplayNames = true;
+        public bool useUserNames = false;
+    }
+
+    [Serializable]
+    public class Chat
+    {
+        public bool notifyOnlineStatus = true;
+    }
+	
+	#region LoadSave
 	public void Save()
 	{
 		new FileInfo(FILEPATH).Directory.Create(); // Make sure the dir exists
@@ -30,11 +51,5 @@ public class Settings
 		string json = File.ReadAllText(FILEPATH);
 		return JsonUtility.FromJson<Settings>(json);
 	}
-
-	[Serializable]
-	public class Login
-	{
-		public bool saveName = true;
-		public bool savePassword = false;
-	}
+    #endregion LoadSave
 }

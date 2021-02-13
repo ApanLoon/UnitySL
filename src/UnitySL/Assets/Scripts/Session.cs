@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Assets.Scripts.Agents;
 
 public class Session
 {
@@ -33,7 +34,6 @@ public class Session
 
         Login login = new Login();
         LoginResponse loginResponse = await login.Connect(uri, credential, slurl, getInventoryLibrary, godMode);
-
 
         if (loginResponse.LoginSucceeded == false)
         {
@@ -119,6 +119,8 @@ public class Session
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await region.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
         Logger.LogInfo("UseCircuitCode was acked.");
+
+        AvatarNameCache.Instance.Start();
         #endregion SeedCapabilitiesGranted
 
         #region AgentSend
@@ -133,7 +135,13 @@ public class Session
         Logger.LogDebug("INVENTORY_SEND---------------------");
 
         //TODO: Fill in inventory skeleton and request details
-        //TODO: Fill in buddy list skeleton and request details
+        
+        //Fill in buddy list skeleton and request names:
+        AvatarTracker.Instance.AddBuddyList(loginResponse.BuddyList);
+
+        // Set up callbacks:
+        AvatarTracker.Instance.RegisterCallbacks();
+
         //TODO: Request mute list
         //TODO: Request money balance
 
@@ -171,7 +179,10 @@ public class Session
         //TODO: Make map view observe friends
         //TODO: Stop Away animation
         //TODO: Clear control flag Away
-        //TODO: Observe friends
+        
+        // Observe friends
+        Agent.CurrentPlayer.ObserveFriends();
+        
         //TODO: Retrieve land description
         //TODO: Send hover height to capability "AgentPreferences"
 
@@ -184,6 +195,7 @@ public class Session
 
         await Task.Delay(3000);
         Logger.LogDebug("POST----------------");
+
         // TODO: This is in the application loop in Indra:
         VolumeLayerManager.UnpackLayerData();
 

@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlaymodeChanged;
 #endif
+        Settings s = Settings.instance; // Force loading of settings
+
         Region.Initialise();
     }
 
