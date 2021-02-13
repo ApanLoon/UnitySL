@@ -7,8 +7,8 @@ public class Settings
 {
 	public static readonly string FILEPATH = Application.persistentDataPath + "/settings.json";
 
-	public static Settings instance { get { return _instance != null ? _instance : _instance = Load(); } }
-	private static Settings _instance;
+	public static Settings Instance => _instance != null ? _instance : _instance = Load();
+    private static Settings _instance;
 
 	public Login   login   = new Login();
 	public General general = new General();

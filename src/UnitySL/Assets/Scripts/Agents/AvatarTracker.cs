@@ -255,7 +255,7 @@ namespace Assets.Scripts.Agents
         private void ProcessNotify(List<Guid> agents, bool isOnline)
         {
             int count = agents.Count;
-            bool chatNotify = Settings.instance.chat.notifyOnlineStatus;
+            bool chatNotify = Settings.Instance.chat.notifyOnlineStatus;
 
             Logger.LogDebug($"Received {count} online notifications **** ");
             if (count <= 0)

@@ -20,8 +20,8 @@ public class UILogin : MonoBehaviour
     private void Start()
     {
         savedCredentials.Initialize();
-        saveNameToggle.isOn = Settings.instance.login.saveName;
-        savePasswordToggle.isOn = Settings.instance.login.savePassword;
+        saveNameToggle.isOn = Settings.Instance.login.saveName;
+        savePasswordToggle.isOn = Settings.Instance.login.savePassword;
         Open();
     }
 
@@ -68,15 +68,15 @@ public class UILogin : MonoBehaviour
 
     public void SaveCredentialPreferences()
     {
-        Settings.instance.login.saveName = saveNameToggle.isOn;
+        Settings.Instance.login.saveName = saveNameToggle.isOn;
         if (!saveNameToggle.isOn)
         {
             savePasswordToggle.isOn = false;
         }
         savePasswordToggle.interactable = saveNameToggle.isOn;
-        Settings.instance.login.saveName = saveNameToggle.isOn;
-        Settings.instance.login.savePassword = savePasswordToggle.isOn;
-        Settings.instance.Save();
+        Settings.Instance.login.saveName = saveNameToggle.isOn;
+        Settings.Instance.login.savePassword = savePasswordToggle.isOn;
+        Settings.Instance.Save();
     }
 
     private void ReloadCredentials()
