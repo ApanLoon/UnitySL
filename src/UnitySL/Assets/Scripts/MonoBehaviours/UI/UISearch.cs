@@ -46,7 +46,7 @@ public class UISearch : MonoBehaviour
         if (mature) rating |= MaturityRating.Mature;
         if (adult) rating |= MaturityRating.Adult;
         WWWFormPlus form = new WWWFormPlus();
-        string url = $"http://search.secondlife.com/client_search.php?q={searchInput.text}&start={start}&mat={(int)rating}&output=xml_no_dtd&client = raw_xml_frontend&s={category.ToString()}";
+        string url = $"http://search.secondlife.com/client_search.php?q={searchInput.text.ToLower()}&start={start}&mat={(int)rating}&output=xml_no_dtd&client=raw_xml_frontend&s={category.ToString()}";
         Debug.Log(url);
         form.Request(url, OnSearchFail, OnSearchSuccess);
     }

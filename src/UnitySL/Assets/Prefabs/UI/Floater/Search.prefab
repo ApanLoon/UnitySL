@@ -273,9 +273,9 @@ MonoBehaviour:
     template: {fileID: 7382472544874195324}
   start: 0
   category: 0
-  pg: 0
-  mature: 0
-  adult: 0
+  pg: 1
+  mature: 1
+  adult: 1
   title: {fileID: 4832009230084149481}
   description: {fileID: 8931203868007468618}
   map: {fileID: 5137634535049496085}
@@ -461,7 +461,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
