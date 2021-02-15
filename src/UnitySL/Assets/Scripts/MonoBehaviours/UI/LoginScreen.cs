@@ -27,8 +27,8 @@ public class LoginScreen : MonoBehaviour
 
     private void Start()
     {
-        SaveNameToggle.isOn     = PlayerPrefs.HasKey(SaveNameSetting)     ? bool.Parse(PlayerPrefs.GetString(SaveNameSetting)) : true;
-        SavePasswordToggle.isOn = PlayerPrefs.HasKey(SavePasswordSetting) ? bool.Parse(PlayerPrefs.GetString(SavePasswordSetting)) : true;
+        SaveNameToggle.isOn     = Settings.Instance.login.saveName;
+        SavePasswordToggle.isOn = Settings.Instance.login.savePassword;
 
         UpdateNames();
     }
@@ -175,12 +175,12 @@ public class LoginScreen : MonoBehaviour
 
     public void OnSaveNameToggle()
     {
-        PlayerPrefs.SetString(SaveNameSetting, SaveNameToggle.isOn ? "true" : "false");
+        Settings.Instance.login.saveName = SaveNameToggle.isOn;
         SavePasswordToggle.interactable = SaveNameToggle.isOn;
     }
 
     public void OnSavePasswordToggle()
     {
-        PlayerPrefs.SetString(SavePasswordSetting, SavePasswordToggle.isOn ? "true" : "false");
+        Settings.Instance.login.savePassword = SavePasswordToggle.isOn;
     }
 }

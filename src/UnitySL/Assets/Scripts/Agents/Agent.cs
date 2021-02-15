@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using Assets.Scripts.Agents;
 using UnityEngine;
 
 public enum AgentState : byte
@@ -212,4 +213,37 @@ public class Agent :IDisposable
     {
         OriginGlobal = originGlobal;
     }
+
+    #region Friends
+
+    public void ObserveFriends()
+    {
+        if (FriendObserver == null)
+        {
+            FriendObserver = new AgentFriendObserver();
+            AvatarTracker.Instance.AddObserver(FriendObserver);
+            FriendsChanged();
+        }
+    }
+
+    public class AgentFriendObserver : AvatarTracker.FriendObserver
+    {
+        public override void Changed(ChangeType mask)
+        {
+            // if there's a change we're interested in.
+            if ((mask & (ChangeType.Powers)) != 0)
+            {
+                CurrentPlayer.FriendsChanged();
+            }
+        }
+    };
+
+    protected AgentFriendObserver FriendObserver;
+
+    protected void FriendsChanged()
+    {
+        // TODO: Do something here!
+    }
+
+    #endregion Friends
 }
