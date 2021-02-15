@@ -29,6 +29,7 @@ public class UISearch : MonoBehaviour
     public TMP_Text description;
     public RawImage map;
     public ButtonTemplate resultButtons;
+    public readonly List<Place> resultPlaces = new List<Place>();
 
     private void Start()
     {
@@ -38,6 +39,8 @@ public class UISearch : MonoBehaviour
 
     public void Search()
     {
+        items.Clear();
+
         MaturityRating rating = 0;
         if (pg) rating |= MaturityRating.PG;
         if (mature) rating |= MaturityRating.Mature;
@@ -45,15 +48,15 @@ public class UISearch : MonoBehaviour
         WWWFormPlus form = new WWWFormPlus();
         string url = $"http://search.secondlife.com/client_search.php?q={searchInput.text}&start={start}&mat={(int)rating}&output=xml_no_dtd&client = raw_xml_frontend&s={category.ToString()}";
         Debug.Log(url);
-        form.Request(url, OnFail, OnSuccess);
+        form.Request(url, OnSearchFail, OnSearchSuccess);
     }
 
-    public void OnFail(string msg)
+    public void OnSearchFail(string msg)
     {
         Debug.LogWarning("Fail: " + msg);
     }
 
-    public void OnSuccess(string text)
+    public void OnSearchSuccess(string text)
     {
         // Result comes with some symbols that cannot be parsed.
         // Manually pull these out for now till we figure what else to do.
@@ -63,6 +66,7 @@ public class UISearch : MonoBehaviour
         document.Load(new StringReader(text));
 
         items.Clear();
+        resultPlaces.Clear();
         foreach (XmlNode node in document["html"]["body"]["div"].ChildNodes.Cast<XmlNode>().First(x => x.Attributes["class"].InnerText == "results_container"))
         {
             UISearchItem item = items.InstantiateTemplate();
@@ -76,6 +80,7 @@ public class UISearch : MonoBehaviour
                 string guid = uri.Segments.Last();
 
                 Place place = new Place(guid, node["h3"].InnerText.Trim(), node["p"].InnerText.Trim());
+                resultPlaces.Add(place);
                 item.button.onClick.AddListener(() => PreviewPlace(place));
             }
             else
@@ -90,7 +95,7 @@ public class UISearch : MonoBehaviour
         place.FetchDetails(Debug.Log, PreviewPlaceDetailed);
     }
 
-    public void PreviewPlaceDetailed(Place place)
+    private void PreviewPlaceDetailed(Place place)
     {
         // Title
         title.text = place.title;
@@ -113,6 +118,11 @@ public class UISearch : MonoBehaviour
         Button tpButton = resultButtons.InstantiateTemplate();
         findButton.onClick.AddListener(() => Application.OpenURL($"secondlife:///app/teleport/{place.region}/{place.location.x}/{place.location.y}/{place.location.z}/"));
         findButton.GetComponentInChildren<TMP_Text>().text = "Teleport";
+    }
+
+    public void SetCategory(Category category) {
+        this.category = category;
+        Search();
     }
 
     [Serializable] public class UISearchItemTemplate : Template<UISearchItem> { };
