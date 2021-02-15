@@ -10,7 +10,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
-
+using HttpAPI;
 
 public enum MaturityRating { PG = 1, Mature = 2, Adult = 4 }
 
@@ -99,7 +99,7 @@ public class UISearch : MonoBehaviour
         description.text = place.description;
 
         // Image
-        Regionn region = new Regionn(place.region);
+        HttpAPI.Region region = new HttpAPI.Region(place.region);
         region.GetMap(Debug.LogWarning, x => map.texture = x);
 
         // Buttons
