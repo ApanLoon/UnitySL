@@ -1,5 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1200228924536950006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70100115923642831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c4509673261a6349bc56026b645926a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MarkerPrefab: {fileID: 8997964734582005672, guid: 390c1e716c9e68446830a9252e1f9549,
+    type: 3}
+  MarkerContainer: {fileID: 5543469707437003671}
 --- !u!1 &1671088233588374491
 GameObject:
   m_ObjectHideFlags: 0
@@ -70,21 +85,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1200228924536950006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 70100115923642831}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c4509673261a6349bc56026b645926a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MarkerPrefab: {fileID: 8997964734582005672, guid: 390c1e716c9e68446830a9252e1f9549,
-    type: 3}
-  MarkerContainer: {fileID: 5543469707437003671}
 --- !u!1001 &9195228928639099498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -145,17 +145,17 @@ PrefabInstance:
     - target: {fileID: 9179752566048857275, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: -6
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 9179752566048857275, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: -33
+      value: -35
       objectReference: {fileID: 0}
     - target: {fileID: 9179752566048857275, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -13.5
+      value: -30
       objectReference: {fileID: 0}
     - target: {fileID: 9179752567270715689, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
