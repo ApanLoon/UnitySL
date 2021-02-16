@@ -44,7 +44,7 @@ public class UISearch : MonoBehaviour
     private void Start()
     {
         items.Initialize();
-        resultButtons.Initialize();
+        if (resultButtons.template != null) resultButtons.Initialize();
     }
 
     public void Search()
