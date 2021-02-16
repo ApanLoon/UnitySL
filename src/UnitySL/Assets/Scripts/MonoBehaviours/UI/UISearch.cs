@@ -25,10 +25,19 @@ public class UISearch : MonoBehaviour
     public bool pg;
     public bool mature;
     public bool adult;
+    [Header("Sprites")]
+    public Sprite spritePlace;
+    public Sprite spritePeople;
+    public Sprite spriteEvents;
+    public Sprite spriteGroups;
+    public Sprite spriteAll;
+    public Sprite spriteWiki;
+    [Header("Results")]
+    public ButtonTemplate resultButtons;
+    [Header("Preview")]
     public TMP_Text title;
     public TMP_Text description;
     public RawImage map;
-    public ButtonTemplate resultButtons;
     public readonly List<Place> resultPlaces = new List<Place>();
 
     private void Start()
@@ -74,6 +83,7 @@ public class UISearch : MonoBehaviour
 
             if (node.Attributes["class"].InnerText == "result place_icon")
             {
+                item.icon.sprite = spritePlace;
                 item.label.text = "[P] " + item.label.text;
 
                 Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
@@ -120,7 +130,8 @@ public class UISearch : MonoBehaviour
         tpButton.GetComponentInChildren<TMP_Text>().text = "Teleport";
     }
 
-    public void SetCategory(Category category) {
+    public void SetCategory(Category category)
+    {
         this.category = category;
         Search();
     }
