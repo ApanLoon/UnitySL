@@ -30,6 +30,7 @@ public class UISearch : MonoBehaviour
     public Sprite spritePeople;
     public Sprite spriteEvents;
     public Sprite spriteGroups;
+    public Sprite spriteRegion;
     public Sprite spriteAll;
     public Sprite spriteWiki;
     [Header("Results")]
@@ -81,21 +82,34 @@ public class UISearch : MonoBehaviour
             UISearchItem item = items.InstantiateTemplate();
             item.label.text = node["h3"].InnerText.Trim();
 
-            if (node.Attributes["class"].InnerText == "result place_icon")
+            switch (node.Attributes["class"].InnerText)
             {
-                item.icon.sprite = spritePlace;
-                item.label.text = "[P] " + item.label.text;
+                case "result place_icon":
+                    item.icon.sprite = spritePlace;
 
-                Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
-                string guid = uri.Segments.Last();
+                    Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
+                    string guid = uri.Segments.Last();
 
-                Place place = new Place(guid, node["h3"].InnerText.Trim(), node["p"].InnerText.Trim());
-                resultPlaces.Add(place);
-                item.button.onClick.AddListener(() => PreviewPlace(place));
-            }
-            else
-            {
-                Debug.LogWarning("Search result of type '" + node.Attributes["class"].InnerText + "' not supported yet.");
+                    Place place = new Place(guid, node["h3"].InnerText.Trim(), node["p"].InnerText.Trim());
+                    resultPlaces.Add(place);
+                    item.button.onClick.AddListener(() => PreviewPlace(place));
+                    break;
+                case "result resident_icon":
+                    item.icon.sprite = spritePeople;
+                    break;
+                case "result group_icon":
+                    item.icon.sprite = spriteGroups;
+                    break;
+                case "result region_icon":
+                    item.icon.sprite = spriteRegion;
+                    break;
+                case "result event_icon":
+                    item.icon.sprite = spriteEvents;
+                    break;
+                default:
+                    item.icon.sprite = spriteAll;
+                    Debug.LogWarning("Search result of type '" + node.Attributes["class"].InnerText + "' not supported yet.");
+                    break;
             }
         }
     }

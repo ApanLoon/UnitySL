@@ -86,6 +86,7 @@ GameObject:
   - component: {fileID: 5609303799809296981}
   - component: {fileID: 6057443962806388116}
   - component: {fileID: 1159508260705959281}
+  - component: {fileID: 2958693990091752862}
   m_Layer: 5
   m_Name: Tab
   m_TagString: Untagged
@@ -185,6 +186,19 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+--- !u!114 &2958693990091752862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3032269738095398368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27eea3589b80ab34684d695dd80843f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onColor: {r: 0.735849, g: 0.735849, b: 0.735849, a: 1}
 --- !u!1 &9001128293526248483
 GameObject:
   m_ObjectHideFlags: 0
