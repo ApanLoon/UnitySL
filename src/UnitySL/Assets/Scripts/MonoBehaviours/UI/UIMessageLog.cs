@@ -24,6 +24,7 @@ public class UIMessageLog : MonoBehaviour
 	private TextGenerationSettings generationSettings;
 
 	private bool autoscroll;
+	private float width;
 
 	public class Message
 	{
@@ -73,6 +74,7 @@ public class UIMessageLog : MonoBehaviour
 
 		Vector2 preferredValues = labels.template.GetPreferredValues(text, labels.template.rectTransform.rect.size.x, 500);
 		float height = preferredValues.y;
+		width = Mathf.Max(width, preferredValues.x);
 
 		TMP_Text label = labels.InstantiateTemplate();
 		Message m = new Message(text)
@@ -84,7 +86,7 @@ public class UIMessageLog : MonoBehaviour
 		messages.Add(m);
 		label.text = text;
 		label.rectTransform.anchoredPosition = new Vector2(labels.template.rectTransform.anchoredPosition.x, -y);
-		scrollRect.content.sizeDelta = new Vector2(0, y + height);
+		scrollRect.content.sizeDelta = new Vector2(width, y + height);
 
 		LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
 
