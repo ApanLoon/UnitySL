@@ -116,8 +116,8 @@ public class UISearch : MonoBehaviour
         findButton.onClick.AddListener(() => Application.OpenURL($"https://maps.secondlife.com/secondlife/{place.region}/{place.location.x}/{place.location.y}/{place.location.z}/"));
         findButton.GetComponentInChildren<TMP_Text>().text = "Find on map";
         Button tpButton = resultButtons.InstantiateTemplate();
-        findButton.onClick.AddListener(() => Application.OpenURL($"secondlife:///app/teleport/{place.region}/{place.location.x}/{place.location.y}/{place.location.z}/"));
-        findButton.GetComponentInChildren<TMP_Text>().text = "Teleport";
+        tpButton.onClick.AddListener(() => Application.OpenURL($"secondlife:///app/teleport/{place.region}/{place.location.x}/{place.location.y}/{place.location.z}/"));
+        tpButton.GetComponentInChildren<TMP_Text>().text = "Teleport";
     }
 
     public void SetCategory(Category category) {
