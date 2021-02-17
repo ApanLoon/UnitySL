@@ -80,36 +80,87 @@ public class UISearch : MonoBehaviour
         foreach (XmlNode node in document["html"]["body"]["div"].ChildNodes.Cast<XmlNode>().First(x => x.Attributes["class"].InnerText == "results_container"))
         {
             UISearchItem item = items.InstantiateTemplate();
+            item.button.onClick.RemoveAllListeners();
             item.label.text = node["h3"].InnerText.Trim();
 
             switch (node.Attributes["class"].InnerText)
             {
                 case "result place_icon":
-                    item.icon.sprite = spritePlace;
+                    {
+                        item.icon.sprite = spritePlace;
 
-                    Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
-                    string guid = uri.Segments.Last();
+                        Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
+                        Guid.TryParse(uri.Segments.Last(), out Guid guid);
+                        string name = node["h3"].InnerText.Trim();
+                        string desc = node["p"].InnerText.Trim();
 
-                    Place place = new Place(guid, node["h3"].InnerText.Trim(), node["p"].InnerText.Trim());
-                    resultPlaces.Add(place);
-                    item.button.onClick.AddListener(() => PreviewPlace(place));
-                    break;
+                        //Place place = new Place(guid.ToString(), name, desc);
+                        //resultPlaces.Add(place);
+                        //item.button.onClick.AddListener(() => PreviewPlace(place));
+
+                        item.button.onClick.AddListener(() => Debug.Log($"{name} ({guid})\n{desc}"));
+                        break;
+                    }
                 case "result resident_icon":
-                    item.icon.sprite = spritePeople;
-                    break;
+                    {
+                        item.icon.sprite = spritePeople;
+                        string name = node["h3"].InnerText.Trim();
+                        string displayName;
+                        string userName;
+                        Match match = Regex.Match(name, "(.*) \\((.+)\\)$");
+                        if (match.Success)
+                        {
+                            displayName = match.Groups[1].Value;
+                            userName = match.Groups[2].Value;
+                        }
+                        else
+                        {
+                            displayName = name;
+                            userName = name;
+                        }
+                        string desc = node["p"].InnerText.Trim();
+                        item.button.onClick.AddListener(() => Debug.Log($"{displayName} ({userName})\n{desc}"));
+                        break;
+                    }
                 case "result group_icon":
-                    item.icon.sprite = spriteGroups;
-                    break;
+                    {
+                        item.icon.sprite = spriteGroups;
+                        Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
+                        Guid.TryParse(uri.Segments.Last(), out Guid guid);
+                        string name = node["h3"].InnerText.Trim();
+                        string desc = node["p"].InnerText.Trim();
+
+                        item.button.onClick.AddListener(() => Debug.Log($"{name} ({guid})\n{desc}"));
+                        break;
+                    }
                 case "result region_icon":
-                    item.icon.sprite = spriteRegion;
-                    break;
+                    {
+                        item.icon.sprite = spriteRegion;
+                        Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
+                        Guid.TryParse(uri.Segments.Last(), out Guid guid);
+                        string name = node["h3"].InnerText.Trim();
+                        string desc = node["p"].InnerText.Trim();
+
+                        item.button.onClick.AddListener(() => Debug.Log($"{name} ({guid})\n{desc}"));
+                        break;
+                    }
                 case "result event_icon":
-                    item.icon.sprite = spriteEvents;
-                    break;
+                    {
+                        item.icon.sprite = spriteEvents;
+                        Uri uri = new Uri(node["h3"]["a"].Attributes["href"].InnerText);
+                        string id = uri.Segments.Last();
+                        string name = node["h3"].InnerText.Trim();
+                        string desc = node["p"].InnerText.Trim();
+
+                        item.button.onClick.AddListener(() => Debug.Log($"{name} ({id})\n{desc}"));
+                        break;
+                    }
                 default:
-                    item.icon.sprite = spriteAll;
-                    Debug.LogWarning("Search result of type '" + node.Attributes["class"].InnerText + "' not supported yet.");
-                    break;
+                    {
+                        item.icon.sprite = spriteAll;
+                        Debug.LogWarning("Search result of type '" + node.Attributes["class"].InnerText + "' not supported yet.");
+                        break;
+                    }
             }
         }
     }
