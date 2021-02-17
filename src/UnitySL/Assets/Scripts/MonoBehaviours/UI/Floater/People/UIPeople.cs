@@ -2,21 +2,23 @@
 using System.Collections.Generic;
 using Assets.Scripts.Agents;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
 {
-    public class People : MonoBehaviour
+    public class UIPeople : MonoBehaviour
     {
-        [SerializeField] protected Transform ListContent;
-        [SerializeField] protected GameObject ListItemPrefab;
+        [SerializeField] protected FriendListItemTemplate friendsListItems;
+        [SerializeField] protected ScrollRect scrollRect;
+        [SerializeField] protected RectTransform menuPanelContainer;
 
         protected Dictionary<Guid, FriendListItem> ListItemByAgentId = new Dictionary<Guid, FriendListItem>();
 
         protected class PeopleFriendsObserver : AvatarTracker.FriendObserver
         {
-            protected People People;
+            protected UIPeople People;
 
-            public PeopleFriendsObserver(People people)
+            public PeopleFriendsObserver(UIPeople people)
             {
                 People = people;
             }
@@ -38,6 +40,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
 
         private void Start()
         {
+            friendsListItems.Initialize();
             AvatarTracker.Instance.AddObserver(new PeopleFriendsObserver(this));
             GetFriends(); // TODO: There is no real point in calling this here as the friends list has not been populated yet.
         }
@@ -47,10 +50,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
             AvatarTracker.CollectAllBuddies functor = new AvatarTracker.CollectAllBuddies();
             AvatarTracker.Instance.ApplyFunctor(functor);
 
-            for (int i = 0; i < ListContent.childCount; i++)
-            {
-                Destroy(ListContent.GetChild(i).gameObject);
-            }
+            friendsListItems.Clear();
             ListItemByAgentId.Clear();
 
             foreach (KeyValuePair<Guid, string> kv in functor.BuddiesOnline)
@@ -61,13 +61,14 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
             {
                 CreateItem(kv.Key, kv.Value);
             }
+            Canvas.ForceUpdateCanvases(); // Rebuilding ALL canvases is bad but so is UGUI.
+            menuPanelContainer.sizeDelta = new Vector2(scrollRect.viewport.sizeDelta.x, 0);
         }
 
-        protected void CreateItem (Guid agentId, string name)
+        protected void CreateItem(Guid agentId, string name)
         {
-            GameObject go = Instantiate(ListItemPrefab, ListContent);
-            FriendListItem friendListItem = go.GetComponent<FriendListItem>();
-            ListItemByAgentId[agentId] = friendListItem;
+            FriendListItem item = friendsListItems.InstantiateTemplate();
+            ListItemByAgentId[agentId] = item;
             if (string.IsNullOrEmpty(name)) // TODO: Ideally the names would be cached when the functor is applied, but when adding the buddy list to the AvatarTracker and that causes an observer update, they aren't.
             {
                 name = agentId.ToString();
@@ -80,7 +81,9 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
                     }
                 });
             }
-            friendListItem.Set(name, AvatarTracker.Instance.GetBuddyInfo(agentId));
+            item.Set(name, AvatarTracker.Instance.GetBuddyInfo(agentId));
         }
     }
+
+    [Serializable] public class FriendListItemTemplate : Template<FriendListItem> { };
 }
