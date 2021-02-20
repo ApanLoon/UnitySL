@@ -233,7 +233,7 @@ public class LoginScreen : MonoBehaviour
 
         string location = LocationText.text.Trim();
         List<string> recentLocations = Settings.Instance.login.recentLocations;
-        if (location != LastLocation && location != HomeLocation && recentLocations.Contains(location) == false)
+        if (location != "" && location != LastLocation && location != HomeLocation && recentLocations.Contains(location) == false)
         {
             recentLocations.Add(location);
             Settings.Instance.Save();
