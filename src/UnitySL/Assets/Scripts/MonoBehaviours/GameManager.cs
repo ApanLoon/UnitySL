@@ -42,7 +42,10 @@ public class GameManager : MonoBehaviour
 
     protected async Task CleanUp()
     {
-        await Session.Instance.Stop(); // Logout
+        if (Session.Instance.IsLoggedIn && Session.Instance.IsLogoutPending == false)
+        {
+            await Session.Instance.Stop(); // Logout
+        }
 
         // TODO: Perform cleanup
 

@@ -9,7 +9,7 @@ public class LogoutReplyMessage : Message
 
     public LogoutReplyMessage()
     {
-        MessageId = MessageId.LogoutRequest;
+        MessageId = MessageId.LogoutReply;
         Flags = 0;
     }
 

@@ -104,6 +104,7 @@ public class EventManager : MonoBehaviour
     }
     #endregion Progress
 
+    #region Messages
     public event Action<LogoutReplyMessage> OnLogoutReplyMessage;
 
     protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
@@ -139,4 +140,16 @@ public class EventManager : MonoBehaviour
 
         ThreadManager.ExecuteOnMainThread(() => HandlerByMessageId[message.MessageId](message));
     }
+    #endregion Messages
+
+    #region Logout
+    /// <summary>
+    /// Raised when the logout process has begun. Listen to this where you need to clean things up.
+    /// </summary>
+    public event Action OnLogout;
+    public void RaiseOnLogout()
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnLogout?.Invoke());
+    }
+    #endregion Logout
 }

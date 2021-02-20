@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public enum SlUrlType
@@ -192,6 +193,53 @@ public class Slurl
                //+ $"   AppPath:     {AppPath}\n"
                //+ $"   AppQueryMap: {AppQueryMap}\n"
                + $"   AppQuery:    {AppQuery}";
+    }
+
+    /// <summary>
+    /// Constructs a Slurl from user friendly region string
+    /// </summary>
+    /// <param name="location"></param>
+    /// <returns></returns>
+    public static Slurl FromLocationString(string location)
+    {
+        if (location == SIM_LOCATION_LAST || location == SIM_LOCATION_HOME)
+        {
+            return new Slurl(location);
+        }
+
+        Match match = Regex.Match(location, "(?<region>.*)(?:/(?<x>\\d+)/(?<y>\\d+))(?:/(?<z>\\d+))");
+        if (match.Success == false)
+        {
+            return null;
+        }
+
+        Slurl slurl = new Slurl();
+        string region = "";
+        int x = 128;
+        int y = 128;
+        int z = 25;
+        if (match.Groups["region"].Success)
+        {
+            region = match.Groups["region"].Value;
+        }
+
+        if (match.Groups["x"].Success)
+        {
+            x = byte.Parse(match.Groups["x"].Value);
+        }
+        if (match.Groups["y"].Success)
+        {
+            y = byte.Parse(match.Groups["y"].Value);
+        }
+        if (match.Groups["z"].Success)
+        {
+            z = byte.Parse(match.Groups["z"].Value);
+        }
+
+        slurl.SlurlType = SlUrlType.Location;
+        slurl.Region = region;
+        slurl.Position = new Vector3(x, y, z);
+        return slurl;
     }
 }
 

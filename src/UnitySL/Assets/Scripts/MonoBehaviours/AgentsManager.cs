@@ -2,47 +2,58 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AgentsManager : MonoBehaviour
+namespace Assets.Scripts.MonoBehaviours
 {
-    [SerializeField] protected GameObject AgentPrefab;
+    public class AgentsManager : MonoBehaviour
+    {
+        [SerializeField] protected GameObject AgentPrefab;
     
-    protected static Dictionary<Guid, GameObject> AgentGoById = new Dictionary<Guid, GameObject>();
+        protected static Dictionary<Guid, GameObject> AgentGoById = new Dictionary<Guid, GameObject>();
 
-    private void Start()
-    {
-        EventManager.Instance.OnAgentMoved += OnAgentMoved;
-    }
-
-    protected void OnAgentMoved(Agent agent)
-    {
-        if (AgentGoById.ContainsKey(agent.Id) == false)
+        private void Start()
         {
-            AddAgentGameObject(agent);
+            EventManager.Instance.OnAgentMoved += OnAgentMoved;
+            EventManager.Instance.OnLogout += () =>
+            {
+                foreach (GameObject go in AgentGoById.Values)
+                {
+                    Destroy(go);
+                }
+                AgentGoById.Clear();
+            };
         }
 
-        GameObject go = AgentGoById[agent.Id];
-        go.transform.position = agent.Position;
-
-        // Head looks at the point, the body ignores the y
-        Vector3 bodyLookAt = agent.LookAt;
-        bodyLookAt.y = agent.Position.y;
-        go.transform.LookAt(bodyLookAt);
-    }
-
-    protected void AddAgentGameObject(Agent agent)
-    {
-        GameObject go = Instantiate(AgentPrefab, transform);
-        AgentGoById[agent.Id] = go;
-
-        AgentController controller = go.GetComponent<AgentController>();
-        if (controller == null)
+        protected void OnAgentMoved(Agent agent)
         {
-            Logger.LogError("AgentsManager.AddAgentGameObject: Agent prefab has no AgentController.");
-            return;
+            if (AgentGoById.ContainsKey(agent.Id) == false)
+            {
+                AddAgentGameObject(agent);
+            }
+
+            GameObject go = AgentGoById[agent.Id];
+            go.transform.position = agent.Position;
+
+            // Head looks at the point, the body ignores the y
+            Vector3 bodyLookAt = agent.LookAt;
+            bodyLookAt.y = agent.Position.y;
+            go.transform.LookAt(bodyLookAt);
         }
 
-        go.name = $"{agent.FirstName} {agent.LastName}";
-        controller.SetName(agent.DisplayName);
-        controller.SetGroupTitle(agent.GroupTitle);
+        protected void AddAgentGameObject(Agent agent)
+        {
+            GameObject go = Instantiate(AgentPrefab, transform);
+            AgentGoById[agent.Id] = go;
+
+            AgentController controller = go.GetComponent<AgentController>();
+            if (controller == null)
+            {
+                Logger.LogError("AgentsManager.AddAgentGameObject: Agent prefab has no AgentController.");
+                return;
+            }
+
+            go.name = $"{agent.FirstName} {agent.LastName}";
+            controller.SetName(agent.DisplayName);
+            controller.SetGroupTitle(agent.GroupTitle);
+        }
     }
 }
