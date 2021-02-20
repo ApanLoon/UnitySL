@@ -231,7 +231,7 @@ public class LoginScreen : MonoBehaviour
 
         // TODO: Make it possible to select grid
 
-        string location = LocationText.text;
+        string location = LocationText.text.Trim();
         List<string> recentLocations = Settings.Instance.login.recentLocations;
         if (location != LastLocation && location != HomeLocation && recentLocations.Contains(location) == false)
         {
@@ -244,7 +244,7 @@ public class LoginScreen : MonoBehaviour
         {
             location = Slurl.SIM_LOCATION_HOME;
         }
-        else if (location == LastLocation)
+        else if (location == LastLocation || location == "")
         {
             location = Slurl.SIM_LOCATION_LAST;
         }

@@ -136,9 +136,9 @@ public class SlMessageSystem : IDisposable
         UdpClient.BeginReceive(ReceiveData, state);
         while (ct.IsCancellationRequested == false)
         {
-            if (OutGoingMessages.Count > 0)
+            try
             {
-                try
+                if (OutGoingMessages.Count > 0)
                 {
                     OutgoingMessage om = null;
                     lock (OutGoingMessages)
@@ -151,24 +151,24 @@ public class SlMessageSystem : IDisposable
                         await Send(om.MessageBytes, om.Circuit);
                     }
                 }
-                catch (Exception e)
+
+                IncomingMessage im = null;
+                lock (IncomingMessages)
                 {
-                    Logger.LogError($"SlMessageSystem.ThreadLoop: {e}");
+                    if (IncomingMessages.Count > 0)
+                    {
+                        im = IncomingMessages.Dequeue();
+                    }
+                }
+
+                if (im != null && CircuitByEndPoint.ContainsKey(im.EndPoint))
+                {
+                    CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
                 }
             }
-
-            IncomingMessage im = null;
-            lock (IncomingMessages)
+            catch (Exception e)
             {
-                if (IncomingMessages.Count > 0)
-                {
-                    im = IncomingMessages.Dequeue();
-                }
-            }
-
-            if (im != null && CircuitByEndPoint.ContainsKey(im.EndPoint))
-            {
-                CircuitByEndPoint[im.EndPoint].ReceiveData(im.MessageBytes);
+                Logger.LogError($"SlMessageSystem.ThreadLoop: {e}");
             }
 
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted

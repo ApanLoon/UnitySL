@@ -243,8 +243,9 @@ public class Circuit : IDisposable
 
         byte[] buffer = new byte[message.GetSerializedLength()];
         message.Serialize(buffer, 0, buffer.Length);
-        
+
         SlMessageSystem.Instance.EnqueueMessage(this, buffer);
+
         LastSendTime = DateTime.Now;
     }
 
@@ -266,7 +267,8 @@ public class Circuit : IDisposable
         if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
         {
             // TODO: Retry somehow
-            throw new TimeoutException($"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds.");
+            Logger.LogError ($"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds.");
+            // Fall through to ignore the missing ACK
         }
     }
     #endregion SendMessage

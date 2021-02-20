@@ -41,6 +41,8 @@ public class ObjectUpdateCompressedMessage : ObjectUpdateMessage
     #region DeSerialise
     protected override void DeSerialise(byte[] buf, ref int o, int length)
     {
+        return; // TODO: This de-serialisation is wrong and causes a lot of error logging
+
         RegionHandle = new RegionHandle(BinarySerializer.DeSerializeUInt64_Le(buf, ref o, length));
         TimeDilation = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
 
@@ -140,7 +142,8 @@ public class ObjectUpdateCompressedMessage : ObjectUpdateMessage
                     case ExtraParamType.Mesh:
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        Logger.LogWarning($"ObjectUpdateCompressedMessage.DeSerialise: Unknown ExtraParamType: {type}");
+                        continue; // TODO: This is not right
                 }
                 logMessage += $"{type}, ";
 

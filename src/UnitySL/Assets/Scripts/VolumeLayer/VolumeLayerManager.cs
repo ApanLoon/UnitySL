@@ -39,6 +39,11 @@ public class VolumeLayerManager
         LayerData.Add(vlData);
     }
 
+    public static void Clear()
+    {
+        LayerData.Clear();
+    }
+
     public static string BytesToC(byte[] data, string name = "buffer", string type = "U8")
     {
         string s = $"    {type} {name}[{data.Length}] =\n    {{\n";
