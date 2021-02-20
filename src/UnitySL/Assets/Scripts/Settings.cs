@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 [Serializable]
@@ -19,9 +20,10 @@ public class Settings
     {
         public bool saveName = true;
         public bool savePassword = false;
+        public List<string> recentLocations = new List<string>();
     }
 
-    [Serializable]
+	[Serializable]
     public class General
     {
         public bool useDisplayNames = true;
