@@ -353,6 +353,46 @@ public static class BinarySerializer
     #endregion Double
 
     #region String
+
+    public static int GetSerializedLength(string s, int lengthCount)
+    {
+        return (lengthCount == 0 ? 1 : lengthCount) + Encoding.UTF8.GetByteCount(s);
+    }
+
+    public static int Serialize (string s, byte[] buffer, int offset, int maxLength, int lengthCount)
+    {
+        if (maxLength - offset < GetSerializedLength(s, lengthCount))
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.Serialize string: Not enough bytes in buffer.");
+        }
+        byte[] bytes = Encoding.UTF8.GetBytes(s);
+        int length = bytes.Length;
+        switch (lengthCount)
+        {
+            case 0: // NUL-terminated
+                break;
+
+            case 1:
+                buffer[offset++] = (byte)length;
+                break;
+
+            case 2:
+                offset = Serialize_Le ((UInt16)length, buffer, offset, length);
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(lengthCount), lengthCount, "Valid values are 0, 1 and 2");
+        }
+
+        Array.Copy(bytes, 0, buffer, offset, length);
+        offset += length;
+        if (lengthCount == 0)
+        {
+            buffer[offset++] = 0; // NUL-terminated
+        }
+        return length;
+    }
+
     public static string DeSerializeString (byte[] buffer, ref int offset, int length, uint lengthCount)
     {
         int len;
