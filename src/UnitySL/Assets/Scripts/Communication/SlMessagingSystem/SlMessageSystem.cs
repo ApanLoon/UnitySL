@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -192,6 +193,18 @@ public class SlMessageSystem : IDisposable
         CircuitByHost[host] = circuit;
         CircuitByEndPoint[host.EndPoint] = circuit;
         return circuit;
+    }
+
+    public void RemoveCircuit(Circuit circuit)
+    {
+        Host host = CircuitByHost.Where(x => x.Value == circuit).Select(x => x.Key).FirstOrDefault();
+        if (host == null)
+        {
+            return;
+        }
+
+        CircuitByEndPoint.Remove(host.EndPoint);
+        CircuitByHost.Remove(host);
     }
 
     public void EnqueueMessage(Circuit circuit, byte[] messageBytes)

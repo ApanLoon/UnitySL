@@ -58,7 +58,14 @@ public class Agent :IDisposable
 
     public static void SetCurrentPlayer(Agent agent)
     {
-        AddAgent(agent.Id, agent);
+        if (agent == null)
+        {
+            RemoveAgent(CurrentPlayer.Id);
+        }
+        else
+        {
+            AddAgent(agent.Id, agent);
+        }
         CurrentPlayer = agent;
     }
 

@@ -211,11 +211,9 @@ public class Session
         Logger.LogDebug("LOGOUT-----------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Logout", "Logging out...", 0.2f);
 
+        AvatarTracker.Instance.ClearBuddyList();
+
         UnregisterEventListeners();
-
-        VolumeLayerManager.Clear();
-
-        EventManager.Instance.OnLogoutReplyMessage += OnLogoutReplyMessage;
 
         IsLogoutPending = true;
 
@@ -223,7 +221,10 @@ public class Session
             && Agent.CurrentPlayer.Region         != null
             && Agent.CurrentPlayer.Region.Circuit != null)
         {
-            await Agent.CurrentPlayer.Region.Circuit.SendLogoutRequest(AgentId, SessionId);
+            EventManager.Instance.OnLogoutReplyMessage += OnLogoutReplyMessage;
+
+            Circuit circuit = Agent.CurrentPlayer.Region.Circuit;
+            await circuit.SendLogoutRequest(AgentId, SessionId);
 
             // Wait for LogOutReply:
             int frequency = 10;
@@ -240,6 +241,9 @@ public class Session
             {
                 Logger.LogError("LogoutReply took too long.");
             }
+
+            circuit.Stop();
+            EventManager.Instance.OnLogoutReplyMessage -= OnLogoutReplyMessage;
         }
         else
         {
@@ -249,7 +253,7 @@ public class Session
 
         IsLoggedIn = false;
 
-        EventManager.Instance.OnLogoutReplyMessage -= OnLogoutReplyMessage;
+        await Task.Delay(500); // Give the circuit a chance to shut down
         EventManager.Instance.RaiseOnLogout();
 
         EventManager.Instance.RaiseOnProgressUpdate("Logout", "Complete", 1f);
@@ -259,7 +263,6 @@ public class Session
 
     protected void OnLogoutReplyMessage(LogoutReplyMessage message)
     {
-        Logger.LogDebug("Received LogoutReplyMessage");
         if (message.AgentId != AgentId || message.SessionId != SessionId)
         {
             Logger.LogWarning($"Received LogoutReply for unknown agent or session. (AgentId={message.AgentId}, sessionId={message.SessionId})");

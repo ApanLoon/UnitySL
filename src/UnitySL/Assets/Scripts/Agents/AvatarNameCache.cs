@@ -127,15 +127,18 @@ namespace Assets.Scripts.Agents
 
             while (ct.IsCancellationRequested == false)
             {
-                Capability cap = Agent.CurrentPlayer.Region.GetCapability("GetDisplayNames");
-                if (cap != null)
+                if (Session.Instance.IsLoggedIn) // TODO: We probably need a better way to tell if we are logged in or not
                 {
-                    await RequestNamesViaCapability(cap);
-                }
-                else
-                {
-                    // TODO: Use legacy name fetching
-                    Logger.LogWarning("AvatarNameCache: No GetDisplayName capability in region.");
+                    Capability cap = Agent.CurrentPlayer.Region.GetCapability("GetDisplayNames");
+                    if (cap != null)
+                    {
+                        await RequestNamesViaCapability(cap);
+                    }
+                    else
+                    {
+                        // TODO: Use legacy name fetching
+                        Logger.LogWarning("AvatarNameCache: No GetDisplayName capability in region.");
+                    }
                 }
 
                 await Task.Delay(10, ct); // tune for your situation, can usually be omitted

@@ -35,6 +35,8 @@ public class Circuit : IDisposable
     public void Stop()
     {
         Logger.LogDebug($"Circuit.Stop: Host={Host}");
+
+        SlMessageSystem.Instance.RemoveCircuit(this);
         _cts.Cancel();
 
         _cts.Dispose();
@@ -214,7 +216,7 @@ public class Circuit : IDisposable
             WaitingForInboundAck.Add(message.SequenceNumber);
         }
         Send(message, false);
-        await Ack(message.SequenceNumber);
+        await Ack(message.SequenceNumber, message.MessageId);
     }
 
     protected void Send(Message message, bool assignSequenceNumber = true)
@@ -249,7 +251,7 @@ public class Circuit : IDisposable
         LastSendTime = DateTime.Now;
     }
 
-    protected async Task Ack(UInt32 sequenceNumber, int frequency = 10, int timeout = 1000)
+    protected async Task Ack(UInt32 sequenceNumber, MessageId messageId, int frequency = 10, int timeout = 1000)
     {
         var waitTask = Task.Run(async () =>
         {
@@ -267,7 +269,7 @@ public class Circuit : IDisposable
         if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
         {
             // TODO: Retry somehow
-            Logger.LogError ($"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds.");
+            Logger.LogError ($"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds. ({messageId})");
             // Fall through to ignore the missing ACK
         }
     }

@@ -59,6 +59,17 @@ namespace Assets.Scripts.Agents
             NotifyObservers(); // TODO: Adding the change mask won't trigger observer notification as we don't have a main loop thingy.
         }
 
+        public void ClearBuddyList()
+        {
+            foreach (KeyValuePair<Guid, Relationship> kv in BuddyInfo)
+            {
+                AddChangedMask(FriendObserver.ChangeType.Remove, kv.Key);
+            }
+            BuddyInfo.Clear();
+            NotifyObservers(); // TODO: Adding the change mask won't trigger observer notification as we don't have a main loop thingy.
+            // TODO: Do I need to do anything else here?
+        }
+
         protected void OnAvatarNameReceived (Guid agentId, AvatarName avatarName)
         {
             Logger.LogDebug($"AvatarTracker.OnAvatarNameReceived: FirstName=\"{avatarName.FirstName}\", LastName=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
@@ -419,5 +430,6 @@ namespace Assets.Scripts.Agents
         };
 
         #endregion RelationshipFunctor
+
     }
 }
