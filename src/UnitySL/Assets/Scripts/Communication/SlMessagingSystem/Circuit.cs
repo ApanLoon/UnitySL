@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
 using UnityEngine;
 
 public class Circuit : IDisposable
@@ -101,40 +102,33 @@ public class Circuit : IDisposable
     #region SendMessage
 
     #region Specific
-    public void SendAgentUpdate (Guid              agentId,
-                                 Guid              sessionId,
-                                 Quaternion        bodyRotation, 
-                                 Quaternion        headRotation, 
-                                 AgentState        agentState, 
-                                 Vector3           cameraCentre, 
-                                 Vector3           cameraAtAxis, 
-                                 Vector3           cameraLeftAxis, 
-                                 Vector3           cameraUpAxis, 
-                                 float             farClipPlane, 
-                                 AgentControlFlags controlFlags, 
-                                 AgentUpdateFlags  updateFlags)
+    #region Agent
+    public void SendAgentUpdate(Guid agentId,
+        Guid sessionId,
+        Quaternion bodyRotation,
+        Quaternion headRotation,
+        AgentState agentState,
+        Vector3 cameraCentre,
+        Vector3 cameraAtAxis,
+        Vector3 cameraLeftAxis,
+        Vector3 cameraUpAxis,
+        float farClipPlane,
+        AgentControlFlags controlFlags,
+        AgentUpdateFlags updateFlags)
     {
-        AgentUpdateMessage message = new AgentUpdateMessage (agentId,
-                                                             sessionId,
-                                                             bodyRotation,
-                                                             headRotation,
-                                                             agentState,
-                                                             cameraCentre,
-                                                             cameraAtAxis,
-                                                             cameraLeftAxis,
-                                                             cameraUpAxis,
-                                                             farClipPlane,
-                                                             controlFlags,
-                                                             updateFlags);
-        Send (message);
-    }
-
-    public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
-    {
-        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");
-
-        UseCircuitCodeMessage message = new UseCircuitCodeMessage(circuitCode, sessionId, agentId);
-        await SendReliable(message);
+        AgentUpdateMessage message = new AgentUpdateMessage(agentId,
+            sessionId,
+            bodyRotation,
+            headRotation,
+            agentState,
+            cameraCentre,
+            cameraAtAxis,
+            cameraLeftAxis,
+            cameraUpAxis,
+            farClipPlane,
+            controlFlags,
+            updateFlags);
+        Send(message);
     }
 
     public async Task SendCompleteAgentMovement(Guid agentId, Guid sessionId, UInt32 circuitCode)
@@ -145,6 +139,19 @@ public class Circuit : IDisposable
         await SendReliable(message);
     }
 
+    public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
+    {
+        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to Host={Host}");
+
+        AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
+        await SendReliable(message);
+    }
+    #endregion Agent
+
+    #region Audio
+    #endregion Audio
+
+    #region Chat
     public async Task SendChatFromViewer(string message, ChatType chatType, Int32 channel)
     {
         Guid agentId = Session.Instance.AgentId;
@@ -154,6 +161,46 @@ public class Circuit : IDisposable
         await SendReliable(msg);
     }
 
+    public async Task SendInstantMessage(bool isFromGroup, Guid toAgentId, UInt32 parentEstateId, DialogType dialogType, Guid id, string message, byte[] binaryBucket)
+    {
+        Agent      agent         = Agent.CurrentPlayer;
+        Guid       agentId       = agent.Id;
+        Guid       sessionId     = Guid.Empty; // TODO: What is this used for? Group IMs? Direct messages has Guid.Empty
+        Guid       regionId      = agent.Region.Id;
+        Vector3    position      = agent.Position; // NOTE: Tests show that for DialogType=TypingStop, the position is zero vector
+        OnlineMode onlineMode    = OnlineMode.Online;
+        UInt32     timestamp     = 0; // TODO: Tests show this as 0
+        string     fromAgentName = agent.DisplayName;
+
+        ImprovedInstantMessageMessage msg = new ImprovedInstantMessageMessage (agentId,
+                                                                               sessionId,
+                                                                               isFromGroup,
+                                                                               toAgentId,
+                                                                               parentEstateId,
+                                                                               regionId,
+                                                                               position,
+                                                                               onlineMode,
+                                                                               dialogType,
+                                                                               id,
+                                                                               timestamp,
+                                                                               fromAgentName,
+                                                                               message,
+                                                                               binaryBucket);
+        await SendReliable(msg);
+    }
+    #endregion Chat
+
+    #region Map
+    #endregion Map
+
+    #region MessageSystem
+    public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
+    {
+        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");
+
+        UseCircuitCodeMessage message = new UseCircuitCodeMessage(circuitCode, sessionId, agentId);
+        await SendReliable(message);
+    }
     public async Task SendAgentThrottle()
     {
         Guid agentId = Session.Instance.AgentId;
@@ -164,13 +211,37 @@ public class Circuit : IDisposable
         float wind = 20 * 1024f;
         float cloud = 20 * 1024f;
         float task = 310 * 1024f;
-        float texture = 310 * 1024f; 
+        float texture = 310 * 1024f;
         float asset = 140 * 1024f;
         //Logger.LogDebug($"Circuit.SendAgentThrottle({agentId}, {sessionId}): Sending to {Address}:{Port}");
 
         AgentThrottleMessage message = new AgentThrottleMessage(agentId, sessionId, circuitCode, 0, resend, land, wind, cloud, task, texture, asset);
         await SendReliable(message);
     }
+
+    public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
+    {
+        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId}): Sending to Host={Host}");
+
+        LogoutRequestMessage message = new LogoutRequestMessage(agentId, sessionId);
+        await SendReliable(message);
+    }
+    #endregion MessageSystem
+
+    #region Objects
+    #endregion Objects
+
+    #region Region
+    public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
+    {
+        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to Host={Host}");
+
+        RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
+        await SendReliable(message);
+    }
+    #endregion Region
+
+    #region Viewer
     public async Task SendAgentHeightWidth(UInt16 height, UInt16 width)
     {
         Guid agentId = Session.Instance.AgentId;
@@ -181,30 +252,7 @@ public class Circuit : IDisposable
         AgentHeightWidthMessage message = new AgentHeightWidthMessage(agentId, sessionId, circuitCode, 0, height, width);
         await SendReliable(message);
     }
-
-    public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
-    {
-        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId}): Sending to Host={Host}");
-
-        LogoutRequestMessage message = new LogoutRequestMessage (agentId, sessionId);
-        await SendReliable(message);
-    }
-
-    public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
-    {
-        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to Host={Host}");
-
-        AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
-        await SendReliable(message);
-    }
-
-    public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
-    {
-        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to Host={Host}");
-
-        RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
-        await SendReliable(message);
-    }
+    #endregion Viewer
     #endregion Specific
 
     protected async Task SendReliable(Message message)

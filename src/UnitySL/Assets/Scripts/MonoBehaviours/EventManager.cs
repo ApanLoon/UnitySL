@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
 using UnityEngine;
 
 public class EventManager : MonoBehaviour
@@ -80,6 +81,7 @@ public class EventManager : MonoBehaviour
 
     #region Chat
     public event Action<ChatFromSimulatorMessage> OnChatFromSimulatorMessage;
+    public event Action<ImprovedInstantMessageMessage> OnImprovedInstantMessageMessage;
     #endregion Chat
 
     #region Map
@@ -126,6 +128,7 @@ public class EventManager : MonoBehaviour
         {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke    ((ScriptControlChangeMessage)m)     },
         {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke  ((AgentMovementCompleteMessage)m)   },
         {MessageId.LogoutReply,                  (m) => Instance.OnLogoutReplyMessage?.Invoke            ((LogoutReplyMessage)m)             },
+        {MessageId.ImprovedInstantMessage,       (m) => Instance.OnImprovedInstantMessageMessage?.Invoke ((ImprovedInstantMessageMessage)m)  },
         {MessageId.OnlineNotification,           (m) => Instance.OnOnlineNotificationMessage?.Invoke     ((OnlineNotificationMessage)m)      },
         {MessageId.OfflineNotification,          (m) => Instance.OnOfflineNotificationMessage?.Invoke    ((OfflineNotificationMessage)m)     },
         {MessageId.AgentDataUpdate,              (m) => Instance.OnAgentDataUpdateMessage?.Invoke        ((AgentDataUpdateMessage)m)         },

@@ -390,7 +390,7 @@ public static class BinarySerializer
         {
             buffer[offset++] = 0; // NUL-terminated
         }
-        return length;
+        return offset;
     }
 
     public static string DeSerializeString (byte[] buffer, ref int offset, int length, uint lengthCount)

@@ -1,4 +1,5 @@
 ﻿using System;
+using Assets.Scripts.SystemExtensions;
 using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
@@ -189,6 +190,12 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
         public string MessageText { get; set; }
         public byte[] BinaryBucket { get; set; }
 
+        public ImprovedInstantMessageMessage()
+        {
+            MessageId = MessageId.ImprovedInstantMessage;
+            Flags = 0;
+        }
+
         public ImprovedInstantMessageMessage (Guid agentId,
                                               Guid sessionId,
                                               bool isFromGroup,
@@ -242,14 +249,15 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
                    + BinarySerializer.GetSerializedLength(FromAgentName, 1) // FromAgentName
                    + BinarySerializer.GetSerializedLength(MessageText,   2)  // MessageText
                    + 2      // BinaryBucket length
-                   + BinaryBucket.Length; // BinaryBucket
+                   + (BinaryBucket == null ? 0 : BinaryBucket.Length); // BinaryBucket
         }
-        public override int Serialize(byte[] buffer, int offset, int length)
+
+        public override int Serialize (byte[] buffer, int offset, int length)
         {
             // TODO: LL code truncates at MTU
 
             int o = offset;
-            o += base.Serialize(buffer, offset, length);
+            o += base.Serialize (buffer, offset, length);
 
             o = BinarySerializer.Serialize    (AgentId,        buffer, o, length);
             o = BinarySerializer.Serialize    (SessionId,      buffer, o, length);
@@ -266,13 +274,61 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             o = BinarySerializer.Serialize    (FromAgentName,  buffer, o, length, 1);
             o = BinarySerializer.Serialize    (MessageText,    buffer, o, length, 2);
 
-            o = BinarySerializer.Serialize_Le((UInt16)BinaryBucket.Length, buffer, o, length);
-            Array.Copy(BinaryBucket, 0, buffer, o, BinaryBucket.Length);
-            o += BinaryBucket.Length;
-            
+            UInt16 len = (UInt16)(BinaryBucket == null ? 0 : BinaryBucket.Length);
+            o = BinarySerializer.Serialize_Le (len, buffer, o, length);
+            if (len > 0)
+            {
+                Array.Copy (BinaryBucket, 0, buffer, o, len);
+                o += len;
+            }
+
             return o - offset;
         }
         #endregion Serialise
 
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
+        {
+            AgentId        = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+            SessionId      = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+            IsFromGroup    = buf[o++] != 0; // TODO: Put this in BinarySerializer to make sure that it is consistent
+            ToAgentId      = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+            ParentEstateId = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
+            RegionId       = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+            Position       = BinarySerializer.DeSerializeVector3   (buf, ref o, length);
+            OnlineMode     = (OnlineMode)buf[o++];
+            DialogType     = (DialogType)buf[o++];
+            Id             = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
+            Timestamp      = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
+            FromAgentName  = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
+            MessageText    = BinarySerializer.DeSerializeString    (buf, ref o, length, 2);
+            UInt16 len     = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length);
+            BinaryBucket   = new byte[len];
+            Array.Copy(buf, o, BinaryBucket, 0, len);
+            o += len;
+
+            Logger.LogDebug(ToString());
+        }
+        #endregion DeSerialise
+
+        public override string ToString()
+        {
+            return   $"{base.ToString()}:\n"
+                   + $"    AgentId={AgentId}\n"
+                   + $"    SessionId={SessionId}\n"
+                   + $"    IsFromGroup={IsFromGroup}\n"
+                   + $"    ToAgentId={ToAgentId}\n"
+                   + $"    ParentEstateId=0x{ParentEstateId:x8}\n"
+                   + $"    RegionId={RegionId}\n"
+                   + $"    Position={Position}\n"
+                   + $"    OnlineMode={OnlineMode}\n"
+                   + $"    DialogType={DialogType}\n"
+                   + $"    Id={Id}\n"
+                   + $"    Timestamp={Timestamp}\n" // TODO: Create an extension in either DateTime or DateTimeOffset to convert UNIX timestamps
+                   + $"    FromAgentName={FromAgentName}\n"
+                   + $"    MessageText={MessageText}\n"
+                   + $"    BinaryBucket= ({BinaryBucket.Length})\n{BinaryBucket.ToHexDump()}"
+                ;
+        }
     }
 }

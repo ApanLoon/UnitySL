@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
 
 public enum MessageId : UInt32
 {
@@ -114,7 +115,7 @@ public class Message
     {
         if (Acks.Count >= 255)
         {
-            throw new Exception("Messasge: Too many acks in a single message. Max is 255.");
+            throw new Exception("Message: Too many acks in a single message. Max is 255.");
         }
         Acks.Add(sequenceNumber);
     }
@@ -212,6 +213,7 @@ public class Message
         { MessageId.ScriptControlChange,          () => new ScriptControlChangeMessage()     },
         { MessageId.AgentMovementCompleteMessage, () => new AgentMovementCompleteMessage()   },
         { MessageId.LogoutReply,                  () => new LogoutReplyMessage()             },
+        { MessageId.ImprovedInstantMessage,       () => new ImprovedInstantMessageMessage()  },
         { MessageId.OnlineNotification,           () => new OnlineNotificationMessage()      },
         { MessageId.OfflineNotification,          () => new OfflineNotificationMessage()     },
         { MessageId.AgentDataUpdate,              () => new AgentDataUpdateMessage()         },
