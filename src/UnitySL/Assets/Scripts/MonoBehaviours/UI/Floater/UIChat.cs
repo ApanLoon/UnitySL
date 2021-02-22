@@ -35,6 +35,12 @@ public class UIChat : MonoBehaviour
         return tab;
     }
 
+    /// <summary> Close an existing chat tab </summary>
+    public void CloseTab(UIChatTab uIChatTab)
+    {
+        tabs.ReturnItemToPool(uIChatTab);
+    }
+
     public void SelectTab(UIChatTab tab)
     {
         activeTab = tab;
