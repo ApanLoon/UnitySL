@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Assets.Scripts.Agents;
 
 public class Session
 {
@@ -33,7 +34,6 @@ public class Session
 
         Login login = new Login();
         LoginResponse loginResponse = await login.Connect(uri, credential, slurl, getInventoryLibrary, godMode);
-
 
         if (loginResponse.LoginSucceeded == false)
         {
@@ -119,6 +119,8 @@ public class Session
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await region.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
         Logger.LogInfo("UseCircuitCode was acked.");
+
+        AvatarNameCache.Instance.Start();
         #endregion SeedCapabilitiesGranted
 
         #region AgentSend
@@ -133,7 +135,13 @@ public class Session
         Logger.LogDebug("INVENTORY_SEND---------------------");
 
         //TODO: Fill in inventory skeleton and request details
-        //TODO: Fill in buddy list skeleton and request details
+        
+        //Fill in buddy list skeleton and request names:
+        AvatarTracker.Instance.AddBuddyList(loginResponse.BuddyList);
+
+        // Set up callbacks:
+        AvatarTracker.Instance.RegisterCallbacks();
+
         //TODO: Request mute list
         //TODO: Request money balance
 
@@ -171,7 +179,10 @@ public class Session
         //TODO: Make map view observe friends
         //TODO: Stop Away animation
         //TODO: Clear control flag Away
-        //TODO: Observe friends
+        
+        // Observe friends
+        Agent.CurrentPlayer.ObserveFriends();
+        
         //TODO: Retrieve land description
         //TODO: Send hover height to capability "AgentPreferences"
 
@@ -184,6 +195,7 @@ public class Session
 
         await Task.Delay(3000);
         Logger.LogDebug("POST----------------");
+
         // TODO: This is in the application loop in Indra:
         VolumeLayerManager.UnpackLayerData();
 
@@ -199,7 +211,9 @@ public class Session
         Logger.LogDebug("LOGOUT-----------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Logout", "Logging out...", 0.2f);
 
-        EventManager.Instance.OnLogoutReplyMessage += OnLogoutReplyMessage;
+        AvatarTracker.Instance.ClearBuddyList();
+
+        UnregisterEventListeners();
 
         IsLogoutPending = true;
 
@@ -207,33 +221,59 @@ public class Session
             && Agent.CurrentPlayer.Region         != null
             && Agent.CurrentPlayer.Region.Circuit != null)
         {
-            await Agent.CurrentPlayer.Region.Circuit.SendLogoutRequest(AgentId, SessionId);
-        }
+            EventManager.Instance.OnLogoutReplyMessage += OnLogoutReplyMessage;
 
-        // Wait for LogOutReply:
-        int frequency = 10;
-        int timeout = 1000;
-        var waitTask = Task.Run(async () =>
-        {
-            while (IsLogoutPending)
+            Circuit circuit = Agent.CurrentPlayer.Region.Circuit;
+            await circuit.SendLogoutRequest(AgentId, SessionId);
+
+            // Wait for LogOutReply:
+            int frequency = 10;
+            int timeout = 2000;
+            var waitTask = Task.Run(async () =>
             {
-                await Task.Delay(frequency);
+                while (IsLogoutPending)
+                {
+                    await Task.Delay(frequency);
+                }
+            });
+
+            if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
+            {
+                Logger.LogError("LogoutReply took too long.");
             }
-        });
 
-        if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
-        {
-            Logger.LogError("LogoutReply took too long.");
+            circuit.Stop();
+            EventManager.Instance.OnLogoutReplyMessage -= OnLogoutReplyMessage;
         }
-
+        else
+        {
+            Logger.LogWarning($"Unable to send logout request. ({(Agent.CurrentPlayer == null ? "CurrentPlayer=null" : "")} {(Agent.CurrentPlayer.Region == null ? "Region=null" : "")} {(Agent.CurrentPlayer.Region.Circuit == null ? "Circuit=null" : "")})");
+        }
         IsLogoutPending = false;
+
         IsLoggedIn = false;
 
-        EventManager.Instance.OnLogoutReplyMessage -= OnLogoutReplyMessage;
+        await Task.Delay(500); // Give the circuit a chance to shut down
+        EventManager.Instance.RaiseOnLogout();
 
         EventManager.Instance.RaiseOnProgressUpdate("Logout", "Complete", 1f);
         await Task.Delay(1000); // Wait to let player see the "Complete" message.
         EventManager.Instance.RaiseOnProgressUpdate("Logout", "", 1f, true);
+    }
+
+    protected void OnLogoutReplyMessage(LogoutReplyMessage message)
+    {
+        if (message.AgentId != AgentId || message.SessionId != SessionId)
+        {
+            Logger.LogWarning($"Received LogoutReply for unknown agent or session. (AgentId={message.AgentId}, sessionId={message.SessionId})");
+            return;
+        }
+
+        EventManager.Instance.RaiseOnProgressUpdate("Logout", "Updating inventory items...", 0.8f);
+
+        // TODO: Do something with the inventory items.
+
+        IsLogoutPending = false;
     }
 
 
@@ -413,6 +453,12 @@ public class Session
         //msg->setHandlerFuncFast(_PREHASH_FeatureDisabled, process_feature_disabled_message);
     }
 
+    private void UnregisterEventListeners()
+    {
+        EventManager.Instance.OnLayerDataMessage -= ProcessLayerData;
+        EventManager.Instance.OnObjectUpdateMessage -= ProcessObjectUpdate;
+    }
+
     protected void ProcessObjectUpdate (ObjectUpdateMessage obj)
     {
         
@@ -433,21 +479,5 @@ public class Session
         };
 
         VolumeLayerManager.AddLayerData(vlData);
-    }
-
-
-    protected void OnLogoutReplyMessage(LogoutReplyMessage message)
-    {
-        if (message.AgentId != AgentId || message.SessionId != SessionId)
-        {
-            Logger.LogWarning($"Received LogoutReply for unknown agent or session. (AgentId={message.AgentId}, sessionId={message.SessionId})");
-            return;
-        }
-
-        EventManager.Instance.RaiseOnProgressUpdate("Logout", "Updating inventory items...", 0.8f);
-
-        // TODO: Do something with the inventory items.
-
-        IsLogoutPending = false;
     }
 }

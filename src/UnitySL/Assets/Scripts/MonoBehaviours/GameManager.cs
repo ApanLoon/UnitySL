@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlaymodeChanged;
 #endif
+        Settings s = Settings.Instance; // Force loading of settings
+
         Region.Initialise();
     }
 
@@ -40,8 +42,13 @@ public class GameManager : MonoBehaviour
 
     protected async Task CleanUp()
     {
-        await Session.Instance.Stop(); // Logout
+        if (Session.Instance.IsLoggedIn && Session.Instance.IsLogoutPending == false)
+        {
+            await Session.Instance.Stop(); // Logout
+        }
 
         // TODO: Perform cleanup
+
+        Settings.Instance.Save(); // TODO: Is this the best place to save the settings?
     }
 }

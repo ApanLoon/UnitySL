@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Agents;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,18 @@ public class MiniMap : MonoBehaviour
 
     private void Start()
     {
-        EventManager.Instance.OnCoarseLocationUpdateMessage += OnCoarseLocationUpdateMessage;
+        EventManager.Instance.OnCoarseLocationUpdateMessage += OnCoarseLocationUpdateMessage; // TODO: This should probably use some higher level mechanism to get updates. Possibly AvatarTracker
+        EventManager.Instance.OnLogout += () =>
+        {
+            // Remove markers:
+            for (int i = MarkerInfoByAgentId.Count - 1; i >= 0; i--)
+            {
+                Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
+                MarkerInfo mi = MarkerInfoByAgentId[key];
+                Destroy(MarkerInfoByAgentId[key].GameObject);
+                MarkerInfoByAgentId.Remove(key);
+            }
+        };
     }
 
     protected void OnCoarseLocationUpdateMessage(CoarseLocationUpdateMessage message)
@@ -62,8 +74,10 @@ public class MiniMap : MonoBehaviour
             }
             mi.Image.color = c;
 
-            mi.Text.text = location.AgentId.ToString(); // TODO: Look up name
-            
+            mi.Text.text = location.AgentId.ToString();
+
+            AvatarNameCache.Instance.Get(location.AgentId, OnNameReceived);
+
         }
 
         // Force visibility of prey and you:
@@ -78,7 +92,7 @@ public class MiniMap : MonoBehaviour
         }
 
         // Remove markers that have left:
-        for (int i = MarkerInfoByAgentId.Count - 1; i > 0 ; i--)
+        for (int i = MarkerInfoByAgentId.Count - 1; i >= 0 ; i--)
         {
             Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
             MarkerInfo mi = MarkerInfoByAgentId[key];
@@ -87,6 +101,14 @@ public class MiniMap : MonoBehaviour
                 Destroy(MarkerInfoByAgentId[key].GameObject);
                 MarkerInfoByAgentId.Remove(key);
             }
+        }
+    }
+
+    protected void OnNameReceived(Guid agentId, AvatarName avatarName)
+    {
+        if (MarkerInfoByAgentId.ContainsKey(agentId))
+        {
+            MarkerInfoByAgentId[agentId].Text.text = avatarName.DisplayName;
         }
     }
 

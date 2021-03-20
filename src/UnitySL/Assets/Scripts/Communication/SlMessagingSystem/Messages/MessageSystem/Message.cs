@@ -18,6 +18,7 @@ public enum MessageId : UInt32
 
     Wrapper                      = 0xffff0001,
     UseCircuitCode               = 0xffff0003,
+    ChatFromViewer               = 0xffff0050,
     AgentThrottle                = 0xffff0051,
     AgentHeightWidth             = 0xffff0053,
     HealthMessage                = 0xffff008a,

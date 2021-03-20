@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class LoginScreen : MonoBehaviour
 {
@@ -19,18 +17,21 @@ public class LoginScreen : MonoBehaviour
     [SerializeField] protected GameObject NamePrefab;
     [SerializeField] protected Toggle SaveNameToggle;
     [SerializeField] protected Toggle SavePasswordToggle;
+    [SerializeField] protected TMP_InputField LocationText;
+    [SerializeField] protected RectTransform LocationsContent;
 
-    protected string SaveNameSetting = "Login_SaveName";
-    protected string SavePasswordSetting = "Login_SavePassword";
+    protected string HomeLocation = "Home location";
+    protected string LastLocation = "Last location";
 
     protected float Timer = 0f;
 
     private void Start()
     {
-        SaveNameToggle.isOn     = PlayerPrefs.HasKey(SaveNameSetting)     ? bool.Parse(PlayerPrefs.GetString(SaveNameSetting)) : true;
-        SavePasswordToggle.isOn = PlayerPrefs.HasKey(SavePasswordSetting) ? bool.Parse(PlayerPrefs.GetString(SavePasswordSetting)) : true;
+        SaveNameToggle.isOn     = Settings.Instance.login.saveName;
+        SavePasswordToggle.isOn = Settings.Instance.login.savePassword;
 
         UpdateNames();
+        UpdateLocations();
     }
 
     private void Update()
@@ -45,6 +46,7 @@ public class LoginScreen : MonoBehaviour
         TimerText.text = Timer.ToString("F", CultureInfo.InvariantCulture);
     }
 
+    #region Names
     protected void UpdateNames()
     {
         // Clear names list in case there are debug values in the scene:
@@ -103,6 +105,77 @@ public class LoginScreen : MonoBehaviour
         CredentialStorage.Instance.Remove(credential);
         UpdateNames();
     }
+    #endregion Names
+
+    #region Locations
+    protected void UpdateLocations()
+    {
+        // Clear list in case there are debug values in the scene:
+        foreach (Transform child in LocationsContent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        AddLocation(LastLocation);
+        AddLocation(HomeLocation);
+        foreach (string location in Settings.Instance.login.recentLocations)
+        {
+            AddLocation(location);
+        }
+        LocationsContent.sizeDelta = new Vector2(0, Settings.Instance.login.recentLocations.Count * NameHeight);
+    }
+
+    protected void AddLocation(string location)
+    {
+        GameObject go = Instantiate(NamePrefab, LocationsContent);
+
+        Button itemButton = null;
+        Button deleteButton = null;
+        foreach (Button b in go.GetComponentsInChildren<Button>())
+        {
+            switch (b.name)
+            {
+                case "ItemButton":
+                    itemButton = b;
+                    break;
+
+                case "DeleteButton":
+                    deleteButton = b;
+                    break;
+            }
+        }
+
+        if (itemButton == null || deleteButton == null)
+        {
+            Debug.LogError("LoginScreen.UpdateLocations: NamePrefab doesn't have ItemButton or DeleteButton.");
+            return;
+        }
+
+        itemButton.onClick.AddListener(() => { OnLocationClick(location); });
+        deleteButton.onClick.AddListener(() => { OnLocationDeleteClick(location); });
+
+
+        TMP_Text itemText = itemButton.GetComponentInChildren<TMP_Text>();
+        if (itemText == null)
+        {
+            Debug.LogError(
+                "LoginScreen.UpdateLocations: NamePrefab does not have a TMP_Text component under the ItemButton.");
+            return;
+        }
+
+        itemText.text = location;
+    }
+
+    protected void OnLocationClick(string location)
+    {
+        LocationText.text = location;
+    }
+
+    protected void OnLocationDeleteClick(string location)
+    {
+        Settings.Instance.login.recentLocations.Remove(location);
+        UpdateLocations();
+    }
+    #endregion Locations
 
     protected void NavigateToNext(bool reverse = false)
     {
@@ -158,9 +231,28 @@ public class LoginScreen : MonoBehaviour
 
         // TODO: Make it possible to select grid
 
-        Credential credential = new Credential(NameText.text, PasswordText.text);
-        await Session.Instance.Start(credential);
+        string location = LocationText.text.Trim();
+        List<string> recentLocations = Settings.Instance.login.recentLocations;
+        if (location != "" && location != LastLocation && location != HomeLocation && recentLocations.Contains(location) == false)
+        {
+            recentLocations.Add(location);
+            Settings.Instance.Save();
+        }
 
+        Credential credential = new Credential(NameText.text, PasswordText.text);
+        if (location == HomeLocation)
+        {
+            location = Slurl.SIM_LOCATION_HOME;
+        }
+        else if (location == LastLocation || location == "")
+        {
+            location = Slurl.SIM_LOCATION_LAST;
+        }
+        Slurl slurl = Slurl.FromLocationString(location);
+        Logger.LogDebug($"LoginScreen.OnLogin: slurl={slurl.ToString()}");
+
+        await Session.Instance.Start(credential, slurl);
+       
         // TODO: Saving name and password should only be done if the login is successful
 
         if (SaveNameToggle.isOn == false)
@@ -175,12 +267,18 @@ public class LoginScreen : MonoBehaviour
 
     public void OnSaveNameToggle()
     {
-        PlayerPrefs.SetString(SaveNameSetting, SaveNameToggle.isOn ? "true" : "false");
+        Settings.Instance.login.saveName = SaveNameToggle.isOn;
         SavePasswordToggle.interactable = SaveNameToggle.isOn;
     }
 
     public void OnSavePasswordToggle()
     {
-        PlayerPrefs.SetString(SavePasswordSetting, SavePasswordToggle.isOn ? "true" : "false");
+        Settings.Instance.login.savePassword = SavePasswordToggle.isOn;
+    }
+
+    public async void OnLogout()
+    {
+        // TODO: This does not clean up completely but it should be made to.
+        await Session.Instance.Stop(); // Logout
     }
 }
