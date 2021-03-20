@@ -177,24 +177,36 @@ namespace Tests
 
             surface.DecompressPatches(bitPack, groupHeader, false);
             SurfacePatch patch = surface.GetPatch(8, 6);
-            Assert.AreEqual(0x60e0, patch.DataZStart);
+            Assert.AreEqual(0x60e0, patch.DataZStart); // y = 96, x = 224
 
             string s = "";
-            for (int i = 0; i < surface._SurfaceZ.Length; i++)
+            for (int y = 0; y < surface.GridsPerEdge; y++)
             {
-                if ((i != 0) && (i % 257 == 0))
+                for (int x = 0; x < surface.GridsPerEdge; x++)
                 {
-                    s += "\n";
+                    float height = surface.GetZ(x, y);
+                    s += $"{height}, ";
                 }
-                s += $"{surface._SurfaceZ[i]}, ";
+                s += "\n";
             }
-            File.WriteAllText("surfaceHeights.csv", s);
+            File.WriteAllText("surfaceHeightsUNITY.csv", s);
+
+            //string s = "";
+            //for (int y = 0; y < groupHeader.PatchSize; y++)
+            //{
+            //    for (int x = 0; x < groupHeader.PatchSize; x++)
+            //    {
+            //        s += $"{surface._SurfaceZ[patch.DataZStart + y * groupHeader.Stride + x]}, ";
+            //    }
+            //    s += "\n";
+            //}
+            //File.WriteAllText("surfacePatchHeights_8_6.csv", s);
 
             for (int y = 0; y < groupHeader.PatchSize; y++)
             {
                 for (int x = 0; x < groupHeader.PatchSize; x++)
                 {
-                    Assert.AreEqual(heights[y * groupHeader.PatchSize + x], surface._SurfaceZ[patch.DataZStart + (y+1) * surface.GridsPerEdge + x+1]);
+                    Assert.AreEqual(heights[y * groupHeader.PatchSize + x], surface._SurfaceZ[patch.DataZStart + y * groupHeader.Stride + x]); 
                 }
             }
 
