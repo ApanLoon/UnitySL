@@ -12,6 +12,7 @@ namespace Assets.Scripts.MonoBehaviours.UI
             MiniMap,
             Chat,
             Search,
+            SearchMini,
             DebugLog
         }
 
@@ -22,14 +23,19 @@ namespace Assets.Scripts.MonoBehaviours.UI
         [SerializeField] protected GameObject MiniMapFloater;
         [SerializeField] protected GameObject ChatFloater;
         [SerializeField] protected GameObject SearchFloater;
+        [SerializeField] protected GameObject SearchMiniFloater;
         [SerializeField] protected GameObject DebugLogFloater;
-
+        
         public void SetFloaterVisible (FloaterType type, bool isVisible)
         {
             GameObject floater = FloaterByType(type);
             if (floater != null)
             {
                 floater.SetActive (isVisible);
+                if (isVisible == true)
+                {
+                    floater.transform.SetAsLastSibling();
+                }
             }
         }
 
@@ -44,7 +50,7 @@ namespace Assets.Scripts.MonoBehaviours.UI
             GameObject floater = FloaterByType(type);
             if (floater != null)
             {
-                floater.SetActive(!floater.activeSelf);
+                SetFloaterVisible(type, !floater.activeSelf);
             }
         }
 
@@ -66,6 +72,9 @@ namespace Assets.Scripts.MonoBehaviours.UI
 
                 case FloaterType.Search:
                     return SearchFloater;
+
+                case FloaterType.SearchMini:
+                    return SearchMiniFloater;
 
                 case FloaterType.DebugLog:
                     return DebugLogFloater;

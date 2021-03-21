@@ -1,18 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Assets.Scripts.MonoBehaviours.UI;
 using UnityEngine;
 
 public class Floater : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] protected FloaterManager.FloaterType FloaterType;
 
-    // Update is called once per frame
-    void Update()
+    public void OnClose()
     {
-        
+        FloaterManager.Instance.SetFloaterVisible(FloaterType, false);
     }
 }
