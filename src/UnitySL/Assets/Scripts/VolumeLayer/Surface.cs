@@ -112,6 +112,9 @@ public class Surface
     public float MinZ { get; set; }                 // min z for this region (during the session)
     public float MaxZ { get; set; }                 // max z for this region (during the session)
 
+    public float GetZ(UInt32 k) => SurfaceZ[k];
+    public float GetZ(int i, int j) => SurfaceZ[i + j * GridsPerEdge];
+
     protected int SurfacePatchUpdateCount;          // Number of frames since last update.
 
 
@@ -629,6 +632,7 @@ public class Surface
             //// Dirty patch statistics, and flag that the patch has data.
             surfacePatch.DirtyZ();
             surfacePatch.HasReceivedData = true;
+            //break; //TODO: Only do the first patch for testing
         }
     }
 }
