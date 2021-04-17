@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
-using UnityEditor.Profiling.Memory.Experimental;
 using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
@@ -44,8 +43,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
 
             string logMessage = "**** image_id:\n";
             BinarySerializer.DeSerializeTextureEntryField<Guid>(data, ref x, len, BinarySerializer.DeSerializeGuid,
-                               value => logMessage += $"Default image_id: http://asset-cdn.glb.agni.lindenlab.com/?texture_id={value}\n",
-                ((mask, value) => logMessage += $"Exception: 0x{mask:x} http://asset-cdn.glb.agni.lindenlab.com/?texture_id={value}\n"));
+                               value => logMessage += $"Default image_id: curl http://asset-cdn.glb.agni.lindenlab.com/?texture_id={value} --output {value}.j2k\n",
+                ((mask, value) => logMessage += $"Exception: 0x{mask:x} curl http://asset-cdn.glb.agni.lindenlab.com/?texture_id={value} --output {value}.j2k\n"));
 
             logMessage += "**** color:\n";
             BinarySerializer.DeSerializeTextureEntryField<Color>(data, ref x, len, BinarySerializer.DeSerializeColor,
