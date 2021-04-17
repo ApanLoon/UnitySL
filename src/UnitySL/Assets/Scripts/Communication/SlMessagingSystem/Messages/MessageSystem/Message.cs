@@ -12,39 +12,40 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 {
     public enum MessageId : UInt32
     {
-        StartPingCheck               = Message.MessageId_High   +   1, //0x00000001,
-        CompletePingCheck            = Message.MessageId_High   +   2, //0x00000002,
-        AgentUpdate                  = Message.MessageId_High   +   4, //0x00000004,
-        LayerData                    = Message.MessageId_High   +  11, //0x0000000b,
-        ObjectUpdate                 = Message.MessageId_High   +  12, //0x0000000c,
-        ObjectUpdateCompressed       = Message.MessageId_High   +  13, //0x0000000d,
-        SoundTrigger                 = Message.MessageId_High   +  29, //0x0000001d,
+        StartPingCheck               = Message.High   +   1, //0x00000001,
+        CompletePingCheck            = Message.High   +   2, //0x00000002,
+        AgentUpdate                  = Message.High   +   4, //0x00000004,
+        LayerData                    = Message.High   +  11, //0x0000000b,
+        ObjectUpdate                 = Message.High   +  12, //0x0000000c,
+        ObjectUpdateCompressed       = Message.High   +  13, //0x0000000d,
+        SoundTrigger                 = Message.High   +  29, //0x0000001d,
 
-        CoarseLocationUpdate         = Message.MessageId_Medium +   6, //0x0000ff06,
-        AttachedSound                = Message.MessageId_Medium +  13, //0x0000ff0d,
-        PreloadSound                 = Message.MessageId_Medium +  15, //0x0000ff0f,
-        ViewerEffect                 = Message.MessageId_Medium +  17, //0x0000ff11,
+        CoarseLocationUpdate         = Message.Medium +   6, //0x0000ff06,
+        AttachedSound                = Message.Medium +  13, //0x0000ff0d,
+        PreloadSound                 = Message.Medium +  15, //0x0000ff0f,
+        ViewerEffect                 = Message.Medium +  17, //0x0000ff11,
 
-        Wrapper                      = Message.MessageId_Low    +   1, //0xffff0001,
-        UseCircuitCode               = Message.MessageId_Low    +   3, //0xffff0003,
-        ChatFromViewer               = Message.MessageId_Low    +  80, //0xffff0050,
-        AgentThrottle                = Message.MessageId_Low    +  81, //0xffff0051,
-        AgentHeightWidth             = Message.MessageId_Low    +  83, //0xffff0053,
-        HealthMessage                = Message.MessageId_Low    + 138, //0xffff008a,
-        ChatFromSimulator            = Message.MessageId_Low    + 139, //0xffff008b,
-        RegionHandshake              = Message.MessageId_Low    + 148, //0xffff0094,
-        RegionHandshakeReply         = Message.MessageId_Low    + 149, //0xffff0095,
-        SimulatorViewerTimeMessage   = Message.MessageId_Low    + 150, //0xffff0096,
-        ScriptControlChange          = Message.MessageId_Low    + 189, //0xffff00bd,
-        ParcelOverlay                = Message.MessageId_Low    + 196, //0xffff00c4,
-        CompleteAgentMovement        = Message.MessageId_Low    + 249, //0xffff00f9,
-        AgentMovementCompleteMessage = Message.MessageId_Low    + 250, //0xffff00fa,
-        LogoutRequest                = Message.MessageId_Low    + 252, //0xffff00fc,
-        LogoutReply                  = Message.MessageId_Low    + 253, //0xffff00fd,
-        OnlineNotification           = Message.MessageId_Low    + 322, //0xffff0142,
-        OfflineNotification          = Message.MessageId_Low    + 323, //0xffff0143,
-        AgentDataUpdateRequest       = Message.MessageId_Low    + 386, //0xffff0182,
-        AgentDataUpdate              = Message.MessageId_Low    + 387, //0xffff0183,
+        Wrapper                      = Message.Low    +   1, //0xffff0001,
+        UseCircuitCode               = Message.Low    +   3, //0xffff0003,
+        ChatFromViewer               = Message.Low    +  80, //0xffff0050,
+        AgentThrottle                = Message.Low    +  81, //0xffff0051,
+        AgentHeightWidth             = Message.Low    +  83, //0xffff0053,
+        HealthMessage                = Message.Low    + 138, //0xffff008a,
+        ChatFromSimulator            = Message.Low    + 139, //0xffff008b,
+        RegionHandshake              = Message.Low    + 148, //0xffff0094,
+        RegionHandshakeReply         = Message.Low    + 149, //0xffff0095,
+        SimulatorViewerTimeMessage   = Message.Low    + 150, //0xffff0096,
+        AvatarAppearance             = Message.Low    + 158, //0xffff009e,
+        ScriptControlChange          = Message.Low    + 189, //0xffff00bd,
+        ParcelOverlay                = Message.Low    + 196, //0xffff00c4,
+        CompleteAgentMovement        = Message.Low    + 249, //0xffff00f9,
+        AgentMovementCompleteMessage = Message.Low    + 250, //0xffff00fa,
+        LogoutRequest                = Message.Low    + 252, //0xffff00fc,
+        LogoutReply                  = Message.Low    + 253, //0xffff00fd,
+        OnlineNotification           = Message.Low    + 322, //0xffff0142,
+        OfflineNotification          = Message.Low    + 323, //0xffff0143,
+        AgentDataUpdateRequest       = Message.Low    + 386, //0xffff0182,
+        AgentDataUpdate              = Message.Low    + 387, //0xffff0183,
 
         PacketAck                    = 0xfffffffb,
         OpenCircuit                  = 0xfffffffc
@@ -79,9 +80,9 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 
     public class Message
     {
-        public const UInt32 MessageId_Low    = 0xffff0000;
-        public const UInt32 MessageId_Medium = 0x0000ff00;
-        public const UInt32 MessageId_High   = 0x00000000;
+        public const UInt32 Low    = 0xffff0000;
+        public const UInt32 Medium = 0x0000ff00;
+        public const UInt32 High   = 0x00000000;
 
         /// <summary>
         /// MTU - The largest total size of a packet.
@@ -223,6 +224,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             { MessageId.ChatFromSimulator,            () => new ChatFromSimulatorMessage()       },
             { MessageId.RegionHandshake,              () => new RegionHandshakeMessage()         },
             { MessageId.SimulatorViewerTimeMessage,   () => new SimulatorViewerTimeMessage()     },
+            { MessageId.AvatarAppearance,             () => new AvatarAppearanceMessage()        },
             { MessageId.ScriptControlChange,          () => new ScriptControlChangeMessage()     },
             { MessageId.ParcelOverlay,                () => new ParcelOverlayMessage()           },
             { MessageId.AgentMovementCompleteMessage, () => new AgentMovementCompleteMessage()   },

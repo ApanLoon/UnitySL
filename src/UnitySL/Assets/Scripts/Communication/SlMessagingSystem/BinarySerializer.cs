@@ -9,6 +9,41 @@ public static class BinarySerializer
 
     #region BasicTypes
 
+    #region Bool
+    public static bool DeSerializeBool(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 1)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeBool: Not enough bytes in buffer.");
+        }
+
+        return (buffer[offset++] != 0);
+    }
+    #endregion Bool
+
+    #region UInt8
+    public static int GetSerializedLength(byte v)
+    {
+        return 1;
+    }
+    public static int Serialize(byte v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = v;
+        return o;
+    }
+
+    public static byte DeSerializeUInt8(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 1)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeUInt8: Not enough bytes in buffer.");
+        }
+
+        return buffer[offset++];
+    }
+    #endregion UInt8
+
     #region UInt16
     public static int GetSerializedLength(UInt16 v)
     {
@@ -207,6 +242,26 @@ public static class BinarySerializer
                      + ((UInt64)buffer[offset++] << 40)
                      + ((UInt64)buffer[offset++] << 48)
                      + ((UInt64)buffer[offset++] << 56);
+    }
+
+    /// <summary>
+    /// Reads a variable length integer into an unsigned 64 bit integer.
+    /// As long as the next byte is not zero and the top bit is set, the method will keep reading.
+    /// </summary>
+    /// <param name="buf"></param>
+    /// <param name="i"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    public static ulong DeSerializeUInt64v_Be(byte[] buf, ref int offset, int length)
+    {
+        UInt64 v = 0;
+        while ((buf[offset] & 0x80) != 0)
+        {
+            v |= (UInt64)buf[offset++] & 0x7f;
+            v <<= 7;
+        }
+        v |= (UInt64)buf[offset++] & 0x7f;
+        return v;
     }
     #endregion UInt64
 
@@ -677,4 +732,37 @@ public static class BinarySerializer
         return dest;
     }
     #endregion ZeroCode
+
+    #region TextureEntryFields
+    /// <summary>
+    /// De-serialises a texture entry field.
+    ///
+    /// First the default value is read and after that comes a series of face exceptions. Each exception
+    /// contains a variable length bit mask and a value that applies to the faces that are set in the mask.
+    /// </summary>
+    /// <typeparam name="T">Field type to de-serialise</typeparam>
+    /// <param name="buf"></param>
+    /// <param name="o"></param>
+    /// <param name="length"></param>
+    /// <param name="get">Method that de-serialises a single value of the field type</param>
+    /// <param name="defaultAction">Method that will be called as soon as the default value is de-serialised</param>
+    /// <param name="exceptionAction">Method that will be called for every face exception, arguments are (mask, value)</param>
+    public static void DeSerializeTextureEntryField<T>(byte[] buf, ref int o, int length, DeSerializeTextureEntryFieldDelegate<T> get, Action<T> defaultAction, Action<UInt64, T> exceptionAction)
+    {
+        T value = get(buf, ref o, length);
+        defaultAction(value);
+        while (o < length)
+        {
+            UInt64 mask = BinarySerializer.DeSerializeUInt64v_Be(buf, ref o, length);
+            if (mask == 0)
+            {
+                break;
+            }
+            value = get(buf, ref o, length);
+            exceptionAction(mask, value);
+        }
+    }
+    public delegate T DeSerializeTextureEntryFieldDelegate<out T>(byte[] buf, ref int o, int length);
+
+    #endregion TextureEntryFields
 }

@@ -27,9 +27,9 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
             for (byte i = 0; i < nControls; i++)
             {
                 ControlsChange c = new ControlsChange();
-                c.TakeControls = buf[o++] == 1;
+                c.TakeControls = BinarySerializer.DeSerializeBool(buf, ref o, length);
                 c.ControlFlags = (AgentControlFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
-                c.PassToAgent  = buf[o++] == 1;
+                c.PassToAgent  = BinarySerializer.DeSerializeBool(buf, ref o, length);
                 Controls.Add(c);
                 //Logger.LogDebug($"ScriptControlChangeMessage: TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
             }

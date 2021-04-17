@@ -60,7 +60,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
             SimAccess            = (SimAccess)buf[o++];
             SimName              = BinarySerializer.DeSerializeString   (buf, ref o, length, 1);
             SimOwner             = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
-            IsEstateManager      = buf[o++] != 0;
+            IsEstateManager      = BinarySerializer.DeSerializeBool     (buf, ref o, length);
             WaterHeight          = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
             BillableFactor       = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
             CacheId              = BinarySerializer.DeSerializeGuid     (buf, ref o, length);
