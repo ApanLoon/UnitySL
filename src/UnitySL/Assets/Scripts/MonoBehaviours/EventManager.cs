@@ -1,5 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Map;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
 using UnityEngine;
 
 public class EventManager : MonoBehaviour
@@ -73,8 +81,9 @@ public class EventManager : MonoBehaviour
         ThreadManager.ExecuteOnMainThread(() => OnRegionRemoved?.Invoke(region));
     }
 
-    public event Action<LayerDataMessage> OnLayerDataMessage;
-    public event Action<RegionHandshakeMessage> OnRegionHandshakeMessage;
+    public event Action<LayerDataMessage>           OnLayerDataMessage;
+    public event Action<ParcelOverlayMessage>       OnParcelOverlayMessage;
+    public event Action<RegionHandshakeMessage>     OnRegionHandshakeMessage;
     public event Action<SimulatorViewerTimeMessage> OnSimulatorViewerTimeMessage;
     #endregion Region
 
@@ -124,6 +133,7 @@ public class EventManager : MonoBehaviour
         {MessageId.RegionHandshake,              (m) => Instance.OnRegionHandshakeMessage?.Invoke        ((RegionHandshakeMessage)m)         },
         {MessageId.SimulatorViewerTimeMessage,   (m) => Instance.OnSimulatorViewerTimeMessage?.Invoke    ((SimulatorViewerTimeMessage)m)     },
         {MessageId.ScriptControlChange,          (m) => Instance.OnScriptControlChangeMessage?.Invoke    ((ScriptControlChangeMessage)m)     },
+        {MessageId.ParcelOverlay,                (m) => Instance.OnParcelOverlayMessage?.Invoke          ((ParcelOverlayMessage)m)           },
         {MessageId.AgentMovementCompleteMessage, (m) => Instance.OnAgentMovementCompleteMessage?.Invoke  ((AgentMovementCompleteMessage)m)   },
         {MessageId.LogoutReply,                  (m) => Instance.OnLogoutReplyMessage?.Invoke            ((LogoutReplyMessage)m)             },
         {MessageId.OnlineNotification,           (m) => Instance.OnOnlineNotificationMessage?.Invoke     ((OnlineNotificationMessage)m)      },

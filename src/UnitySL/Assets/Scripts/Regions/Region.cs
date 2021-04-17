@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
 using UnityEngine;
 
 public enum RegionMaturityLevel

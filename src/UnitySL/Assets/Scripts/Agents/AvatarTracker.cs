@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent;
 
 namespace Assets.Scripts.Agents
 {

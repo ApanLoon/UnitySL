@@ -1,39 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class LogoutReplyMessage : Message
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 {
-    public Guid AgentId { get; set; }
-    public Guid SessionId { get; set; }
-    public List<Guid> InventoryItems { get; set; } = new List<Guid>();
-
-    public LogoutReplyMessage()
+    public class LogoutReplyMessage : Message
     {
-        MessageId = MessageId.LogoutReply;
-        Flags = 0;
-    }
+        public Guid AgentId { get; set; }
+        public Guid SessionId { get; set; }
+        public List<Guid> InventoryItems { get; set; } = new List<Guid>();
 
-    #region DeSerialise
-    protected override void DeSerialise(byte[] buf, ref int o, int length)
-    {
-        AgentId                  = BinarySerializer.DeSerializeGuid (buf, ref o, length);
-        SessionId                = BinarySerializer.DeSerializeGuid (buf, ref o, length);
-        byte nItems              = buf[o++];
-        for (byte i = 0; i < nItems; i++)
+        public LogoutReplyMessage()
         {
-            InventoryItems.Add(BinarySerializer.DeSerializeGuid (buf, ref o, length));
+            MessageId = MessageId.LogoutReply;
+            Flags = 0;
         }
-        Logger.LogDebug(ToString());
-    }
-    #endregion DeSerialise
 
-    public override string ToString()
-    {
-        string s = $"{base.ToString()}: AgentId={AgentId}, SessionId={SessionId}";
-        foreach (Guid item in InventoryItems)
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
         {
-            s += $"\n    ItemId={item}";
+            AgentId                  = BinarySerializer.DeSerializeGuid (buf, ref o, length);
+            SessionId                = BinarySerializer.DeSerializeGuid (buf, ref o, length);
+            byte nItems              = buf[o++];
+            for (byte i = 0; i < nItems; i++)
+            {
+                InventoryItems.Add(BinarySerializer.DeSerializeGuid (buf, ref o, length));
+            }
+            Logger.LogDebug(ToString());
         }
-        return s;
+        #endregion DeSerialise
+
+        public override string ToString()
+        {
+            string s = $"{base.ToString()}: AgentId={AgentId}, SessionId={SessionId}";
+            foreach (Guid item in InventoryItems)
+            {
+                s += $"\n    ItemId={item}";
+            }
+            return s;
+        }
     }
 }

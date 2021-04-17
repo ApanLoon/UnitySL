@@ -1,55 +1,59 @@
 ﻿using System;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 
-public class AgentHeightWidthMessage : Message
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer
 {
-    public Guid AgentId { get; set; }
-    public Guid SessionId { get; set; }
-    public UInt32 CircuitCode { get; set; }
-
-    public UInt32 GenCounter { get; set; }
-
-    public UInt16 Height { get; set; }
-    public UInt16 Width { get; set; }
-
-    public AgentHeightWidthMessage(Guid agentId, Guid sessionId, UInt32 circuitCode, UInt32 genCounter, UInt16 height, UInt16 width)
+    public class AgentHeightWidthMessage : Message
     {
-        MessageId = MessageId.AgentHeightWidth;
-        Flags = PacketFlags.Reliable;
+        public Guid AgentId { get; set; }
+        public Guid SessionId { get; set; }
+        public UInt32 CircuitCode { get; set; }
 
-        AgentId = agentId;
-        SessionId = sessionId;
-        CircuitCode = circuitCode;
+        public UInt32 GenCounter { get; set; }
 
-        GenCounter = genCounter;
+        public UInt16 Height { get; set; }
+        public UInt16 Width { get; set; }
 
-        Height = height;
-        Width = width;
-    }
+        public AgentHeightWidthMessage(Guid agentId, Guid sessionId, UInt32 circuitCode, UInt32 genCounter, UInt16 height, UInt16 width)
+        {
+            MessageId = MessageId.AgentHeightWidth;
+            Flags = PacketFlags.Reliable;
 
-    public override int GetSerializedLength()
-    {
-        return base.GetSerializedLength()
-               + 16     // AgentId
-               + 16     // SessionId
-               + 4      // CircuitCode
-               + 4      // GenCounter
-               + 2      // Height
-               + 2;     // Width
-    }
-    public override int Serialize(byte[] buffer, int offset, int length)
-    {
-        int o = offset;
-        o += base.Serialize(buffer, offset, length);
+            AgentId = agentId;
+            SessionId = sessionId;
+            CircuitCode = circuitCode;
 
-        o = BinarySerializer.Serialize(AgentId, buffer, o, length);
-        o = BinarySerializer.Serialize(SessionId, buffer, o, length);
-        o = BinarySerializer.Serialize_Le(CircuitCode, buffer, o, length);
+            GenCounter = genCounter;
 
-        o = BinarySerializer.Serialize_Le(GenCounter, buffer, o, length);
+            Height = height;
+            Width = width;
+        }
 
-        o = BinarySerializer.Serialize_Le(Height, buffer, o, length);
-        o = BinarySerializer.Serialize_Le(Width, buffer, o, length);
+        public override int GetSerializedLength()
+        {
+            return base.GetSerializedLength()
+                   + 16     // AgentId
+                   + 16     // SessionId
+                   + 4      // CircuitCode
+                   + 4      // GenCounter
+                   + 2      // Height
+                   + 2;     // Width
+        }
+        public override int Serialize(byte[] buffer, int offset, int length)
+        {
+            int o = offset;
+            o += base.Serialize(buffer, offset, length);
 
-        return o - offset;
+            o = BinarySerializer.Serialize(AgentId, buffer, o, length);
+            o = BinarySerializer.Serialize(SessionId, buffer, o, length);
+            o = BinarySerializer.Serialize_Le(CircuitCode, buffer, o, length);
+
+            o = BinarySerializer.Serialize_Le(GenCounter, buffer, o, length);
+
+            o = BinarySerializer.Serialize_Le(Height, buffer, o, length);
+            o = BinarySerializer.Serialize_Le(Width, buffer, o, length);
+
+            return o - offset;
+        }
     }
 }

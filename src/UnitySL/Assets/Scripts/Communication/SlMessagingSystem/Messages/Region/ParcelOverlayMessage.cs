@@ -1,32 +1,43 @@
-﻿using System;
+﻿
+using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
 {
-    public class LayerDataMessage : Message
+    public class ParcelOverlayMessage : Message
     {
-        public LayerType LayerType { get; set; }
+        /// <summary>
+        /// Identifier in the sequence of ParcelOverlay messages. (0..3)
+        /// </summary>
+        public Int32 SequenceId { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public byte[] Data { get; set; }
 
-        public LayerDataMessage()
+        public ParcelOverlayMessage()
         {
-            MessageId = MessageId.LayerData;
+            MessageId = MessageId.ParcelOverlay;
             Flags = 0;
         }
 
         #region DeSerialise
+
         protected override void DeSerialise(byte[] buf, ref int o, int length)
         {
-            LayerType = (LayerType)buf[o++];
+            SequenceId = BinarySerializer.DeSerializeInt32_Le(buf, ref o, length);
             UInt16 len = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
             Data = new byte[len];
             Array.Copy(buf, o, Data, 0, len);
+
+            Logger.LogDebug(ToString());
         }
         #endregion DeSerialise
 
         public override string ToString()
         {
-            return $"{base.ToString()}: LayerType={LayerType}, Data({Data.Length})";
+            return $"{base.ToString()}: SequenceId={SequenceId}, Data({Data.Length})";
         }
     }
 }

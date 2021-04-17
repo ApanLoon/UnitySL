@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Assets.Scripts.Agents;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
 
 public class Session
 {

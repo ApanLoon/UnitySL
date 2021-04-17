@@ -1,26 +1,29 @@
 ﻿using System;
 
-public class StartPingCheckMessage : Message
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 {
-    public byte PingId { get; set; }
-    public UInt32 OldestUnchecked { get; set; }
-
-    public StartPingCheckMessage()
+    public class StartPingCheckMessage : Message
     {
-        MessageId = MessageId.StartPingCheck;
-        Flags = 0;
-    }
+        public byte PingId { get; set; }
+        public UInt32 OldestUnchecked { get; set; }
 
-    #region DeSerialise
-    protected override void DeSerialise(byte[] buf, ref int o, int length)
-    {
-        PingId = buf[o++];
-        OldestUnchecked = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, buf.Length);
-    }
-    #endregion DeSerialise
+        public StartPingCheckMessage()
+        {
+            MessageId = MessageId.StartPingCheck;
+            Flags = 0;
+        }
+
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
+        {
+            PingId = buf[o++];
+            OldestUnchecked = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, buf.Length);
+        }
+        #endregion DeSerialise
     
-    public override string ToString()
-    {
-        return $"{base.ToString()}: PingId={PingId}, OldestUnchecked={OldestUnchecked}";
+        public override string ToString()
+        {
+            return $"{base.ToString()}: PingId={PingId}, OldestUnchecked={OldestUnchecked}";
+        }
     }
 }

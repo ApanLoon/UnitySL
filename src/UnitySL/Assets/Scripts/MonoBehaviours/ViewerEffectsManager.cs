@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
 using UnityEngine;
 
 public class ViewerEffectsManager : MonoBehaviour

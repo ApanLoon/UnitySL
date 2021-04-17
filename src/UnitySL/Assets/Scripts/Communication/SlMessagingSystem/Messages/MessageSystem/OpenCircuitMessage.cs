@@ -2,56 +2,59 @@
 using System.Net;
 using System.Net.Sockets;
 
-public class OpenCircuitMessage : Message
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 {
-    public IPAddress Address { get; set; }
-    public int Port { get; set; }
-
-    public OpenCircuitMessage(IPAddress address, int port)
+    public class OpenCircuitMessage : Message
     {
-        if (address.AddressFamily != AddressFamily.InterNetwork)
+        public IPAddress Address { get; set; }
+        public int Port { get; set; }
+
+        public OpenCircuitMessage(IPAddress address, int port)
         {
-            throw new Exception("OpenCircuitMessage.Constructor: Only IP v4 is supported.");
+            if (address.AddressFamily != AddressFamily.InterNetwork)
+            {
+                throw new Exception("OpenCircuitMessage.Constructor: Only IP v4 is supported.");
+            }
+
+            MessageId = MessageId.OpenCircuit;
+            Flags = PacketFlags.Reliable;
+            Address = address;
+            Port = port;
         }
 
-        MessageId = MessageId.OpenCircuit;
-        Flags = PacketFlags.Reliable;
-        Address = address;
-        Port = port;
-    }
-
-    #region Serialise
-    public override int GetSerializedLength()
-    {
-        return base.GetSerializedLength()
-               + 4  // Address
-               + 2; // Port
-    }
-    public override int Serialize(byte[] buffer, int offset, int length)
-    {
-        int o = offset;
-        o += base.Serialize(buffer, offset, length);
-        if (Address.AddressFamily != AddressFamily.InterNetwork)
+        #region Serialise
+        public override int GetSerializedLength()
         {
-            throw new Exception("OpenCircuitMessage.Encode: Only IP v4 is supported.");
+            return base.GetSerializedLength()
+                   + 4  // Address
+                   + 2; // Port
         }
+        public override int Serialize(byte[] buffer, int offset, int length)
+        {
+            int o = offset;
+            o += base.Serialize(buffer, offset, length);
+            if (Address.AddressFamily != AddressFamily.InterNetwork)
+            {
+                throw new Exception("OpenCircuitMessage.Encode: Only IP v4 is supported.");
+            }
 
-        byte[] address = Address.GetAddressBytes();
-        buffer[o++] = address[0];
-        buffer[o++] = address[1];
-        buffer[o++] = address[2];
-        buffer[o++] = address[3];
+            byte[] address = Address.GetAddressBytes();
+            buffer[o++] = address[0];
+            buffer[o++] = address[1];
+            buffer[o++] = address[2];
+            buffer[o++] = address[3];
 
-        // Little endian
-        buffer[o++] = (byte)(Port >> 0);
-        buffer[o++] = (byte)(Port >> 8);
+            // Little endian
+            buffer[o++] = (byte)(Port >> 0);
+            buffer[o++] = (byte)(Port >> 8);
 
-        return o - offset;
-    }
-    #endregion Serialise
+            return o - offset;
+        }
+        #endregion Serialise
 
-    public override string ToString()
-    {
-        return $"{base.ToString()}: Address={Address}, Port=\"{Port}\"";
+        public override string ToString()
+        {
+            return $"{base.ToString()}: Address={Address}, Port=\"{Port}\"";
+        }
     }
 }

@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
 using UnityEngine;
 
 public class Circuit : IDisposable
