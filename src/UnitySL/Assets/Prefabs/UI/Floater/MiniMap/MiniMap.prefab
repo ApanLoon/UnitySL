@@ -1,5 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &5962688698850845365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70100115923642831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c4509673261a6349bc56026b645926a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MarkerPrefab: {fileID: 8997964734582005672, guid: 390c1e716c9e68446830a9252e1f9549,
+    type: 3}
+  MarkerContainer: {fileID: 70100117440397009}
 --- !u!1001 &9195228928639099498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -155,3 +170,15 @@ PrefabInstance:
         type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fa8756cfb8e59124f93653ea70a3bbc9, type: 3}
+--- !u!1 &70100115923642831 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9179752567565601701, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+    type: 3}
+  m_PrefabInstance: {fileID: 9195228928639099498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &70100117440397009 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 9179752566048857275, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+    type: 3}
+  m_PrefabInstance: {fileID: 9195228928639099498}
+  m_PrefabAsset: {fileID: 0}
