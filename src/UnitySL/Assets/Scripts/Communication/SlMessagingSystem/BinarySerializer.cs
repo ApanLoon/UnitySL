@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Assets.Scripts.Primitives;
 using UnityEngine;
 
 public static class BinarySerializer
 {
-
     #region BasicTypes
 
     #region Bool
@@ -613,7 +613,6 @@ public static class BinarySerializer
     #endregion Quaternion
 
     #region Color
-
     public static Color DeSerializeColor(byte[] buffer, ref int offset, int length)
     {
         if (length - offset < 4)
@@ -630,8 +629,34 @@ public static class BinarySerializer
         };
         return v;
     }
+
+    /// <summary>
+    /// Note:  This is an optimisation to send common colours (1.f, 1.f, 1.f, 1.f)
+    /// as all zeros.  However, the subtraction and addition must be done in unsigned
+    /// byte space, not in float space, otherwise off-by-one errors occur. JC
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <param name="offset"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    public static Color DeSerializeColorInv(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeColor: Not enough bytes in buffer.");
+        }
+
+        Color v = new Color
+        {
+            r = (255 - buffer[offset++]) / 255f,
+            g = (255 - buffer[offset++]) / 255f,
+            b = (255 - buffer[offset++]) / 255f,
+            a = (255 - buffer[offset++]) / 255f
+        };
+        return v;
+    }
     #endregion Color
-    
+
     #endregion BasicTypes
 
     #region Acks
@@ -733,7 +758,261 @@ public static class BinarySerializer
     }
     #endregion ZeroCode
 
-    #region TextureEntryFields
+    #region TextureEntry
+    /// <summary>
+    /// De-serialises a TextureEntry object
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <param name="offset"></param>
+    /// <param name="length">The number of bytes following the offset that can be used to read the TextureEntry</param>
+    /// <returns></returns>
+    public static TextureEntry DeSerializeTextureEntry(byte[] buffer, ref int offset, int length)
+    {
+        int start = offset;
+        int len = offset + length;
+        TextureEntry entry = new TextureEntry();
+
+        string logMessage = "TextureEntry:\n**** image_id:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+            
+            DeSerializeGuid,
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].TextureId = v);
+                entry.DefaultTexture.TextureId = value;
+                logMessage += $"                        curl http://asset-cdn.glb.agni.lindenlab.com/?texture_id={value} --output {value}.j2k\n";
+            },
+
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].TextureId = v, mask);
+                logMessage += $"    0x{mask:x16} curl http://asset-cdn.glb.agni.lindenlab.com/?texture_id={value} --output {value}.j2k\n";
+            }));
+
+        logMessage += "**** colour:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len, 
+            
+            DeSerializeColorInv,
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].Colour = v);
+                entry.DefaultTexture.Colour = value;
+                logMessage += $"                        {value}\n";
+            },
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].Colour = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** scale_s:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len, 
+            
+            DeSerializeFloat_Le,
+            
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].RepeatU = v);
+                entry.DefaultTexture.RepeatU = value;
+                logMessage += $"                        {value}\n";
+            },
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].RepeatU = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** scale_t:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+            
+            DeSerializeFloat_Le,
+            
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].RepeatV = v);
+                entry.DefaultTexture.RepeatV = value;
+                logMessage += $"                        {value}\n";
+            },
+            ((mask, value) =>
+            
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].RepeatV = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** offset_s:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+
+            (byte[] b, ref int o, int l) => DeSerializeInt16_Le(b, ref o, l) / (float)0x7fff,
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].OffsetU = v);
+                entry.DefaultTexture.OffsetU = value;
+                logMessage += $"                        {value}\n";
+            },
+
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].OffsetU = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** offset_t:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+
+            (byte[] b, ref int o, int l) => DeSerializeInt16_Le(b, ref o, l) / (float)0x7fff,
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].OffsetV = v);
+                entry.DefaultTexture.OffsetV = value;
+                logMessage += $"                        {value}\n";
+            },
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].OffsetV = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** image_rot:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+
+            (byte[] b, ref int o, int l) => DeSerializeInt16_Le(b, ref o, l) / _teTextureRotationPackFactor * Mathf.PI * 2,
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].Rotation = v);
+                entry.DefaultTexture.Rotation = value;
+                logMessage += $"                        {value}\n";
+            },
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].Rotation = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** bump:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+
+            (byte[] b, ref int o, int l) => new BumpShinyFullBright(DeSerializeUInt8(b, ref o, l)),
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) =>
+                {
+                    entry.FaceTextures[i].Bumpiness  = v.Bumpiness;
+                    entry.FaceTextures[i].FullBright = v.FullBright;
+                    entry.FaceTextures[i].Shininess  = v.Shininess;
+                });
+                entry.DefaultTexture.Bumpiness  = value.Bumpiness;
+                entry.DefaultTexture.FullBright = value.FullBright;
+                entry.DefaultTexture.Shininess  = value.Shininess;
+                logMessage += $"                        {value}\n";
+            },
+
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) =>
+                {
+                    entry.FaceTextures[i].Bumpiness  = v.Bumpiness;
+                    entry.FaceTextures[i].FullBright = v.FullBright;
+                    entry.FaceTextures[i].Shininess  = v.Shininess;
+                }, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** media_flags:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+
+            (byte[] b, ref int o, int l) => new MediaTexGen(DeSerializeUInt8(b, ref o, l)),
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) =>
+                {
+                    entry.FaceTextures[i].HasMedia           = v.HasMedia;
+                    //entry.FaceTextures[i].TextureMappingType = v.TexGenMode; // TODO: What is the difference between TextureMappingType and TexGenMode?
+                });
+                entry.DefaultTexture.HasMedia = value.HasMedia;
+                //entry.DefaultTexture.TextureMappingType = value.TexGenMode; // TODO: What is the difference between TextureMappingType and TexGenMode?
+                logMessage += $"                        {value}\n";
+            },
+            
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) =>
+                {
+                    entry.FaceTextures[i].HasMedia = v.HasMedia;
+                    //entry.FaceTextures[i].TextureMappingType = v.TexGenMode; // TODO: What is the difference between TextureMappingType and TexGenMode?
+                }, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        logMessage += "**** glow:\n";
+        DeSerializeTextureEntryField(buffer, ref offset, len,
+
+            (byte[] b, ref int o, int l) => DeSerializeUInt8(b, ref o, l) / (float)0xff,
+
+            value =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].Glow = v);
+                entry.DefaultTexture.Glow = value;
+                logMessage += $"                        {value}\n";
+            },
+
+            ((mask, value) =>
+            {
+                ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].Glow = v, mask);
+                logMessage += $"    0x{mask:x16} {value}\n";
+            }));
+
+        if (offset < len)
+        {
+            logMessage += "**** material_id:\n";
+            DeSerializeTextureEntryField(buffer, ref offset, len,
+                
+                DeSerializeGuid,
+
+                value =>
+                {
+                    ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].MaterialId = v);
+                    entry.DefaultTexture.MaterialId = value;
+                    logMessage += $"                        {value}\n";
+                },
+                ((mask, value) =>
+                {
+                    ApplyTextureEntryField(value, (i, v) => entry.FaceTextures[i].MaterialId = v, mask);
+                    logMessage += $"    0x{mask:x16} {value}\n";
+                }));
+
+        }
+        Logger.LogDebug(logMessage);
+        return entry;
+    }
+
+    /// <summary>
+    /// Calls the action for every face set to 1 in the given mask.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="value"></param>
+    /// <param name="action"></param>
+    /// <param name="mask"></param>
+    public static void ApplyTextureEntryField<T>(T value, Action<int, T> action, UInt64 mask = UInt64.MaxValue)
+    {
+        for (int i = 0; i < TextureEntry.MAX_FACES; i++)
+        {
+            if ((mask & 1) != 0)
+            {
+                action(i, value);
+            }
+
+            mask >>= 1;
+        }
+    }
+
     /// <summary>
     /// De-serialises a texture entry field.
     ///
@@ -762,7 +1041,71 @@ public static class BinarySerializer
             exceptionAction(mask, value);
         }
     }
+
     public delegate T DeSerializeTextureEntryFieldDelegate<out T>(byte[] buf, ref int o, int length);
 
-    #endregion TextureEntryFields
+    /// <summary>
+    /// Texture rotations are sent over the wire as a S16.  This is used to scale the actual float
+    /// value to a S16.   Don't use 7FFF as it introduces some odd rounding with 180 since it 
+    /// can't be divided by 2.   See DEV-19108
+    /// </summary>
+    private static float _teTextureRotationPackFactor = 0x08000;
+
+    // The Bump Shiny Fullbright values are bits in an eight bit field:
+    // +----------+
+    // | SSFBBBBB | S = Shiny, F = Fullbright, B = Bumpmap
+    // | 76543210 |
+    // +----------+
+    private const int _teBumpMask        = 0x1f; // 5 bits
+    private const int _teFullBrightMask  = 0x01; // 1 bit
+    private const int _teShinyMask       = 0x03; // 2 bits
+    private const int _teBumpShinyMask   = (0xc0 | 0x1f);
+    private const int _teFullBrightShift = 5;
+    private const int _teShinyShift      = 6;
+    private struct BumpShinyFullBright
+    {
+        public Bumpiness Bumpiness { get; }
+        public Shininess Shininess { get; }
+        public bool FullBright { get; }
+
+        public BumpShinyFullBright(byte value)
+        {
+            Bumpiness = (Bumpiness)(value & _teBumpMask);
+            FullBright = ((value >> _teFullBrightShift) & _teFullBrightMask) != 0;
+            Shininess = (Shininess)((value >> _teShinyShift) & _teShinyMask);
+        }
+
+        public override string ToString()
+        {
+            return $"Bumpiness={Bumpiness}, FullBright={FullBright}, Shininess={Shininess}";
+        }
+    }
+
+    // The Media Tex Gen values are bits in a bit field:
+    // +----------+
+    // | .....TTM | M = Media Flags (web page), T = LLTextureEntry::eTexGen, . = unused
+    // | 76543210 |
+    // +----------+
+    private const int _teMediaMask   = 0x01;
+    private const int _teTexGenMask  = 0x06;
+    private const int _teTexGenShift = 1;
+    
+    private struct MediaTexGen
+    {
+        public bool HasMedia { get; }
+        public TexGenMode TexGenMode { get; }
+
+        public MediaTexGen(byte value)
+        {
+            HasMedia = (value & _teMediaMask) != 0;
+            TexGenMode = (TexGenMode) ((value >> _teTexGenShift) & _teTexGenMask);
+        }
+
+        public override string ToString()
+        {
+            return $"HasMedia={HasMedia}, TexGen={TexGenMode}";
+        }
+    }
+
+    #endregion TextureEntry
 }

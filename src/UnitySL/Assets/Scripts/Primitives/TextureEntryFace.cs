@@ -22,22 +22,6 @@ public class TextureEntryFace
     public MappingType TextureMappingType { get; set; }
     public Guid TextureId { get; set; }
     public Guid MaterialId { get; set; }
-
-    // +----------+ S = Shiny
-    // | SSFBBBBB | F = Fullbright
-    // | 76543210 | B = Bumpmap
-    // +----------+
-    private const byte BUMP_MASK       = 0x1F;
-    private const byte FULLBRIGHT_MASK = 0x20;
-    private const byte SHINY_MASK      = 0xC0;
-    // +----------+ M = Media Flags (web page)
-    // | .....TTM | T = Texture Mapping
-    // | 76543210 | . = Unused
-    // +----------+
-    private const byte MEDIA_MASK      = 0x01;
-    private const byte TEX_MAP_MASK    = 0x06;
-
-
 }
 
 /// <summary>
