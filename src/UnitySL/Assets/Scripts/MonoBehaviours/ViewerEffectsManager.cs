@@ -7,6 +7,7 @@ public class ViewerEffectsManager : MonoBehaviour
 {
     [SerializeField] protected GameObject SpiralEffectPrefab;
     [SerializeField] protected GameObject LookAtEffectPrefab;
+    [SerializeField] protected GameObject PointAtEffectPrefab;
 
     protected Dictionary<Guid, GameObject> GameObjectByEffectId = new Dictionary<Guid, GameObject>();
 
@@ -36,6 +37,12 @@ public class ViewerEffectsManager : MonoBehaviour
                 case ViewerEffectLookAt lookAtEffect:
                     go = Instantiate(LookAtEffectPrefab, transform); // TODO: Use effect pool
                     go.transform.position = region.GetLocalPosition(lookAtEffect.TargetPosition);
+                    break;
+
+                case ViewerEffectPointAt pointAtEffect:
+                    go = Instantiate(PointAtEffectPrefab, transform); // TODO: Use effect pool
+                    go.transform.position = region.GetLocalPosition(pointAtEffect.TargetPosition);
+                    // TODO: Set the source position to the location of the source avatar?
                     break;
             }
 

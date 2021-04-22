@@ -82,6 +82,30 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer
 
     }
 
+    /// <summary>
+    /// The action an avatar is doing when pointing at something, used in
+    /// ViewerEffect packets for the PointAt effect
+    /// </summary>
+    public enum ViewerEffectPointAtType : byte
+    {
+        None,
+        Select,
+        Grab,
+        Clear
+    }
+    public class ViewerEffectPointAt : ViewerEffect
+    {
+        public Guid SourceAvatarId { get; set; }
+        public Guid TargetObjectId { get; set; }
+        public Vector3Double TargetPosition { get; set; }
+        public ViewerEffectPointAtType PointAtType { get; set; }
+        public override string ToString()
+        {
+            return $"PointAt: {base.ToString()}, SourceAvatarId={SourceAvatarId}, TargetObjectId={TargetObjectId}, TargetPosition={TargetPosition}, PointAtType={PointAtType}";
+        }
+
+    }
+
     public class ViewerEffectMessage : Message
     {
         public Guid AgentId { get; set; }
@@ -153,7 +177,14 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer
                         break;
 
                     case ViewerEffectType.EffectPointAt:
+                        ViewerEffectPointAt pointAtEffect = new ViewerEffectPointAt();
+                        pointAtEffect.SourceAvatarId = BinarySerializer.DeSerializeGuid(buf, ref o, length);
+                        pointAtEffect.TargetObjectId = BinarySerializer.DeSerializeGuid(buf, ref o, length);
+                        pointAtEffect.TargetPosition = BinarySerializer.DeSerializeVector3Double(buf, ref o, length);
+                        pointAtEffect.PointAtType = (ViewerEffectPointAtType)buf[o++];
+                        effect = pointAtEffect;
                         break;
+
                     case ViewerEffectType.EffectVoiceViaualizer:
                         break;
                     case ViewerEffectType.NameTag:

@@ -3712,6 +3712,8 @@ MonoBehaviour:
     type: 3}
   LookAtEffectPrefab: {fileID: 6056907373980637406, guid: 48f54e5514d527143a32b1392ae6c78f,
     type: 3}
+  PointAtEffectPrefab: {fileID: 4766794651853054622, guid: e16c1dfcd2913c141937b1595852c147,
+    type: 3}
 --- !u!4 &691964600
 Transform:
   m_ObjectHideFlags: 0
