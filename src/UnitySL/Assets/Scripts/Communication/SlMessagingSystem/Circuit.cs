@@ -232,7 +232,7 @@ public class Circuit : IDisposable
         }
 
         int len = message.GetSerializedLength();
-        lock (WaitingForInboundAck)
+        lock (WaitingForOutboundAck)
         {
             int nAcks = WaitingForOutboundAck.Count;
 
