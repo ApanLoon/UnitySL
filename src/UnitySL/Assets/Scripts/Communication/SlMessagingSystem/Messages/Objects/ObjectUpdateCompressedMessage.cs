@@ -119,7 +119,9 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
                 if ((compressedFlags & CompressedFlags.HasParticles) != 0)
                 {
+                    // TODO: Parse the particle system data. OpenMetaverse says that this is a BitPack of 86 bytes.
                     len = 86;
+                    compressedOffset += (int)len;
                     logMessage += $", ParticleSystem({len})";
                 }
 
@@ -194,8 +196,9 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ProfileHollow    = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * HOLLOW_QUANTA;
 
                 UInt32 textureEntryLength = BinarySerializer.DeSerializeUInt32_Le(compressedData, ref compressedOffset, length);
-                logMessage += $", textures({textureEntryLength})";
-                compressedOffset += (int)textureEntryLength;
+                //compressedOffset += (int)textureEntryLength;
+                data.TextureEntry = BinarySerializer.DeSerializeTextureEntry(compressedData, ref compressedOffset, (int)textureEntryLength);
+                logMessage += $", TextureEntry={data.TextureEntry}";
 
                 if ((compressedFlags & CompressedFlags.TextureAnimation) != 0)
                 {

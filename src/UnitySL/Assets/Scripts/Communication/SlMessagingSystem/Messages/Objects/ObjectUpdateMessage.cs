@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Primitives;
 using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
@@ -222,7 +223,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public float ProfileEnd { get; set; }
             public float ProfileHollow { get; set; }
 
-            public List<byte> TextureEntries { get; set; } = new List<byte>();
+            public TextureEntry TextureEntry { get; set; }
             public List<byte> TextureAnims { get; set; } = new List<byte>();
 
             public string NameValue { get; set; }
@@ -303,11 +304,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ProfileEnd         = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * CUT_QUANTA;
                 data.ProfileHollow      = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * HOLLOW_QUANTA;
 
-                len                     = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length);
-                for (int j = 0; j < len; j++)
-                {
-                    data.TextureEntries.Add(buf[o++]);
-                }
+                len                     = BinarySerializer.DeSerializeUInt16_Le   (buf, ref o, length);
+                data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, len);
 
                 len = buf[o++];
                 for (int j = 0; j < len; j++)
@@ -356,7 +354,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                      + $"\n                     FullId={data.FullId}, Crc={data.Crc}, PCode={data.PCode}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}, Data1({data.Data1.Length})"
                      + $"\n                     ParentId={data.ParentId}, UpdateFlags={data.UpdateFlags}"
                      + $"\n                     PathCurve={data.PathCurve}, ProfileCurve={data.ProfileCurve}, Path=({data.PathBegin}-{data.PathEnd}), PathScale=({data.PathScaleX}, {data.PathScaleY}), PathShear=({data.PathShearX}, {data.PathShearY}), PathTwist={data.PathTwist}, PathTwistBegin={data.PathTwistBegin}, PathRadiusOffset={data.PathRadiusOffset}, PathTaper=({data.PathTaperX}, {data.PathTaperY}), PathRevolutions={data.PathRevolutions}, PathSkew={data.PathSkew}, Profile=({data.ProfileBegin}-{data.ProfileEnd}), Hollow={data.ProfileHollow}"
-                     + $"\n                     TextureEntries({data.TextureEntries.Count})"
+                     + $"\n                     TextureEntry({data.TextureEntry})"
                      + $"\n                     TextureAnims({data.TextureAnims.Count})"
                      + $"\n                     NameValue={data.NameValue.Replace("\n", "\\n")}, Data2({data.Data2.Length}), Text={data.Text}, TextColour={data.TextColour}, MediaUrl={data.MediaUrl}"
                      + $"\n                     ParticleSystemData({data.ParticleSystemData.Length})"
