@@ -989,7 +989,7 @@ public static class BinarySerializer
                 }));
 
         }
-        Logger.LogDebug(logMessage);
+        //Logger.LogDebug(logMessage);
         return entry;
     }
 
