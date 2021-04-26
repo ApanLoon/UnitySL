@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Assets.Scripts.Regions;
 using UnityEngine;
 
 #if UNITY_EDITOR

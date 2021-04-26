@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Agents;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Map;
+using Assets.Scripts.Regions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
     public class MiniMap : MonoBehaviour
     {
         [SerializeField] protected RectTransform MapParent;
+        [SerializeField] protected RawImage ParcelGrid;
         [SerializeField] protected GameObject MarkerPrefab;
         [SerializeField] protected RectTransform MarkerContainer;
 
@@ -33,6 +35,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
 
         private void Start()
         {
+            EventManager.Instance.OnParcelOverlayChanged += OnParcelOverlayChanged; 
             EventManager.Instance.OnCoarseLocationUpdateMessage += OnCoarseLocationUpdateMessage; // TODO: This should probably use some higher level mechanism to get updates. Possibly AvatarTracker
             EventManager.Instance.OnLogout += () =>
             {
@@ -59,6 +62,12 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
                     MapParent.localScale = new Vector3(Zoom, Zoom, 1f);
                 }
             }
+        }
+
+        protected void OnParcelOverlayChanged(Region region)
+        {
+            ParcelGrid.texture = region.ParcelOverlay.ParcelOverlayMinimapBorderTexture;
+            ParcelGrid.gameObject.SetActive(true);
         }
 
         protected void OnCoarseLocationUpdateMessage(CoarseLocationUpdateMessage message)

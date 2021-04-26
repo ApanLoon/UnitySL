@@ -1,4 +1,6 @@
-﻿public class VolumeLayerData
+﻿using Assets.Scripts.Regions;
+
+public class VolumeLayerData
 {
     public LayerType LayerType { get; set; }
     public int Size { get; set; }

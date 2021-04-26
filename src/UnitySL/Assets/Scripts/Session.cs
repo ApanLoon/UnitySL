@@ -5,6 +5,7 @@ using Assets.Scripts.Agents;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
+using Assets.Scripts.Regions;
 
 public class Session
 {

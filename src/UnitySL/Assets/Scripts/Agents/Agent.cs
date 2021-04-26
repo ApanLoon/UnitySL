@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Assets.Scripts.Agents;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent;
+using Assets.Scripts.Regions;
 using UnityEngine;
 
 public enum AgentState : byte

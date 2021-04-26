@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using Assets.Scripts.Regions;
+using TMPro;
 using UnityEngine;
 
 public class MainTitleBar : MonoBehaviour

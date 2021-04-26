@@ -8,6 +8,7 @@ using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
+using Assets.Scripts.Regions;
 using UnityEngine;
 
 public class EventManager : MonoBehaviour
@@ -67,8 +68,13 @@ public class EventManager : MonoBehaviour
     #endregion Object
 
     #region Region
-    public event Action<Region> OnRegionDataChanged;
+    public event Action<Region> OnParcelOverlayChanged;
+    public void RaiseOnParcelOverlayChanged(Region region)
+    {
+        ThreadManager.ExecuteOnMainThread(() => OnParcelOverlayChanged?.Invoke(region));
+    }
 
+    public event Action<Region> OnRegionDataChanged;
     public void RaiseOnRegionDataChanged(Region region)
     {
         ThreadManager.ExecuteOnMainThread(() => OnRegionDataChanged?.Invoke(region));

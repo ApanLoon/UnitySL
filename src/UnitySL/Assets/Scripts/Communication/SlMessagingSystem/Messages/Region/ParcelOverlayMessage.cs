@@ -1,6 +1,7 @@
 ﻿
 using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Regions.Parcels;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
 {
@@ -14,7 +15,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
         /// <summary>
         /// 
         /// </summary>
-        public byte[] Data { get; set; }
+        public OwnershipFlags[] Data { get; set; }
 
         public ParcelOverlayMessage()
         {
@@ -28,7 +29,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
         {
             SequenceId = BinarySerializer.DeSerializeInt32_Le(buf, ref o, length);
             UInt16 len = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
-            Data = new byte[len];
+            Data = new OwnershipFlags[len];
             Array.Copy(buf, o, Data, 0, len);
 
             Logger.LogDebug(ToString());
