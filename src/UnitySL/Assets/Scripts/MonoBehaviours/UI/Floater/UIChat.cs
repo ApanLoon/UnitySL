@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Assets.Scripts.MessageLogs;
 using TMPro;
 using UnityEngine;
@@ -75,10 +76,15 @@ public class UIChat : MonoBehaviour
         Debug.Log("Set active tab: " + activeTab.name);
     }
 
-    public void SendMessage()
+    public async void SendMessage()
     {
-        activeTab.messageLog.Add(chatInputField.text);
-        messageView.AppendMessage(chatInputField.text);
+        if (activeTab == localChatTab)
+        {
+            string s = chatInputField.text;
+            await (Agent.CurrentPlayer?.Region?.Circuit?.SendChatFromViewer(s, ChatType.Normal, 0) ?? Task.CompletedTask);
+        }
+        //activeTab.messageLog.Add(chatInputField.text);
+        //messageView.AppendMessage(chatInputField.text);
         chatInputField.text = "";
     }
 

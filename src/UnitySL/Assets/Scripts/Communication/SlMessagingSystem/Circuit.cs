@@ -157,6 +157,7 @@ public class Circuit : IDisposable
         Guid sessionId = Session.Instance.SessionId;
 
         ChatFromViewerMessage msg = new ChatFromViewerMessage(agentId, sessionId, message, chatType, channel);
+        Logger.LogDebug("Circuit.SendChatFromViewer", msg.ToString());
         await SendReliable(msg);
     }
 

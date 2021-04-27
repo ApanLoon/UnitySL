@@ -24,8 +24,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             ChatType = chatType;
             Channel = channel;
         }
-
-
+        
         #region Serialise
         public override int GetSerializedLength()
         {
@@ -57,5 +56,10 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             return o - offset;
         }
         #endregion Serialise
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}: AgentId={AgentId}, SessionId={SessionId}, ChatType={ChatType}, Channel={Channel}, Message={Message}";
+        }
     }
 }
