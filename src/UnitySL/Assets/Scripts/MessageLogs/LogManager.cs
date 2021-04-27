@@ -8,6 +8,9 @@ namespace Assets.Scripts.MessageLogs
     {
         public static LogManager Instance = new LogManager();
 
+        public event Action<DebugMessage> OnDebugMessage;
+        public event Action<ChatMessage> OnChatMessage;
+
         public MessageLog<DebugMessage> DebugLog = new MessageLog<DebugMessage>();
         public MessageLog<ChatMessage> ChatLog = new MessageLog<ChatMessage>();
 
@@ -19,18 +22,20 @@ namespace Assets.Scripts.MessageLogs
 
         protected void OnLog(Logger.LogLevel level, string senderName, string content)
         {
-            DebugLog.AddMessage(new DebugMessage
+            DebugMessage msg = new DebugMessage
             {
                 Level = level,
                 Timestamp = DateTimeOffset.UtcNow,
                 SenderName = senderName,
                 Text = content
-            });
+            };
+            DebugLog.AddMessage(msg);
+            OnDebugMessage?.Invoke(msg);
         }
 
         protected void OnChatFromSimulatorMessage(ChatFromSimulatorMessage message)
         {
-            ChatLog.AddMessage(new ChatMessage
+            ChatMessage msg = new ChatMessage
             {
                 AudibleLevel = message.AudibleLevel,
                 ChatType = message.ChatType,
@@ -41,7 +46,9 @@ namespace Assets.Scripts.MessageLogs
                 Timestamp = DateTimeOffset.Now,
                 SourceType = message.SourceType,
                 Text = message.Message
-            });
+            };
+            ChatLog.AddMessage(msg);
+            OnChatMessage?.Invoke(msg);
         }
     }
 }
