@@ -49,7 +49,7 @@ public class ViewerEffectsManager : MonoBehaviour
 
             if (go == null)
             {
-                Logger.LogWarning($"ViewerEffectsManager.OnViewerEffectMessage: ViewerEffect of type {viewerEffect.EffectType} is not implemented.");
+                Logger.LogWarning("ViewerEffectsManager.OnViewerEffectMessage", $"ViewerEffect of type {viewerEffect.EffectType} is not implemented.");
                 continue;
             }
             GameObjectByEffectId[viewerEffect.Id] = go;

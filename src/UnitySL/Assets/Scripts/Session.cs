@@ -33,7 +33,7 @@ public class Session
         IsLogoutPending = false;
 
         #region Login
-        Logger.LogDebug("LOGIN------------------------------");
+        Logger.LogDebug("Session.Start", "LOGIN------------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Logging in...", 0.2f);
 
         Login login = new Login();
@@ -54,7 +54,7 @@ public class Session
                 case "tos":
                     break;
             }
-            Logger.LogWarning($"Login.Connect: {loginResponse.MessageId} {loginResponse.Message}");
+            Logger.LogWarning("Session.Start", $"Login.Connect returned {loginResponse.MessageId} {loginResponse.Message}");
             return;
         }
 
@@ -62,7 +62,7 @@ public class Session
         #endregion Login
 
         #region WorldInit
-        Logger.LogDebug("WORLD_INIT-------------------------");
+        Logger.LogDebug("Session.Start", "WORLD_INIT-------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Initializing world...", 0.3f);
 
         AgentId = loginResponse.AgentId;
@@ -83,7 +83,7 @@ public class Session
         FirstSimHost = new Host(loginResponse.SimIp, loginResponse.SimPort);
         Region region = World.Instance.AddRegion(loginResponse.RegionHandle, FirstSimHost);
 
-        Logger.LogInfo("Requesting capability grants...");
+        Logger.LogInfo("Session.Start", "Requesting capability grants...");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Requesting capability grants...", 0.32f);
         
         Task seedCapabilitiesTask = region.SetSeedCapability(loginResponse.SeedCapability);
@@ -92,28 +92,28 @@ public class Session
         #endregion WorldInit
 
         #region MultimediaInit
-        Logger.LogDebug("MULTIMEDIA_INIT--------------------");
+        Logger.LogDebug("Session.Start", "MULTIMEDIA_INIT--------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Initializing multimedia...", 0.42f);
 
         #endregion MultimediaInit
 
         #region FontInit
-        Logger.LogDebug("FONT_INIT--------------------------");
+        Logger.LogDebug("Session.Start", "FONT_INIT--------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Initializing fonts...", 0.45f);
 
         #endregion FontInit
 
         #region SeedGrantedWait
-        Logger.LogDebug("SEED_GRANTED_WAIT------------------");
+        Logger.LogDebug("Session.Start", "SEED_GRANTED_WAIT------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region capabilities...", 0.47f);
 
         await seedCapabilitiesTask;
-        Logger.LogInfo($"Got capability grants.");
+        Logger.LogInfo("Session.Start", "Got capability grants.");
 
         #endregion SeedGrantedWait
 
         #region SeedCapabilitiesGranted
-        Logger.LogDebug("SEED_CAPABILITIES_GRANTED----------");
+        Logger.LogDebug("Session.Start", "SEED_CAPABILITIES_GRANTED----------");
 
         RegisterEventListeners();
 
@@ -122,21 +122,21 @@ public class Session
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await region.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
-        Logger.LogInfo("UseCircuitCode was acked.");
+        Logger.LogInfo("Session.Start", "UseCircuitCode was acked.");
 
         AvatarNameCache.Instance.Start();
         #endregion SeedCapabilitiesGranted
 
         #region AgentSend
-        Logger.LogDebug("AGENT_SEND-------------------------");
+        Logger.LogDebug("Session.Start", "AGENT_SEND-------------------------");
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Connecting to region...", 0.6f);
         await region.Circuit.SendCompleteAgentMovement(loginResponse.AgentId, SessionId, loginResponse.CircuitCode);
-        Logger.LogInfo("CompleteAgentMovement was acked.");
+        Logger.LogInfo("Session.Start", "CompleteAgentMovement was acked.");
         #endregion AgentSend
 
         #region InventorySend
-        Logger.LogDebug("INVENTORY_SEND---------------------");
+        Logger.LogDebug("Session.Start", "INVENTORY_SEND---------------------");
 
         //TODO: Fill in inventory skeleton and request details
         
@@ -154,7 +154,7 @@ public class Session
         #endregion InventorySend
 
         #region Misc
-        Logger.LogDebug("MISC-------------------------------");
+        Logger.LogDebug("Session.Start", "MISC-------------------------------");
 
         //TODO: Calculate max bandwidth
         awaitables.Add (region.Circuit.SendAgentThrottle());
@@ -167,7 +167,7 @@ public class Session
         #endregion Misc
 
         #region Precache
-        Logger.LogDebug("PRECACHE---------------------------");
+        Logger.LogDebug("Session.Start", "PRECACHE---------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Loading world...", 0.9f);
 
         //TODO: Send AgentIsNowWearing
@@ -177,7 +177,7 @@ public class Session
         #endregion Precache
 
         #region Cleanup
-        Logger.LogDebug("CLEANUP----------------------------");
+        Logger.LogDebug("Session.Start", "CLEANUP----------------------------");
 
         //TODO: Make map view observe inventory
         //TODO: Make map view observe friends
@@ -198,7 +198,7 @@ public class Session
         IsLoggedIn = true;
 
         await Task.Delay(3000);
-        Logger.LogDebug("POST----------------");
+        Logger.LogDebug("Session.Start", "POST----------------");
 
         // TODO: This is in the application loop in Indra:
         VolumeLayerManager.UnpackLayerData();
@@ -212,7 +212,7 @@ public class Session
             return;
         }
 
-        Logger.LogDebug("LOGOUT-----------------------------");
+        Logger.LogDebug("Session.Start", "LOGOUT-----------------------------");
         EventManager.Instance.RaiseOnProgressUpdate("Logout", "Logging out...", 0.2f);
 
         AvatarTracker.Instance.ClearBuddyList();
@@ -243,7 +243,7 @@ public class Session
 
             if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
             {
-                Logger.LogError("LogoutReply took too long.");
+                Logger.LogError("Session.Stop", "LogoutReply took too long.");
             }
 
             circuit.Stop();
@@ -251,7 +251,7 @@ public class Session
         }
         else
         {
-            Logger.LogWarning($"Unable to send logout request. ({(Agent.CurrentPlayer == null ? "CurrentPlayer=null" : "")} {(Agent.CurrentPlayer.Region == null ? "Region=null" : "")} {(Agent.CurrentPlayer.Region.Circuit == null ? "Circuit=null" : "")})");
+            Logger.LogWarning("Session.Stop", $"Unable to send logout request. ({(Agent.CurrentPlayer == null ? "CurrentPlayer=null" : "")} {(Agent.CurrentPlayer.Region == null ? "Region=null" : "")} {(Agent.CurrentPlayer.Region.Circuit == null ? "Circuit=null" : "")})");
         }
         IsLogoutPending = false;
 
@@ -269,7 +269,7 @@ public class Session
     {
         if (message.AgentId != AgentId || message.SessionId != SessionId)
         {
-            Logger.LogWarning($"Received LogoutReply for unknown agent or session. (AgentId={message.AgentId}, sessionId={message.SessionId})");
+            Logger.LogWarning("Session.OnLogoutReplyMessage", $"Received LogoutReply for unknown agent or session. (AgentId={message.AgentId}, sessionId={message.SessionId})");
             return;
         }
 
@@ -470,7 +470,7 @@ public class Session
 
     protected void ProcessLayerData(LayerDataMessage message) // TODO: This should not be here
     {
-        //Logger.LogDebug("Session.ProcessLayerData");
+        //Logger.LogDebug("Session.ProcessLayerData", "");
 
         // TODO: Verify that the sending endpoint is associated with the current region
 

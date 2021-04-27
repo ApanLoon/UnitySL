@@ -61,7 +61,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
                 HoverHeights.Add(BinarySerializer.DeSerializeVector3(buf, ref o, length));
             }
 
-            Logger.LogDebug(ToString());
+            Logger.LogDebug("AvatarAppearanceMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

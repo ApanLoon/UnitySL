@@ -1,37 +1,10 @@
 ﻿using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.MessageLogs;
 using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
 {
-    public enum ChatSourceType : byte
-    {
-        System  = 0,
-        Agent   = 1,
-        Object  = 2,
-        Unknown = 3
-    }
-
-    public enum ChatType : byte
-    {
-        Whisper      = 0,
-        Normal       = 1,
-        Shout        = 2,
-        Start        = 4,
-        Stop         = 5,
-        DebugMessage = 6,
-        Region       = 7,
-        Owner        = 8,
-        Direct       = 9		// From llRegionSayTo()
-    }
-
-    public enum ChatAudibleLevel : sbyte
-    {
-        Not    = -1,
-        Barely = 0,
-        Fully  = 1
-    }
-
     public class ChatFromSimulatorMessage : Message
     {
         public string FromName { get; set; }
@@ -61,7 +34,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             Position     = BinarySerializer.DeSerializeVector3(buf, ref o, length);
             Message      = BinarySerializer.DeSerializeString(buf, ref o, length, 2);
 
-            Logger.LogDebug (ToString());
+            Logger.LogDebug ("ChatFromSimulatorMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

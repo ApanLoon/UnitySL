@@ -30,13 +30,13 @@ namespace SLViewerLib.Communication.XmlRpc.DataTypes
             {
                 if (childNode.Name != "value")
                 {
-                    Logger.LogWarning($"XmlRpcArray.constructor: Unexpected node in xml tree: {childNode.Name}");
+                    Logger.LogWarning("XmlRpcArray.constructor", $"Unexpected node in xml tree: {childNode.Name}");
                     continue;
                 }
 
                 if (childNode.ChildNodes.Count != 1)
                 {
-                    Logger.LogWarning("XmlRpcArray.constructor: Unexpected number of nodes in value.");
+                    Logger.LogWarning("XmlRpcArray.constructor", $"Unexpected number of nodes in value.");
                     continue;
                 }
 

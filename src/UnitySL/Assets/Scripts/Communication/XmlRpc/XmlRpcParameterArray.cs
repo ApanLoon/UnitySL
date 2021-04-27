@@ -44,7 +44,7 @@ namespace SLViewerLib.Communication.XmlRpc
 
                 if (valueNode.Name != "value")
                 {
-                    Logger.LogWarning($"XmlRpcParameterArray.constructor: Unexpected node, expected \"value\" found \"{valueNode.Name}\".");
+                    Logger.LogWarning("XmlRpcParameterArray.constructor", $"Unexpected node, expected \"value\" found \"{valueNode.Name}\".");
                     continue;
                 }
                 if (valueNode.ChildNodes.Count != 1)

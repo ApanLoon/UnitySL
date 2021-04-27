@@ -41,9 +41,9 @@ public class DebugLog : MonoBehaviour
         Logger.OnLog += LogMessage;
     }
 
-    protected void LogMessage(Logger.LogLevel logLevel, string message)
+    protected void LogMessage(Logger.LogLevel logLevel, string senderName, string message)
     {
-        message = $"{LogLevelToColour[logLevel]}{DateTime.Now:T} {logLevel} {message}</color>";
+        message = $"{LogLevelToColour[logLevel]}{DateTime.Now:T} {logLevel} {senderName}: {message}</color>";
         messageView.AppendMessage(message);
 
     }

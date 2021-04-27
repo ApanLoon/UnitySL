@@ -21,7 +21,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
             for (byte i = 0; i < nAgents; i++)
             {
                 Agents.Add (BinarySerializer.DeSerializeGuid (buf, ref o, length));
-                Logger.LogDebug(ToString());
+                Logger.LogDebug("OnlineNotificationMessage", ToString());
             }
         }
         #endregion DeSerialise

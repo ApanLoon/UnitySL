@@ -14,14 +14,14 @@ public class Logger
         None // Must be last
     }
 
-    public static event Action<LogLevel, string> OnLog;
+    public static event Action<LogLevel, string, string> OnLog;
 
-    protected static void RaiseOnLog(LogLevel logLevel, string message)
+    protected static void RaiseOnLog(LogLevel logLevel, string senderName, string message)
     {
-        ThreadManager.ExecuteOnMainThread(() => OnLog?.Invoke(logLevel, message));
+        ThreadManager.ExecuteOnMainThread(() => OnLog?.Invoke(logLevel, senderName, message));
     }
 
-    public static void LogDebug(string s)
+    public static void LogDebug(string senderName, string message)
     {
         if (MinLogLevel > LogLevel.Debug)
         {
@@ -29,12 +29,12 @@ public class Logger
         }
         if (UseUnityLog)
         {
-            Debug.Log(s);
+            Debug.Log($"{senderName}: {message}");
         }
-        RaiseOnLog(LogLevel.Debug, s);
+        RaiseOnLog(LogLevel.Debug, senderName, message);
     }
 
-    public static void LogInfo(string s)
+    public static void LogInfo(string senderName, string message)
     {
         if (MinLogLevel > LogLevel.Info)
         {
@@ -42,12 +42,12 @@ public class Logger
         }
         if (UseUnityLog)
         {
-            Debug.Log(s);
+            Debug.Log($"{senderName}: {message}");
         }
-        RaiseOnLog(LogLevel.Info, s);
+        RaiseOnLog(LogLevel.Info, senderName, message);
     }
 
-    public static void LogWarning(string s)
+    public static void LogWarning(string senderName, string message)
     {
         if (MinLogLevel > LogLevel.Warning)
         {
@@ -55,12 +55,12 @@ public class Logger
         }
         if (UseUnityLog)
         {
-            Debug.LogWarning(s);
+            Debug.LogWarning($"{senderName}: {message}");
         }
-        RaiseOnLog(LogLevel.Warning, s);
+        RaiseOnLog(LogLevel.Warning, senderName, message);
     }
 
-    public static void LogError(string s)
+    public static void LogError(string senderName, string message)
     {
         if (MinLogLevel > LogLevel.Error)
         {
@@ -68,8 +68,8 @@ public class Logger
         }
         if (UseUnityLog)
         {
-            Debug.LogError(s);
+            Debug.LogError($"{senderName}: {message}");
         }
-        RaiseOnLog(LogLevel.Error, s);
+        RaiseOnLog(LogLevel.Error, senderName, message);
     }
 }

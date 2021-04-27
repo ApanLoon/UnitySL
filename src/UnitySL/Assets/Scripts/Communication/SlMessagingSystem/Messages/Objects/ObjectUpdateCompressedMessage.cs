@@ -147,7 +147,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                         case ExtraParamType.Mesh:
                             break;
                         default:
-                            Logger.LogWarning($"ObjectUpdateCompressedMessage.DeSerialise: Unknown ExtraParamType: {type}");
+                            Logger.LogWarning("ObjectUpdateCompressedMessage.DeSerialise", $"Unknown ExtraParamType: {type}");
                             continue; // TODO: This is not right
                     }
                     logMessage += $"{type}, ";
@@ -217,7 +217,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
                 data.IsAttachment = (compressedFlags & CompressedFlags.HasNameValues) != 0 && data.ParentId != 0;
             }
-            //Logger.LogDebug(logMessage);
+            //Logger.LogDebug("ObjectUpdateCompressedMessage.DeSerialise", logMessage);
         }
         #endregion DeSerialise
 

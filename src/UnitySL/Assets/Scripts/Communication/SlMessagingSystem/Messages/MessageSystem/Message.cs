@@ -343,7 +343,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
                 // Only log unknown messages the first time to reduce spam and lag:
                 if (UnknownMessageIds.Contains(id) == false)
                 {
-                    Logger.LogError($"BinarySerializer.DeSerializeMessage: Unknown message id {idString}");
+                    Logger.LogError("BinarySerializer.DeSerializeMessage", $"Unknown message id {idString}");
                     UnknownMessageIds.Add(id);
                 }
 
@@ -377,7 +377,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             message.Acks           = acks;
 
             message.DeSerialise (dataBuffer, ref dataOffset, dataLen);
-            //Logger.LogDebug ($"Message.DeSerialiseMessage: {message}");
+            //Logger.LogDebug ("Message.DeSerialiseMessage", message);
             return message;
         }
 

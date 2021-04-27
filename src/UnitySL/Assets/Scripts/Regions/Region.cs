@@ -368,7 +368,7 @@ namespace Assets.Scripts.Regions
                 s += $"\nTerrainBase{i}:   http://asset-cdn.glb.agni.lindenlab.com/?texture_id={region.TerrainBase[i]}";
                 s += $"\nTerrainDetail{i}: http://asset-cdn.glb.agni.lindenlab.com/?texture_id={region.TerrainDetail[i]}";
             }
-            Logger.LogDebug(s);
+            Logger.LogDebug("Region.OnRegionHandshakeMessage", s);
 
             EventManager.Instance.RaiseOnRegionDataChanged(region);
 

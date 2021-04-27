@@ -21,7 +21,7 @@ public class VolumeLayerManager
 
     public static void AddLayerData(VolumeLayerData vlData)
     {
-        //Logger.LogDebug("VolumeLayerManager.AddLayerData");
+        //Logger.LogDebug("VolumeLayerManager.AddLayerData", "");
 
         switch (vlData.LayerType)
         {
@@ -73,7 +73,7 @@ public class VolumeLayerManager
 
     public static void UnpackLayerData()
     {
-        Logger.LogDebug("VolumeLayerManager.UnpackLayerData");
+        Logger.LogDebug("VolumeLayerManager.UnpackLayerData", "");
         for (int i = 0; i < LayerData.Count; i++)
         {
             VolumeLayerData vlData = LayerData[i];

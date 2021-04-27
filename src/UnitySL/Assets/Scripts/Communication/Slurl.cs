@@ -133,7 +133,7 @@ public class Slurl
             //    }
 
             default:
-                Logger.LogWarning($"SlUrl.GetSlUrlString: Unexpected SLURL type for SLURL string ({(int)SlurlType})");
+                Logger.LogWarning("SlUrl.GetSlUrlString", $"Unexpected SLURL type for SLURL string ({(int)SlurlType})");
                 return "";
         }
     }
@@ -159,7 +159,7 @@ public class Slurl
                 break;
 
             default:
-                Logger.LogWarning($"SlUrl.GetLoginString: Unexpected SLURL type ({(int)SlurlType} for login string");
+                Logger.LogWarning("SlUrl.GetLoginString", $"Unexpected SLURL type ({(int)SlurlType} for login string");
                 break;
         }
         return s;

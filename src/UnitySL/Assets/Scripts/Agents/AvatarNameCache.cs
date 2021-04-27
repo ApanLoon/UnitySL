@@ -95,10 +95,10 @@ namespace Assets.Scripts.Agents
         {
             if (_threadLoopTask != null && _threadLoopTask.Status == TaskStatus.Running)
             {
-                Logger.LogDebug("AvatarNameCache.Start: Already started.");
+                Logger.LogDebug("AvatarNameCache.Start", "Already started.");
                 return;
             }
-            Logger.LogDebug($"AvatarNameCache.Start: Started");
+            Logger.LogDebug("AvatarNameCache.Start","Started");
 
             _cts = new CancellationTokenSource();
             _threadLoopTask = Task.Run(() => ThreadLoop(_cts.Token), _cts.Token);
@@ -106,7 +106,7 @@ namespace Assets.Scripts.Agents
 
         public void Stop()
         {
-            Logger.LogDebug($"AvatarNameCache.Stop");
+            Logger.LogDebug("AvatarNameCache.Stop", "");
             _cts.Cancel();
 
             _cts.Dispose();
@@ -114,7 +114,7 @@ namespace Assets.Scripts.Agents
 
         public void Dispose()
         {
-            Logger.LogDebug($"AvatarNameCache.Dispose");
+            Logger.LogDebug("AvatarNameCache.Dispose", "");
             Stop();
         }
 
@@ -123,7 +123,7 @@ namespace Assets.Scripts.Agents
 
         protected async Task ThreadLoop(CancellationToken ct)
         {
-            Logger.LogInfo($"AvatarNameCache.ThreadLoop: Running");
+            Logger.LogInfo("AvatarNameCache.ThreadLoop","Running");
 
             while (ct.IsCancellationRequested == false)
             {
@@ -137,14 +137,14 @@ namespace Assets.Scripts.Agents
                     else
                     {
                         // TODO: Use legacy name fetching
-                        Logger.LogWarning("AvatarNameCache: No GetDisplayName capability in region.");
+                        Logger.LogWarning("AvatarNameCache","No GetDisplayName capability in region.");
                     }
                 }
 
                 await Task.Delay(10, ct); // tune for your situation, can usually be omitted
             }
             // Cancelling appears to kill the task immediately without giving it a chance to get here
-            Logger.LogInfo($"AvatarNameCache.ThreadLoop: Stopping...");
+            Logger.LogInfo($"AvatarNameCache.ThreadLoop", "Stopping...");
         }
         #endregion Thread
 
@@ -158,7 +158,7 @@ namespace Assets.Scripts.Agents
         {
             if (cap.CapabilityType != CapabilityType.Http)
             {
-                Logger.LogWarning($"AvatarNameCache: GetDisplayName capability not of type HTTP. ({cap.CapabilityType})");
+                Logger.LogWarning($"AvatarNameCache", $"GetDisplayName capability not of type HTTP. ({cap.CapabilityType})");
                 return;
             }
 
@@ -228,7 +228,7 @@ namespace Assets.Scripts.Agents
             }
             catch (Exception e)
             {
-                Logger.LogWarning($"AvatarNameCache.RequestNamesViaCapability: Exception {e}");
+                Logger.LogWarning("AvatarNameCache.RequestNamesViaCapability", $"Exception {e}");
             }
         }
 
@@ -277,16 +277,16 @@ namespace Assets.Scripts.Agents
                             break;
 
                         default:
-                            Logger.LogWarning($"AvatarNameCache.ProcessResponse: Unexpected key \"{node.InnerText}\"");
+                            Logger.LogWarning("AvatarNameCache.ProcessResponse", $"Unexpected key \"{node.InnerText}\"");
                             break;
                     }
                     node = node.NextSibling; // Move to next key
                 }
-                Logger.LogDebug($"AvatarNameCache.ProcessResponse: Parse complete");
+                Logger.LogDebug("AvatarNameCache.ProcessResponse", "Parse complete");
             }
             catch (Exception e)
             {
-                Logger.LogWarning($"AvatarNameCache.ProcessResponse: {e.Message}");
+                Logger.LogWarning("AvatarNameCache.ProcessResponse", e.Message);
             }
         }
 
@@ -336,7 +336,7 @@ namespace Assets.Scripts.Agents
                         case "display_name":
                             if (child.Name != "string")
                             {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected display_name type string, got \"{child.Name}\"");
+                                Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $": Expected display_name type string, got \"{child.Name}\"");
                             }
                             else
                             {
@@ -347,7 +347,7 @@ namespace Assets.Scripts.Agents
                         case "display_name_next_update":
                             if (child.Name != "date")
                             {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected display_name_next_update type date, got \"{child.Name}\"");
+                                Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $"Expected display_name_next_update type date, got \"{child.Name}\"");
                             }
                             else
                             {
@@ -359,7 +359,7 @@ namespace Assets.Scripts.Agents
                         case "legacy_first_name":
                             if (child.Name != "string")
                             {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected legacy_first_name type string, got \"{child.Name}\"");
+                                Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $"Expected legacy_first_name type string, got \"{child.Name}\"");
                             }
                             else
                             {
@@ -370,7 +370,7 @@ namespace Assets.Scripts.Agents
                         case "legacy_last_name":
                             if (child.Name != "string")
                             {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected legacy_last_name type string, got \"{child.Name}\"");
+                                Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $"Expected legacy_last_name type string, got \"{child.Name}\"");
                             }
                             else
                             {
@@ -381,7 +381,7 @@ namespace Assets.Scripts.Agents
                         case "id":
                             if (child.Name != "uuid")
                             {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected id type uuid, got \"{child.Name}\"");
+                                Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $"Expected id type uuid, got \"{child.Name}\"");
                             }
                             else
                             {
@@ -392,7 +392,7 @@ namespace Assets.Scripts.Agents
                         case "is_display_name_default":
                             if (child.Name != "boolean")
                             {
-                                Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Expected is_display_name_default type boolean, got \"{child.Name}\"");
+                                Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $"Expected is_display_name_default type boolean, got \"{child.Name}\"");
                             }
                             else
                             {
@@ -401,13 +401,13 @@ namespace Assets.Scripts.Agents
                             break;
 
                         default:
-                            Logger.LogWarning($"AvatarNameCache.ParseResponseAgents: Unexpected key \"{child.InnerText}\"");
+                            Logger.LogWarning("AvatarNameCache.ParseResponseAgents", $"Unexpected key \"{child.InnerText}\"");
                             break;
                     }
 
                     child = child.NextSibling; // Move to next key
                 }
-                Logger.LogDebug($"Parsed: First=\"{avatarName.FirstName}\", Last=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
+                Logger.LogDebug("AvatarNameCache.ParseResponseAgents", $"Parsed: First=\"{avatarName.FirstName}\", Last=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
 
                 NameCache[agentId] = avatarName;
 

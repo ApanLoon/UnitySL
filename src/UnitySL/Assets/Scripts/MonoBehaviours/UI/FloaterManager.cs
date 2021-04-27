@@ -88,7 +88,7 @@ namespace Assets.Scripts.MonoBehaviours.UI
         {
             if (Instance != null && Instance != this)
             {
-                Logger.LogError($"FloaterManager: More than one instance in scene, disabling {gameObject.name}.");
+                Logger.LogError("FloaterManager.Start",$"More than one instance in scene, disabling {gameObject.name}.");
                 enabled = false;
                 return;
             }

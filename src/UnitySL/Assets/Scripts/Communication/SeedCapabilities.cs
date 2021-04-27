@@ -158,7 +158,7 @@ public class SeedCapabilities
             {
                 throw new Exception($"SeedCaspabilites: Failed to get response stream.");
             }
-            //Logger.LogDebug("SeedCapabilities.RequestCapabilities: Got response stream.");
+            //Logger.LogDebug("SeedCapabilities.RequestCapabilities", "Got response stream.");
 
             var buffer = new byte[length];
             try
@@ -168,7 +168,7 @@ public class SeedCapabilities
                 while ((count = await contentStream.ReadAsync(buffer, start, length - start)) != 0)
                 {
                     start += count;
-                    //Logger.LogDebug($"SeedCapabilities.RequestCapabilities: Read {count} bytes. ({start}/{length})");
+                    //Logger.LogDebug("SeedCapabilities.RequestCapabilities", $"Read {count} bytes. ({start}/{length})");
                 }
             }
             catch (IOException ex)
@@ -188,7 +188,7 @@ public class SeedCapabilities
         }
 		catch (Exception e)
 		{
-			Logger.LogWarning($"SeedCapabilities.RequestCapabilities: Exception {e}");
+			Logger.LogWarning("SeedCapabilities.RequestCapabilities", $"Exception {e}");
 		}
 		return null;
 

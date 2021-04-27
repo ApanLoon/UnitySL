@@ -25,7 +25,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             {
                 InventoryItems.Add(BinarySerializer.DeSerializeGuid (buf, ref o, length));
             }
-            Logger.LogDebug(ToString());
+            Logger.LogDebug("LogoutReplyMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

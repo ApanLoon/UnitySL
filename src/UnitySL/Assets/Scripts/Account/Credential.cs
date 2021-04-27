@@ -20,7 +20,7 @@ public class Credential
                 break;
 
             default:
-                Logger.LogWarning($"Credential.Constructor: Invalid name \"{name}\".");
+                Logger.LogWarning("Credential.Constructor", $"Invalid name \"{name}\".");
                 break;
         }
 

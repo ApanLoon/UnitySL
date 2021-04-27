@@ -517,7 +517,7 @@ public class Surface
             return PatchList[x + y * PatchesPerEdge];
         }
 
-        Logger.LogError("Surface.GetPatch: Asking for patch out of bounds");
+        Logger.LogError("Surface.GetPatch", "Asking for patch out of bounds");
         return null;
     }
 
@@ -592,7 +592,7 @@ public class Surface
         while (true)
         {
             PatchHeader patchHeader = new PatchHeader (bitPack);
-            //Logger.LogDebug($"Surface.DecompressPatches: {patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
+            //Logger.LogDebug("Surface.DecompressPatches", $"{patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
 
             if (patchHeader.IsEnd)
             {
@@ -604,7 +604,7 @@ public class Surface
 
             if ((i >= PatchesPerEdge) || (j >= PatchesPerEdge))
             {
-                //Logger.LogWarning($"Surface.DecompressPatches: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
+                //Logger.LogWarning("Surface.DecompressPatches", $"Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
                 return;
             }
 

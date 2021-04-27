@@ -48,7 +48,7 @@ public class Login
         {
             slurl = new Slurl(Slurl.SIM_LOCATION_LAST);
         }
-        Logger.LogDebug($"INFO Login.Connect: Connecting {credential.First} {credential.Last} using {uri}.");
+        Logger.LogDebug("Login.Connect", $"Connecting {credential.First} {credential.Last} using {uri}.");
 
         XmlRpcParameterArray parameters = CreateLoginParameters(credential, slurl, getInventoryLibrary, godMode);
         
@@ -86,7 +86,7 @@ public class Login
             return loginResponse;
         }
 
-        Logger.LogInfo("Login.Connect: Connection was successful.");
+        Logger.LogInfo("Login.Connect", "Connection was successful.");
 
         if (ProcessLoginSuccessResponse(responseData, loginResponse))
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.MessageLogs;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
 {

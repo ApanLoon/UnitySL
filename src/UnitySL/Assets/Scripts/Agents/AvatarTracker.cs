@@ -40,7 +40,7 @@ namespace Assets.Scripts.Agents
                 {
                     Relationship existingRelationship = BuddyInfo[agentId];
                     Relationship newRelationship = kv.Value;
-                    Logger.LogWarning($"!! Add buddy for existing buddy: {agentId}"
+                    Logger.LogWarning("AvatarTracker.AddBuddyList", $"!! Add buddy for existing buddy: {agentId}"
                                       + $" [{(existingRelationship.IsOnline ? "Online" : "Offline")} -> {(newRelationship.IsOnline ? "Online" : "Offline")}"
                                       + $", {existingRelationship.GrantToAgent} -> {newRelationship.GrantToAgent}"
                                       + $", {existingRelationship.GrantFromAgent} -> {newRelationship.GrantFromAgent}"
@@ -54,7 +54,7 @@ namespace Assets.Scripts.Agents
 
                     AddChangedMask (FriendObserver.ChangeType.Add, agentId);
 
-                    Logger.LogDebug($"Added buddy {agentId}, {(BuddyInfo[agentId].IsOnline ? "Online" : "Offline")}, TO: {BuddyInfo[agentId].GrantToAgent}, FROM: {BuddyInfo[agentId].GrantFromAgent}");
+                    Logger.LogDebug("AvatarTracker.AddBuddyList", $"Added buddy {agentId}, {(BuddyInfo[agentId].IsOnline ? "Online" : "Offline")}, TO: {BuddyInfo[agentId].GrantToAgent}, FROM: {BuddyInfo[agentId].GrantFromAgent}");
                 }
             }
             NotifyObservers(); // TODO: Adding the change mask won't trigger observer notification as we don't have a main loop thingy.
@@ -73,7 +73,7 @@ namespace Assets.Scripts.Agents
 
         protected void OnAvatarNameReceived (Guid agentId, AvatarName avatarName)
         {
-            Logger.LogDebug($"AvatarTracker.OnAvatarNameReceived: FirstName=\"{avatarName.FirstName}\", LastName=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
+            Logger.LogDebug("AvatarTracker.OnAvatarNameReceived", $"FirstName=\"{avatarName.FirstName}\", LastName=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
         }
 
 
@@ -107,14 +107,14 @@ namespace Assets.Scripts.Agents
         {
             if (BuddyInfo.ContainsKey(agentId) == false)
             {
-                Logger.LogWarning($"!! No buddy info found for {agentId}, setting to {(isOnline ? "Online" : "Offline")}");
+                Logger.LogWarning("AvatarTracker.SetBuddyOnline", $"!! No buddy info found for {agentId}, setting to {(isOnline ? "Online" : "Offline")}");
                 return;
             }
 
             Relationship info = BuddyInfo[agentId];
             info.IsOnline = isOnline;
             AddChangedMask(FriendObserver.ChangeType.Online, agentId);
-            Logger.LogDebug($"Set buddy {agentId} {(isOnline ? "Online" : "Offline")}");
+            Logger.LogDebug("AvatarTracker.SetBuddyOnline", $"Set buddy {agentId} {(isOnline ? "Online" : "Offline")}");
         }
 
         public bool IsBuddyOnline(Guid agentId)
@@ -254,13 +254,13 @@ namespace Assets.Scripts.Agents
 
         protected void OnOnlineNotificationMessage (OnlineNotificationMessage message)
         {
-            Logger.LogDebug("LLAvatarTracker::processOnlineNotification()");
+            Logger.LogDebug("LLAvatarTracker::processOnlineNotification()", "");
             ProcessNotify (message.Agents, true);
         }
 
         protected void OnOfflineNotificationMessage(OfflineNotificationMessage message)
         {
-            Logger.LogDebug("LLAvatarTracker::processOfflineNotification()");
+            Logger.LogDebug("LLAvatarTracker::processOfflineNotification()", "");
             ProcessNotify (message.Agents, false);
         }
 
@@ -269,7 +269,7 @@ namespace Assets.Scripts.Agents
             int count = agents.Count;
             bool chatNotify = Settings.Instance.chat.notifyOnlineStatus;
 
-            Logger.LogDebug($"Received {count} online notifications **** ");
+            Logger.LogDebug("AvatarTracker.ProcessNotify", $"Received {count} online notifications **** ");
             if (count <= 0)
             {
                 return;
@@ -290,7 +290,7 @@ namespace Assets.Scripts.Agents
                 }
                 else
                 {
-                    Logger.LogWarning($"Received online notification for unknown buddy: {agentId} is {(isOnline ? "ONLINE" : "OFFLINE")}");
+                    Logger.LogWarning("AvatarTracker.ProcessNotify", $"Received online notification for unknown buddy: {agentId} is {(isOnline ? "ONLINE" : "OFFLINE")}");
                 }
 
                 if (trackingId == agentId)

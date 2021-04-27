@@ -32,7 +32,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
             Data = new OwnershipFlags[len];
             Array.Copy(buf, o, Data, 0, len);
 
-            Logger.LogDebug(ToString());
+            Logger.LogDebug("ParcelOverlayMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

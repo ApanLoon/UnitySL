@@ -36,7 +36,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
             GroupPowers   = BinarySerializer.DeSerializeUInt64_Le (buf, ref o, length);
             GroupName     = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
 
-            Logger.LogDebug($"AgentDataUpdate: AgentId={AgentId}, FirstName={FirstName}, LastName={LastName}, GroupTitle={GroupTitle}, ActiveGroupId={ActiveGroupId}, GroupName={GroupName}");
+            Logger.LogDebug("AgentDataUpdateMessage.DeSerialise", $"AgentId={AgentId}, FirstName={FirstName}, LastName={LastName}, GroupTitle={GroupTitle}, ActiveGroupId={ActiveGroupId}, GroupName={GroupName}");
         }
         #endregion DeSerialise
 
