@@ -5,6 +5,7 @@ namespace Assets.Scripts.MessageLogs
 {
     public class MessageLog<T> where T: LogMessage
     {
+        public event Action<T> OnMessage;
         public List<T> Log = new List<T>();
 
         public void Clear()
@@ -15,6 +16,7 @@ namespace Assets.Scripts.MessageLogs
         public void AddMessage(T message)
         {
             message.Timestamp = DateTimeOffset.UtcNow;
+            OnMessage?.Invoke(message);
         }
     }
 }

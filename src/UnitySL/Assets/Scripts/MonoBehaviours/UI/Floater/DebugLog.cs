@@ -18,7 +18,7 @@ public class DebugLog : MonoBehaviour
         LogHorizontalScrollbar.value = 0f;
         LogVerticalScrollbar.value = 0f;
 
-        LogManager.Instance.OnDebugMessage += OnDebugMessage;
+        LogManager.Instance.DebugLog.OnMessage += OnDebugMessage;
     }
 
     protected void OnDebugMessage(DebugMessage msg)

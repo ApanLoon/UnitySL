@@ -8,9 +8,6 @@ namespace Assets.Scripts.MessageLogs
     {
         public static LogManager Instance = new LogManager();
 
-        public event Action<DebugMessage> OnDebugMessage;
-        public event Action<ChatMessage> OnChatMessage;
-
         public MessageLog<DebugMessage> DebugLog = new MessageLog<DebugMessage>();
         public MessageLog<ChatMessage> ChatLog = new MessageLog<ChatMessage>();
 
@@ -30,7 +27,6 @@ namespace Assets.Scripts.MessageLogs
                 Text = content
             };
             DebugLog.AddMessage(msg);
-            OnDebugMessage?.Invoke(msg);
         }
 
         protected void OnChatFromSimulatorMessage(ChatFromSimulatorMessage message)
@@ -48,7 +44,6 @@ namespace Assets.Scripts.MessageLogs
                 Text = message.Message
             };
             ChatLog.AddMessage(msg);
-            OnChatMessage?.Invoke(msg);
         }
     }
 }
