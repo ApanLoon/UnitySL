@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Assets.Scripts.MessageLogs;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,14 +15,40 @@ public class UIChat : MonoBehaviour
 
     [NonSerialized] public UIChatTab activeTab;
 
+    protected UIChatTab localChatTab;
+    protected UIChatTab debugChatTab;
+
     private void Start()
     {
         tabs.Initialize();
         // Create placeholder tabs
-        CreateTab("Local", false).toggle.isOn = true;
-        CreateTab("Quackman", true);
-        CreateTab("Bot-6542", true);
-        CreateTab("Skeleton society", true);
+        localChatTab = CreateTab("Local", false);
+        debugChatTab = CreateTab("debug", false);
+        //CreateTab("Quackman", true);
+        //CreateTab("Bot-6542", true);
+        //CreateTab("Skeleton society", true);
+
+        localChatTab.toggle.isOn = true;
+
+        LogManager.Instance.ChatLog.OnMessage += msg =>
+        {
+            string s = msg.ToRtfString();
+            localChatTab.messageLog.Add(s);
+            if (activeTab == localChatTab)
+            {
+                messageView.AppendMessage(s);
+            }
+        };
+
+        LogManager.Instance.DebugLog.OnMessage += msg =>
+        {
+            string s = msg.ToRtfString();
+            debugChatTab.messageLog.Add(s);
+            if (activeTab == debugChatTab)
+            {
+                messageView.AppendMessage(s);
+            }
+        };
     }
 
     /// <summary> Create new chat tab </summary>

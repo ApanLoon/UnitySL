@@ -55,12 +55,17 @@ namespace Assets.Scripts.MessageLogs
 
         protected Color NormalColour = Color.white;
         protected Color ObjectColour = Color.green;
-        protected Color SystemColour = Color.yellow;
-        protected Color UnknownColour = Color.gray;
+        protected Color SystemColour = Color.cyan;
+        protected Color UnknownColour = Color.red;
+        protected Color DebugColour = Color.magenta;
+        protected Color RegionColour = Color.red;
+        protected Color OwnerColour = Color.gray;
+        protected Color DirectColour = Color.yellow;
+
 
         public override string ToRtfString()
         {
-            string s = $"{Timestamp:T} {SenderName}: {Text}";
+            string s = $"{Timestamp:T} {SenderName}";
             Color colour;
             switch (SourceType)
             {
@@ -84,29 +89,41 @@ namespace Assets.Scripts.MessageLogs
             switch (ChatType)
             {
                 case ChatType.Whisper:
-                    s = $"<i>{s}</i>";
+                    s = $"<i>{s} whispers: {Text}</i>";
                     break;
                 case ChatType.Normal:
+                    s = $"{s}: {Text}";
                     break;
                 case ChatType.Shout:
-                    s = $"<b>{s}</b>";
+                    s = $"<b>{s} shouts: {Text}</b>";
                     break;
                 case ChatType.Start:
+                    s = $"{s} starts typing...";
                     break;
                 case ChatType.Stop:
+                    s = $"{s} stops typing.";
                     break;
                 case ChatType.DebugMessage:
+                    s = $"{s}: {Text}";
+                    colour = DebugColour;
                     break;
                 case ChatType.Region:
+                    s = $"{s}: {Text}";
+                    colour = RegionColour;
                     break;
                 case ChatType.Owner:
+                    s = $"{s}: {Text}";
+                    colour = OwnerColour;
                     break;
                 case ChatType.Direct:
+                    s = $"{s}: {Text}";
+                    colour = DirectColour;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
+            // TODO: Fade the alpha depending on audible level?
             switch (AudibleLevel)
             {
                 case ChatAudibleLevel.Not:
