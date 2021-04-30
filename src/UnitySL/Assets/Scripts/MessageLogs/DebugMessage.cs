@@ -9,6 +9,14 @@ namespace Assets.Scripts.MessageLogs
         public Logger.LogLevel Level { get; set; }
         public string Text { get; set; }
 
+        public DebugMessage (Logger.LogLevel level, string senderName, string message)
+        {
+            Level = level;
+            Timestamp = DateTimeOffset.UtcNow;
+            SenderName = senderName;
+            Text = message;
+        }
+
         //TODO: Colours should be fetched from a UIPalette for consistency
         protected Dictionary<Logger.LogLevel, string> LogLevelToColour = new Dictionary<Logger.LogLevel, string>()
         {

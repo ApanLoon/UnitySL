@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
 using UnityEngine;
 
 namespace Assets.Scripts.MessageLogs
@@ -43,6 +44,19 @@ namespace Assets.Scripts.MessageLogs
         public Vector3 Position { get; set; }
 
         public string Text { get; set; }
+
+        public ChatMessage (ChatFromSimulatorMessage message)
+        {
+            AudibleLevel = message.AudibleLevel;
+            ChatType = message.ChatType;
+            OwnerId = message.OwnerId;
+            Position = message.Position;
+            SenderId = message.SourceId;
+            SenderName = message.FromName;
+            Timestamp = DateTimeOffset.Now;
+            SourceType = message.SourceType;
+            Text = message.Message;
+        }
 
         //TODO: Colours should be fetched from a UIPalette for consistency
         protected Dictionary<Logger.LogLevel, string> LogLevelToColour = new Dictionary<Logger.LogLevel, string>()

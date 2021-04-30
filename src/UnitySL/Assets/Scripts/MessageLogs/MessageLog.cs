@@ -8,6 +8,11 @@ namespace Assets.Scripts.MessageLogs
         public event Action<LogMessage> OnMessage;
         public List<LogMessage> Log = new List<LogMessage>();
 
+        public MessageLog(Action<MessageLog> init)
+        {
+            init(this);
+        }
+
         public void Clear()
         {
             Log.Clear();
