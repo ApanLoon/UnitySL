@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Assets.Scripts.MessageLogs
 {
@@ -7,9 +9,16 @@ namespace Assets.Scripts.MessageLogs
     {
         public event Action<LogMessage> OnMessage;
         public List<LogMessage> Log = new List<LogMessage>();
+        public IEnumerable<string> AllMessagesAsRtfStrings => Log.Select(x => x.ToRtfString());
 
-        public MessageLog(Action<MessageLog> init)
+
+        public bool CanSend => Send != null;
+        protected Func<string, Task> Send { get; set; }
+
+        public MessageLog(Action<MessageLog> init, Func<string, Task> send = null)
         {
+            Send = send;
+
             init(this);
         }
 
@@ -21,7 +30,16 @@ namespace Assets.Scripts.MessageLogs
         public void AddMessage(LogMessage message)
         {
             message.Timestamp = DateTimeOffset.UtcNow;
+            Log.Add(message);
             OnMessage?.Invoke(message);
+        }
+
+        public async Task SendMessage(string message)
+        {
+            if (CanSend)
+            {
+                await Send(message);
+            }
         }
     }
 }

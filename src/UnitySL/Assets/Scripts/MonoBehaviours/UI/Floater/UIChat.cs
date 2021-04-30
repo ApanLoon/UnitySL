@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Assets.Scripts.MessageLogs;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class UIChat : MonoBehaviour
 {
@@ -23,8 +19,8 @@ public class UIChat : MonoBehaviour
     {
         tabs.Initialize();
         // Create placeholder tabs
-        localChatTab = CreateTab("Local", false);
-        debugChatTab = CreateTab("debug", false);
+        localChatTab = CreateTab("Local", false, LogManager.Instance.ChatLog);
+        debugChatTab = CreateTab("debug", false, LogManager.Instance.DebugLog);
         //CreateTab("Quackman", true);
         //CreateTab("Bot-6542", true);
         //CreateTab("Skeleton society", true);
@@ -34,7 +30,6 @@ public class UIChat : MonoBehaviour
         LogManager.Instance.ChatLog.OnMessage += msg =>
         {
             string s = msg.ToRtfString();
-            localChatTab.messageLog.Add(s);
             if (activeTab == localChatTab)
             {
                 messageView.AppendMessage(s);
@@ -44,7 +39,6 @@ public class UIChat : MonoBehaviour
         LogManager.Instance.DebugLog.OnMessage += msg =>
         {
             string s = msg.ToRtfString();
-            debugChatTab.messageLog.Add(s);
             if (activeTab == debugChatTab)
             {
                 messageView.AppendMessage(s);
@@ -53,13 +47,14 @@ public class UIChat : MonoBehaviour
     }
 
     /// <summary> Create new chat tab </summary>
-    public UIChatTab CreateTab(string name, bool canClose)
+    public UIChatTab CreateTab(string name, bool canClose, MessageLog log)
     {
         UIChatTab tab = tabs.InstantiateTemplate();
         tab.name = $"Tab ({name})";
         tab.label.text = name;
         tab.canClose = canClose;
         tab.toggle.onValueChanged.AddListener(isOn => { if (isOn) SelectTab(tab); });
+        tab.MessageLog = log;
         return tab;
     }
 
@@ -72,27 +67,19 @@ public class UIChat : MonoBehaviour
     public void SelectTab(UIChatTab tab)
     {
         activeTab = tab;
-        messageView.Load(activeTab.messageLog);
+        messageView.Load(activeTab.MessageLog.AllMessagesAsRtfStrings);
         Debug.Log("Set active tab: " + activeTab.name);
     }
 
     public async void SendMessage()
     {
-        if (activeTab == localChatTab)
+        if (activeTab == null)
         {
-            string s = chatInputField.text;
-            await (Agent.CurrentPlayer?.Region?.Circuit?.SendChatFromViewer(s, ChatType.Normal, 0) ?? Task.CompletedTask);
+            return;
         }
-        //activeTab.messageLog.Add(chatInputField.text);
-        //messageView.AppendMessage(chatInputField.text);
+        await (activeTab.MessageLog?.SendMessage(chatInputField.text) ?? Task.CompletedTask);
         chatInputField.text = "";
     }
-
-    public class Message
-    {
-        public string sender;
-        public string text;
-    }
-
+    
     [Serializable] public class UIChatTabTemplate : Template<UIChatTab> { }
 }

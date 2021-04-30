@@ -1,12 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 /// <summary> High performance pooled system for displaying a scrollable list of Text </summary>
 [RequireComponent(typeof(UIScrollRect))]
@@ -105,7 +101,7 @@ public class UIMessageLog : MonoBehaviour
         labels.Clear();
     }
 
-    public void Load(List<string> messages)
+    public void Load(IEnumerable<string> messages)
     {
         Clear();
         foreach (string msg in messages)
@@ -113,6 +109,10 @@ public class UIMessageLog : MonoBehaviour
             AppendMessage(msg);
         }
         UpdateContent();
+
+        // Move the view to the bottom of the log:
+        scrollRect.verticalNormalizedPosition = 0;
+        scrollRect.velocity = Vector2.zero;
     }
 
     private void UpdateContent()
