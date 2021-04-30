@@ -24,6 +24,7 @@ namespace Assets.Scripts.Regions.Parcels
             Data = new OwnershipFlags[ParcelGridsPerEdge * ParcelGridsPerEdge];
 
             ParcelOverlayMinimapBorderTexture = new Texture2D(ParcelGridsPerEdge, ParcelGridsPerEdge, TextureFormat.RGBA32, false); // TODO: The minimap texture should be higher resolution to make the parcel lines more crisp.
+            ParcelOverlayMinimapBorderTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
         public void UpdateData(ParcelOverlayMessage message)
