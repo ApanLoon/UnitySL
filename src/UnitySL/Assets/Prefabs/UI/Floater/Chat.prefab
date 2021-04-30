@@ -218,22 +218,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -0.000045776367}
   m_SizeDelta: {x: 0, y: 208.6}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &5066854557185760171
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1565332467722461413}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 865ae72008d4c254186744e8b2db0e55, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  messageView: {fileID: 5667308738223820016}
-  tabs:
-    template: {fileID: 4466101803834323988}
-  chatInputField: {fileID: 3242913418088197585}
 --- !u!1 &2424111212150056732
 GameObject:
   m_ObjectHideFlags: 0
@@ -807,6 +791,19 @@ RectTransform:
   m_AnchoredPosition: {x: 102, y: 0}
   m_SizeDelta: {x: -102, y: -40}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &4466101803834323988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8674982245946835239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df8a3d067e82daa4ba92b79929181478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  label: {fileID: 840318555057300534}
 --- !u!1 &6565707513030816388
 GameObject:
   m_ObjectHideFlags: 0
@@ -974,6 +971,22 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5066854557185760171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565332467722461413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 865ae72008d4c254186744e8b2db0e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  messageView: {fileID: 5667308738223820016}
+  tabs:
+    template: {fileID: 4466101803834323988}
+  chatInputField: {fileID: 3242913418088197585}
 --- !u!1 &8647115277098487821
 GameObject:
   m_ObjectHideFlags: 0
@@ -1010,19 +1023,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &4466101803834323988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8674982245946835239}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df8a3d067e82daa4ba92b79929181478, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  label: {fileID: 840318555057300534}
 --- !u!1001 &417336477231271153
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1143,7 +1143,7 @@ PrefabInstance:
     - target: {fileID: 2939594652121063712, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
       propertyPath: m_Text
-      value: Say...
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 2939594652121063712, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
@@ -1235,7 +1235,7 @@ PrefabInstance:
     - target: {fileID: 5180707761456533980, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
       propertyPath: m_text
-      value: "Say...\u200B"
+      value: "\u200B"
       objectReference: {fileID: 0}
     - target: {fileID: 5180707761456533980, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
@@ -1619,7 +1619,7 @@ PrefabInstance:
     - target: {fileID: 9179752565973518594, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
       propertyPath: m_text
-      value: Nearby Chat
+      value: Conversations
       objectReference: {fileID: 0}
     - target: {fileID: 9179752565973518594, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
