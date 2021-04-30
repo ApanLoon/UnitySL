@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class DebugLog : MonoBehaviour
 {
-    [Tooltip("Truncate the log at the next newline if it is longer than this to keep the framerate from exploding. 0 means do not truncate.")]
+    [Tooltip("Truncate the log at the next newline if it is longer than this to keep the frame-rate from exploding. 0 means do not truncate.")]
     [SerializeField] private int MaxLogLength = 10000;
 
     [Header("Object Bindings")]
@@ -21,7 +21,7 @@ public class DebugLog : MonoBehaviour
         LogManager.Instance.DebugLog.OnMessage += OnDebugMessage;
     }
 
-    protected void OnDebugMessage(DebugMessage msg)
+    protected void OnDebugMessage(LogMessage msg)
     {
         messageView?.AppendMessage(msg.ToRtfString());
     }

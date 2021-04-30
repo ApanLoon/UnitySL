@@ -8,8 +8,8 @@ namespace Assets.Scripts.MessageLogs
     {
         public static LogManager Instance = new LogManager();
 
-        public MessageLog<DebugMessage> DebugLog = new MessageLog<DebugMessage>();
-        public MessageLog<ChatMessage> ChatLog = new MessageLog<ChatMessage>();
+        public MessageLog DebugLog = new MessageLog();
+        public MessageLog ChatLog = new MessageLog();
 
         public LogManager()
         {

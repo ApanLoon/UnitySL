@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace Assets.Scripts.MessageLogs
 {
-    public class MessageLog<T> where T: LogMessage
+    public class MessageLog
     {
-        public event Action<T> OnMessage;
-        public List<T> Log = new List<T>();
+        public event Action<LogMessage> OnMessage;
+        public List<LogMessage> Log = new List<LogMessage>();
 
         public void Clear()
         {
             Log.Clear();
         }
 
-        public void AddMessage(T message)
+        public void AddMessage(LogMessage message)
         {
             message.Timestamp = DateTimeOffset.UtcNow;
             OnMessage?.Invoke(message);
