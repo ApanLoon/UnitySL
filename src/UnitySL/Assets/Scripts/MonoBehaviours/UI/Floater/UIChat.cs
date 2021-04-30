@@ -20,7 +20,7 @@ public class UIChat : MonoBehaviour
         tabs.Initialize();
         // Create placeholder tabs
         localChatTab = CreateTab("Local", false, LogManager.Instance.ChatLog);
-        debugChatTab = CreateTab("debug", false, LogManager.Instance.DebugLog);
+        debugChatTab = CreateTab("Debug", false, LogManager.Instance.DebugLog);
         //CreateTab("Quackman", true);
         //CreateTab("Bot-6542", true);
         //CreateTab("Skeleton society", true);
@@ -73,7 +73,7 @@ public class UIChat : MonoBehaviour
 
     public async void SendMessage()
     {
-        if (activeTab == null)
+        if (activeTab == null || string.IsNullOrEmpty(chatInputField.text)) // Don't allow empty messages. TODO: The OnEndEdit event is fired when the field loses focus. We need to make out own event for catching enter, up arrow etc
         {
             return;
         }
