@@ -32,7 +32,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
                    + 16     // AgentId
                    + 16     // SessionId
                    + 2      // messageLength
-                   + Encoding.UTF8.GetByteCount(Message)
+                   + BinarySerializer.GetSerializedLength(Message, 2)
                    + 1      // Type
                    + 4;     // Channel
         }
@@ -43,13 +43,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
 
             o = BinarySerializer.Serialize(AgentId, buffer, o, length);
             o = BinarySerializer.Serialize(SessionId, buffer, o, length);
-
-            byte[] messageBytes = Encoding.UTF8.GetBytes(Message);
-            UInt16 messageLength = (UInt16)messageBytes.Length;
-            o = BinarySerializer.Serialize_Le(messageLength, buffer, o, length);
-            Array.Copy(messageBytes, 0, buffer, o, messageLength);
-            o += messageLength;
-
+            o = BinarySerializer.Serialize(Message, buffer, o, length, 2);
             buffer[o++] = (byte)ChatType;
             o = BinarySerializer.Serialize_Le(Channel, buffer, o, length);
 

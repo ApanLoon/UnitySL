@@ -408,6 +408,40 @@ public static class BinarySerializer
     #endregion Double
 
     #region String
+    public static int GetSerializedLength(string v, uint lengthCount)
+    {
+        return   (int)lengthCount
+               + Encoding.UTF8.GetByteCount(v)
+               + (v.EndsWith("\0") ? 0 : 1); // NUL terminator (Must be used in ChatFromViewer, not sure if this is true for all strings)
+    }
+
+    public static int Serialize(string v, byte[] buffer, int offset, int length, uint lengthCount)
+    {
+        // TODO: Verify that the message fits
+
+        int o = offset;
+
+        if (v.EndsWith("\0") == false)
+        {
+            v += '\0';
+        }
+        byte[] bytes = Encoding.UTF8.GetBytes(v);
+        int byteCount = bytes.Length;
+        switch (lengthCount)
+        {
+            case 1:
+                buffer[o++] = (byte)byteCount;
+                break;
+
+            case 2:
+                o = Serialize_Le((UInt16)byteCount, buffer, o, length);
+                break;
+        }
+        Array.Copy(bytes, 0, buffer, o, byteCount);
+        o += byteCount;
+        return o;
+    }
+
     public static string DeSerializeString (byte[] buffer, ref int offset, int length, uint lengthCount)
     {
         int len;
