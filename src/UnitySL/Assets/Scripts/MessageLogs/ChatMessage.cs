@@ -67,6 +67,7 @@ namespace Assets.Scripts.MessageLogs
             {Logger.LogLevel.Error,   Color.red.ToRtfString() }
         };
 
+        protected Color NameColour = new Color(0.7333f, 0.898f, 0.4824f, 1.0f);
         protected Color NormalColour = Color.white;
         protected Color ObjectColour = Color.green;
         protected Color SystemColour = Color.cyan;
@@ -79,7 +80,7 @@ namespace Assets.Scripts.MessageLogs
 
         public override string ToRtfString()
         {
-            string s = $"{Timestamp:T} {SenderName}";
+            string s = $"[{Timestamp:t}] {NameColour.ToRtfString()}{SenderName}</color>";
             Color colour;
             switch (SourceType)
             {

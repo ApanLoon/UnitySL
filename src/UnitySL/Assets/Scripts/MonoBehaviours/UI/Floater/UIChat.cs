@@ -79,6 +79,9 @@ public class UIChat : MonoBehaviour
         }
         await (activeTab.MessageLog?.SendMessage(chatInputField.text) ?? Task.CompletedTask);
         chatInputField.text = "";
+
+        // Return focus to the input field. We want to be able to keep typing immediately:
+        chatInputField.ActivateInputField();
     }
     
     [Serializable] public class UIChatTabTemplate : Template<UIChatTab> { }

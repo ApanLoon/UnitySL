@@ -1147,6 +1147,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2939594652121063712, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
+      propertyPath: m_OnFocusSelectAll
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2939594652121063712, guid: 14a08e42389f4674192d5ae494a760b5,
+        type: 3}
       propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
