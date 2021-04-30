@@ -1212,6 +1212,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3960570955375768303, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3960570955375768303, guid: 14a08e42389f4674192d5ae494a760b5,
+        type: 3}
       propertyPath: m_fontAsset
       value: 
       objectReference: {fileID: 11400000, guid: bd7d20e452da69f48912c6177f4013a2,
@@ -1222,6 +1227,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3243668893486762048, guid: bd7d20e452da69f48912c6177f4013a2,
         type: 2}
+    - target: {fileID: 3960570955375768303, guid: 14a08e42389f4674192d5ae494a760b5,
+        type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4284177243
+      objectReference: {fileID: 0}
     - target: {fileID: 5180707761456533980, guid: 14a08e42389f4674192d5ae494a760b5,
         type: 3}
       propertyPath: m_text
