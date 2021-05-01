@@ -107,6 +107,7 @@ public class Circuit : IDisposable
     #region SendMessage
 
     #region Specific
+    #region Agent
     public void SendAgentUpdate (Guid              agentId,
                                  Guid              sessionId,
                                  Quaternion        bodyRotation, 
@@ -135,14 +136,6 @@ public class Circuit : IDisposable
         Send (message);
     }
 
-    public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
-    {
-        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId})", $"Sending to {Address}:{Port}");
-
-        UseCircuitCodeMessage message = new UseCircuitCodeMessage(circuitCode, sessionId, agentId);
-        await SendReliable(message);
-    }
-
     public async Task SendCompleteAgentMovement(Guid agentId, Guid sessionId, UInt32 circuitCode)
     {
         //Logger.LogDebug($"Circuit.SendCompleteAgentMovement({agentId}, {sessionId}, {circuitCode:x8})", $"Sending to {Address}:{Port}");
@@ -151,6 +144,19 @@ public class Circuit : IDisposable
         await SendReliable(message);
     }
 
+    public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
+    {
+        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId})", $"Sending to Host={Host}");
+
+        AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
+        await SendReliable(message);
+    }
+    #endregion Agent
+
+    #region Audio
+    #endregion Audio
+
+    #region Chat
     public async Task SendChatFromViewer(string message, ChatType chatType, Int32 channel)
     {
         Guid agentId = Session.Instance.AgentId;
@@ -161,6 +167,47 @@ public class Circuit : IDisposable
         await SendReliable(msg);
     }
 
+    public async Task<ImprovedInstantMessageMessage> SendInstantMessage(bool isFromGroup, Guid toAgentId, UInt32 parentEstateId, DialogType dialogType, Guid id, string message, byte[] binaryBucket)
+    {
+        Guid       agentId       = Session.Instance.AgentId;
+        Guid       sessionId     = Session.Instance.SessionId;
+        Guid       regionId      = Guid.Empty; // TODO: Should I ever specify this?
+        Vector3    position      = Vector3.zero; // TODO: Should I ever specify this?
+        OnlineMode onlineMode    = OnlineMode.Online;
+        UInt32     timestamp     = 0; // TODO: Tests show this as 0
+        string     fromAgentName = Agent.CurrentPlayer.DisplayName;
+
+        ImprovedInstantMessageMessage msg = new ImprovedInstantMessageMessage (agentId,
+                                                                               sessionId,
+                                                                               isFromGroup,
+                                                                               toAgentId,
+                                                                               parentEstateId,
+                                                                               regionId,
+                                                                               position,
+                                                                               onlineMode,
+                                                                               dialogType,
+                                                                               id,
+                                                                               timestamp,
+                                                                               fromAgentName,
+                                                                               message,
+                                                                               binaryBucket);
+        await SendReliable(msg);
+        return msg;
+    }
+    #endregion Chat
+
+    #region Map
+    #endregion Map
+
+    #region MessageSystem
+    public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
+    {
+        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId})", $"Sending to {Address}:{Port}");
+
+        UseCircuitCodeMessage message = new UseCircuitCodeMessage(circuitCode, sessionId, agentId);
+        await SendReliable(message);
+    }
+    
     public async Task SendAgentThrottle()
     {
         Guid agentId = Session.Instance.AgentId;
@@ -178,6 +225,30 @@ public class Circuit : IDisposable
         AgentThrottleMessage message = new AgentThrottleMessage(agentId, sessionId, circuitCode, 0, resend, land, wind, cloud, task, texture, asset);
         await SendReliable(message);
     }
+
+    public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
+    {
+        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId})", $"Sending to Host={Host}");
+
+        LogoutRequestMessage message = new LogoutRequestMessage (agentId, sessionId);
+        await SendReliable(message);
+    }
+    #endregion MessageSystem
+
+    #region Objects
+    #endregion Objects
+
+    #region Region
+    public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
+    {
+        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags})", $"Sending to Host={Host}");
+
+        RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
+        await SendReliable(message);
+    }
+    #endregion Region
+
+    #region Viewer
     public async Task SendAgentHeightWidth(UInt16 height, UInt16 width)
     {
         Guid agentId = Session.Instance.AgentId;
@@ -188,30 +259,7 @@ public class Circuit : IDisposable
         AgentHeightWidthMessage message = new AgentHeightWidthMessage(agentId, sessionId, circuitCode, 0, height, width);
         await SendReliable(message);
     }
-
-    public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
-    {
-        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId})", $"Sending to Host={Host}");
-
-        LogoutRequestMessage message = new LogoutRequestMessage (agentId, sessionId);
-        await SendReliable(message);
-    }
-
-    public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
-    {
-        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId})", $"Sending to Host={Host}");
-
-        AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
-        await SendReliable(message);
-    }
-
-    public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
-    {
-        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags})", $"Sending to Host={Host}");
-
-        RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
-        await SendReliable(message);
-    }
+    #endregion Viewer
     #endregion Specific
 
     protected async Task SendReliable(Message message)

@@ -42,6 +42,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
         AgentMovementCompleteMessage = Message.Low    + 250, //0xffff00fa,
         LogoutRequest                = Message.Low    + 252, //0xffff00fc,
         LogoutReply                  = Message.Low    + 253, //0xffff00fd,
+        ImprovedInstantMessage       = Message.Low    + 254, //0xffff00fe,
         OnlineNotification           = Message.Low    + 322, //0xffff0142,
         OfflineNotification          = Message.Low    + 323, //0xffff0143,
         AgentDataUpdateRequest       = Message.Low    + 386, //0xffff0182,
@@ -202,7 +203,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
         }
         #endregion Serailise
 
-        #region DeSerialise
+    #region DeSerialise
         /// <summary>
         /// Keeps track of messageIds we received but can't decode yet.
         /// </summary>
@@ -229,6 +230,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             { MessageId.ParcelOverlay,                () => new ParcelOverlayMessage()           },
             { MessageId.AgentMovementCompleteMessage, () => new AgentMovementCompleteMessage()   },
             { MessageId.LogoutReply,                  () => new LogoutReplyMessage()             },
+            { MessageId.ImprovedInstantMessage,       () => new ImprovedInstantMessageMessage()  },
             { MessageId.OnlineNotification,           () => new OnlineNotificationMessage()      },
             { MessageId.OfflineNotification,          () => new OfflineNotificationMessage()     },
             { MessageId.AgentDataUpdate,              () => new AgentDataUpdateMessage()         },

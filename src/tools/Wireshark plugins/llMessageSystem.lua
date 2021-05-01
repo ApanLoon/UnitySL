@@ -66,6 +66,59 @@ function ChatTypeToString(type)
 	end
 end
 
+function ImOfflineToString(offline)
+	    if offline == 0 then return "online"
+	elseif offline == 1 then return "offline"
+	else return "unknown"
+	end
+end
+
+function ImDialogToString(dialog)
+	    if dialog ==  0 then return "NothingSpecial"
+	elseif dialog ==  1 then return "MessageBox"
+	elseif dialog ==  2 then return "IM_MESSAGEBOX_COUNTDOWN_DELETED"
+	elseif dialog ==  3 then return "GroupInvitation"
+	elseif dialog ==  4 then return "InventoryOffered"
+	elseif dialog ==  5 then return "InventoryAccepted"
+	elseif dialog ==  6 then return "InventoryDeclined"
+	elseif dialog ==  7 then return "GroupVote"
+	elseif dialog ==  8 then return "GroupMessage_DEPRECATED"
+	elseif dialog ==  9 then return "TaskInventoryOffered"
+	elseif dialog == 10 then return "TaskInventoryAccepted"
+	elseif dialog == 11 then return "TaskInventoryDeclined"
+	elseif dialog == 12 then return "NewUserDefault"
+	elseif dialog == 13 then return "SessionInvite"
+	elseif dialog == 14 then return "SessionP2PInvite"
+	elseif dialog == 15 then return "SessionGroupStart"
+	elseif dialog == 16 then return "SessionConferenceStart"
+	elseif dialog == 17 then return "SessionSend"
+	elseif dialog == 18 then return "SessionLeave"
+	elseif dialog == 19 then return "FromTask"
+	elseif dialog == 20 then return "DoNotDisturbAutoResponse"
+	elseif dialog == 21 then return "ConsoleAndChatHistory"
+	elseif dialog == 22 then return "LureUser"
+	elseif dialog == 23 then return "LureAccepted"
+	elseif dialog == 24 then return "LureDeclined"
+	elseif dialog == 25 then return "GodLikeLureUser"
+	elseif dialog == 26 then return "TeleportRequest"
+	elseif dialog == 27 then return "GroupElection_DEPRECATED"
+	elseif dialog == 28 then return "GotoUrl"
+	elseif dialog == 31 then return "FromTaskAsAlert"
+	elseif dialog == 32 then return "GroupNotice"
+	elseif dialog == 33 then return "GroupNoticeInventoryAccepted"
+	elseif dialog == 34 then return "GroupNoticeInventoryDeclined"
+	elseif dialog == 35 then return "GroupInvitationAccept"
+	elseif dialog == 36 then return "GroupInvitationDecline"
+	elseif dialog == 37 then return "GroupNoticeRequested"
+	elseif dialog == 38 then return "FriendshipOffered"
+	elseif dialog == 39 then return "FriendshipAccepted"
+	elseif dialog == 40 then return "FriendshipDeclined_DEPRECATED"
+	elseif dialog == 41 then return "TypingStart"
+	elseif dialog == 42 then return "TypingStop"
+	else return "unknown"
+	end
+end
+
 function TransactionTypeToString(transactionType)
 	if transactionType == 0 then return "balance update"
 	-- Codes 1000-1999 reserved for one-time charges
@@ -697,7 +750,7 @@ Decoders =
 		Name = "ObjectUpdate",
 		Fields =
 		{
-			RegionHandle       = ProtoField.uint64 ("llmsg.ObjectUpdate.RegionHandle",       "RegionHandle"),
+			RegionHandle       = ProtoField.uint64 ("llmsg.ObjectUpdate.RegionHandle",       "RegionHandle", base.HEX),
 			TimeDilation       = ProtoField.uint16 ("llmsg.ObjectUpdate.TimeDilation",       "TimeDilation"),
 			
 			Id                 = ProtoField.uint32 ("llmsg.ObjectUpdate.Id",                 "Id"),
@@ -869,9 +922,9 @@ Decoders =
 		Name = "ObjectUpdateCompressed",
 		Fields =
 		{
-			RegionHandle       = ProtoField.uint64 ("llmsg.ObjectUpdate.RegionHandle",       "RegionHandle"),
+			RegionHandle       = ProtoField.uint64 ("llmsg.ObjectUpdate.RegionHandle",       "RegionHandle", base.HEX),
 			TimeDilation       = ProtoField.uint16 ("llmsg.ObjectUpdate.TimeDilation",       "TimeDilation"),		
-			UpdateFlags        = ProtoField.uint32 ("llmsg.ObjectUpdate.UpdateFlags",        "UpdateFlags"),		
+			UpdateFlags        = ProtoField.uint32 ("llmsg.ObjectUpdate.UpdateFlags",        "UpdateFlags",  base.HEX),		
 			Data               = ProtoField.none   ("llmsg.ObjectUpdate.Data",               "Data")	
 		},
 		
@@ -904,7 +957,7 @@ Decoders =
 		Name = "ObjectUpdateCached",
 		Fields =
 		{
-			RegionHandle    = ProtoField.uint64 ("llmsg.ObjectUpdateCached.RegionHandle",      "RegionHandle"),
+			RegionHandle    = ProtoField.uint64 ("llmsg.ObjectUpdateCached.RegionHandle",      "RegionHandle", base.HEX),
 			TimeDilation    = ProtoField.uint16 ("llmsg.ObjectUpdateCached.TimeDilation",      "TimeDilation"),
 			ObjectId        = ProtoField.uint32 ("llmsg.ObjectUpdateCached.ObjectId",          "ObjectId"),
 			CRC             = ProtoField.uint32 ("llmsg.ObjectUpdateCached.CRC",               "CRC"),
@@ -932,7 +985,7 @@ Decoders =
 		Name = "ImprovedTerseObjectUpdate",
 		Fields =
 		{
-			RegionHandle    = ProtoField.uint64 ("llmsg.ImprovedTerseObjectUpdate.RegionHandle",      "RegionHandle"),
+			RegionHandle    = ProtoField.uint64 ("llmsg.ImprovedTerseObjectUpdate.RegionHandle",      "RegionHandle", base.HEX),
 			TimeDilation    = ProtoField.uint16 ("llmsg.ImprovedTerseObjectUpdate.TimeDilation",      "TimeDilation"),
 			
 			Data            = ProtoField.none   ("llmsg.ImprovedTerseObjectUpdate.Data",              "Data"),
@@ -2515,6 +2568,67 @@ Decoders =
 		end
 	},
 
+	[0xffff00fe] =
+	{
+		Name = "ImprovedInstantMessage",
+		Fields =
+		{
+			AgentId        = ProtoField.guid   ("llmsg.ImprovedInstantMessage.AgentId",         "AgentId"),
+			SessionId      = ProtoField.guid   ("llmsg.ImprovedInstantMessage.SessionId",       "SessionId"),
+			FromGroup      = ProtoField.bool   ("llmsg.ImprovedInstantMessage.FromGroup",       "FromGroup"),
+			ToAgentId      = ProtoField.guid   ("llmsg.ImprovedInstantMessage.ToAgentId",       "ToAgentId"),
+			ParentEstateId = ProtoField.uint32 ("llmsg.ImprovedInstantMessage.ParentEstateId",  "ParentEstateId"),
+			RegionId       = ProtoField.guid   ("llmsg.ImprovedInstantMessage.RegionId",        "RegionId"),
+			PositionX      = ProtoField.float  ("llmsg.ImprovedInstantMessage.PositionX",       "PositionX"),
+			PositionY      = ProtoField.float  ("llmsg.ImprovedInstantMessage.PositionY",       "PositionY"),
+			PositionZ      = ProtoField.float  ("llmsg.ImprovedInstantMessage.PositionZ",       "PositionZ"),
+			Offline        = ProtoField.uint8  ("llmsg.ImprovedInstantMessage.Offline",         "Offline"),
+			Dialog         = ProtoField.uint8  ("llmsg.ImprovedInstantMessage.Dialog",          "Dialog"),
+			Id             = ProtoField.guid   ("llmsg.ImprovedInstantMessage.Id",              "Id"),
+			Timestamp      = ProtoField.uint32 ("llmsg.ImprovedInstantMessage.Timestamp",       "Timestamp"),
+			FromAgentName  = ProtoField.string ("llmsg.ImprovedInstantMessage.FromAgentName",   "FromAgentName",     base.UNICODE),
+			Message        = ProtoField.string ("llmsg.ImprovedInstantMessage.Message",         "Message",           base.UNICODE),
+			BinaryBucket   = ProtoField.none   ("llmsg.ImprovedInstantMessage.BinaryBucket",    "BinaryBucket",      base.HEX)
+		},
+		
+		Decoder = function (buffer, offset, dataLength, tree, pinfo)
+			local messageNumber = 0xffff00fe
+			local name = Decoders[messageNumber].Name
+			local subtree = tree:add(llmsg_protocol, buffer(offset, dataLength), name)
+			local o = offset
+			
+			if bitand(Header.Flags, 0x80) ~= 0 then
+				buffer = ExpandZeroCode(buffer, o, dataLength)
+				o = 0
+			end
+			
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.AgentId,             buffer, o,  16)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.SessionId,           buffer, o,  16)
+			
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.FromGroup,           buffer, o,   1)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.ToAgentId,           buffer, o,  16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.ParentEstateId,      buffer, o,   4)
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.RegionId,            buffer, o,  16)
+			o = AddVector3ToTree  (subtree,          messageNumber,       "Position",           buffer, o)
+			local offline = buffer(o, 1):uint()
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Offline,             buffer, o,    1, string.format(" (%s)", ImOfflineToString(offline)))
+			local dialog = buffer(o, 1):uint()
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Dialog,              buffer, o,    1, string.format(" (%s)", ImDialogToString(dialog)))
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Id,                  buffer, o,  16)
+			o = AddFieldToTree_le (subtree, Decoders[messageNumber].Fields.Timestamp,           buffer, o,   4)
+			local len = buffer(o, 1):uint(); o = o + 1
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.FromAgentName,       buffer, o, len)
+			len = buffer(o, 2):le_uint(); o = o + 2
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.Message,             buffer, o, len)
+			len = buffer(o, 2):le_uint(); o = o + 2
+			o = AddFieldToTree    (subtree, Decoders[messageNumber].Fields.BinaryBucket,        buffer, o, len)
+			
+			pinfo.cols.info:append(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			BodyTree:append_text(string.format(" %s", GetMessageIdString(name, messageNumber)))
+			return o
+		end
+	},
+
 	[0xffff0105] =
 	{
 		Name = "GenericMessage",
@@ -2757,7 +2871,7 @@ Decoders =
 		Fields =
 		{
 			RegionId        = ProtoField.guid          ("llmsg.RegionIDAndHandleReply.RegionId",       "RegionId"),
-			RegionHandle    = ProtoField.uint64        ("llmsg.RegionIDAndHandleReply.RegionHandle",   "RegionHandle")
+			RegionHandle    = ProtoField.uint64        ("llmsg.RegionIDAndHandleReply.RegionHandle",   "RegionHandle", base.HEX)
 		},
 		
 		Decoder = function (buffer, offset, dataLength, tree, pinfo)

@@ -19,7 +19,7 @@ namespace Assets.Scripts.MessageLogs
         {
             Send = send;
 
-            init(this);
+            init?.Invoke(this);
         }
 
         public void Clear()
