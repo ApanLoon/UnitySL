@@ -25,25 +25,14 @@ public class UIChat : MonoBehaviour
         //CreateTab("Bot-6542", true);
         //CreateTab("Skeleton society", true);
 
+        LogManager.Instance.OnNewInstantMessageSession += OnNewInstantMessageSession;
+
         localChatTab.toggle.isOn = true;
+    }
 
-        LogManager.Instance.ChatLog.OnMessage += msg =>
-        {
-            string s = msg.ToRtfString();
-            if (activeTab == localChatTab)
-            {
-                messageView.AppendMessage(s);
-            }
-        };
-
-        LogManager.Instance.DebugLog.OnMessage += msg =>
-        {
-            string s = msg.ToRtfString();
-            if (activeTab == debugChatTab)
-            {
-                messageView.AppendMessage(s);
-            }
-        };
+    protected void OnNewInstantMessageSession(Guid dialogId, string senderName, MessageLog log)
+    {
+        localChatTab = CreateTab(senderName, true, log);
     }
 
     /// <summary> Create new chat tab </summary>
@@ -55,6 +44,17 @@ public class UIChat : MonoBehaviour
         tab.canClose = canClose;
         tab.toggle.onValueChanged.AddListener(isOn => { if (isOn) SelectTab(tab); });
         tab.MessageLog = log;
+
+        log.OnMessage += msg =>
+        {
+            // TODO: Check if the tab even exists and if not, create it. (This happens if a message comes in for a tab that has been closed)
+            string s = msg.ToRtfString();
+            if (activeTab == tab)
+            {
+                messageView.AppendMessage(s);
+            }
+        };
+
         return tab;
     }
 
