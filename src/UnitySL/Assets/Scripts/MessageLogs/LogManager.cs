@@ -29,7 +29,28 @@ namespace Assets.Scripts.MessageLogs
             if (InstantMessageLogs.ContainsKey(dialogId) == false)
             {
                 Logger.LogInfo("LogManager.OnImprovedInstantMessageMessage", $"Adding message log for {message.FromAgentName}. Dialog Id={dialogId}");
-                InstantMessageLogs.Add(dialogId, new MessageLog(null));
+                InstantMessageLogs.Add(dialogId, 
+                    new MessageLog(null, 
+                    async s =>
+                    {
+                        if (Agent.CurrentPlayer?.Region?.Circuit == null)
+                        {
+                            return;
+                        }
+
+                        ImprovedInstantMessageMessage msg = await Agent.CurrentPlayer.Region.Circuit.SendInstantMessage (
+                            false,
+                            message.AgentId,
+                            message.ParentEstateId, // TODO: Do I ever need to specify this?
+                            DialogType.NothingSpecial,
+                            message.Id,
+                            s,
+                            null);
+
+                        // Pretend that we received this message to get it into the log:
+                        OnImprovedInstantMessageMessage(msg);
+                    })
+                );
                 OnNewInstantMessageSession?.Invoke(dialogId, message.FromAgentName, InstantMessageLogs[dialogId]);
             }
 

@@ -167,16 +167,15 @@ public class Circuit : IDisposable
         await SendReliable(msg);
     }
 
-    public async Task SendInstantMessage(bool isFromGroup, Guid toAgentId, UInt32 parentEstateId, DialogType dialogType, Guid id, string message, byte[] binaryBucket)
+    public async Task<ImprovedInstantMessageMessage> SendInstantMessage(bool isFromGroup, Guid toAgentId, UInt32 parentEstateId, DialogType dialogType, Guid id, string message, byte[] binaryBucket)
     {
-        Agent      agent         = Agent.CurrentPlayer;
-        Guid       agentId       = agent.Id;
-        Guid       sessionId     = Guid.Empty; // TODO: What is this used for? Group IMs? Direct messages has Guid.Empty
-        Guid       regionId      = agent.Region.Id;
-        Vector3    position      = agent.Position; // NOTE: Tests show that for DialogType=TypingStop, the position is zero vector
+        Guid       agentId       = Session.Instance.AgentId;
+        Guid       sessionId     = Session.Instance.SessionId;
+        Guid       regionId      = Guid.Empty; // TODO: Should I ever specify this?
+        Vector3    position      = Vector3.zero; // TODO: Should I ever specify this?
         OnlineMode onlineMode    = OnlineMode.Online;
         UInt32     timestamp     = 0; // TODO: Tests show this as 0
-        string     fromAgentName = agent.DisplayName;
+        string     fromAgentName = Agent.CurrentPlayer.DisplayName;
 
         ImprovedInstantMessageMessage msg = new ImprovedInstantMessageMessage (agentId,
                                                                                sessionId,
@@ -193,6 +192,7 @@ public class Circuit : IDisposable
                                                                                message,
                                                                                binaryBucket);
         await SendReliable(msg);
+        return msg;
     }
     #endregion Chat
 
