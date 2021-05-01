@@ -227,7 +227,7 @@ public class LoginScreen : MonoBehaviour
 
     public async void OnLogin()
     {
-        Logger.LogDebug($"Login: {NameText.text} ****");
+        Logger.LogDebug("LoginScreen.OnLogin", $"{NameText.text} ****");
 
         // TODO: Make it possible to select grid
 
@@ -249,7 +249,7 @@ public class LoginScreen : MonoBehaviour
             location = Slurl.SIM_LOCATION_LAST;
         }
         Slurl slurl = Slurl.FromLocationString(location);
-        Logger.LogDebug($"LoginScreen.OnLogin: slurl={slurl.ToString()}");
+        Logger.LogDebug($"LoginScreen.OnLogin", $"slurl={slurl.ToString()}");
 
         await Session.Instance.Start(credential, slurl);
        

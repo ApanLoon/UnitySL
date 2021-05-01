@@ -1,4 +1,5 @@
 ﻿using System;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 using Assets.Scripts.SystemExtensions;
 using UnityEngine;
 
@@ -307,7 +308,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             Array.Copy(buf, o, BinaryBucket, 0, len);
             o += len;
 
-            Logger.LogDebug(ToString());
+            Logger.LogDebug("ImprovedInstantMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

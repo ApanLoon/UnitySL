@@ -48,7 +48,7 @@ public class CredentialStorage : IEnumerable<Credential>
                     break;
                 
                 default:
-                    Logger.LogError($"CredentialStorage.Initialise: Store contains invalid name: \"{name}\"");
+                    Logger.LogError("CredentialStorage.Initialise",$"Store contains invalid name: \"{name}\"");
                     break;
             }
 
@@ -80,7 +80,7 @@ public class CredentialStorage : IEnumerable<Credential>
                 break;
 
             default:
-                Logger.LogError($"CredentialStorage.Store: Invalid name: \"{name}\"");
+                Logger.LogError("CredentialStorage.Store", $"Invalid name: \"{name}\"");
                 break;
         }
 

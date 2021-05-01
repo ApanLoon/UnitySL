@@ -2,7 +2,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
+using Assets.Scripts.MessageLogs;
 using UnityEngine;
 
 public class Circuit : IDisposable
@@ -24,10 +29,10 @@ public class Circuit : IDisposable
     {
         if (_threadLoopTask != null && _threadLoopTask.Status == TaskStatus.Running)
         {
-            Logger.LogDebug("Circuit.Start: Already started.");
+            Logger.LogDebug("Circuit.Start", "Already started.");
             return;
         }
-        Logger.LogDebug($"Circuit.Start: Host={Host}");
+        Logger.LogDebug("Circuit.Start", $"Host={Host}");
 
         _cts = new CancellationTokenSource();
         _threadLoopTask = Task.Run(() => ThreadLoop(_cts.Token), _cts.Token);
@@ -35,7 +40,7 @@ public class Circuit : IDisposable
 
     public void Stop()
     {
-        Logger.LogDebug($"Circuit.Stop: Host={Host}");
+        Logger.LogDebug("Circuit.Stop", $"Host={Host}");
 
         SlMessageSystem.Instance.RemoveCircuit(this);
         _cts.Cancel();
@@ -48,7 +53,7 @@ public class Circuit : IDisposable
 
     protected async Task ThreadLoop(CancellationToken ct)
     {
-        Logger.LogInfo($"Circuit.ThreadLoop: Running Host={Host}");
+        Logger.LogInfo("Circuit.ThreadLoop", $"Running Host={Host}");
 
         LastSendTime = DateTime.Now; // Pretend that we sent something to prevent initial keep-alive.
         while (ct.IsCancellationRequested == false)
@@ -84,7 +89,7 @@ public class Circuit : IDisposable
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted
         }
         // Cancelling appears to kill the task immediately without giving it a chance to get here
-        Logger.LogInfo($"Circuit.ThreadLoop: Stopping... Host={Host}");
+        Logger.LogInfo("Circuit.ThreadLoop", $"Stopping... Host={Host}");
     }
     #endregion Thread
 
@@ -103,37 +108,37 @@ public class Circuit : IDisposable
 
     #region Specific
     #region Agent
-    public void SendAgentUpdate(Guid agentId,
-        Guid sessionId,
-        Quaternion bodyRotation,
-        Quaternion headRotation,
-        AgentState agentState,
-        Vector3 cameraCentre,
-        Vector3 cameraAtAxis,
-        Vector3 cameraLeftAxis,
-        Vector3 cameraUpAxis,
-        float farClipPlane,
-        AgentControlFlags controlFlags,
-        AgentUpdateFlags updateFlags)
+    public void SendAgentUpdate (Guid              agentId,
+                                 Guid              sessionId,
+                                 Quaternion        bodyRotation, 
+                                 Quaternion        headRotation, 
+                                 AgentState        agentState, 
+                                 Vector3           cameraCentre, 
+                                 Vector3           cameraAtAxis, 
+                                 Vector3           cameraLeftAxis, 
+                                 Vector3           cameraUpAxis, 
+                                 float             farClipPlane, 
+                                 AgentControlFlags controlFlags, 
+                                 AgentUpdateFlags  updateFlags)
     {
-        AgentUpdateMessage message = new AgentUpdateMessage(agentId,
-            sessionId,
-            bodyRotation,
-            headRotation,
-            agentState,
-            cameraCentre,
-            cameraAtAxis,
-            cameraLeftAxis,
-            cameraUpAxis,
-            farClipPlane,
-            controlFlags,
-            updateFlags);
-        Send(message);
+        AgentUpdateMessage message = new AgentUpdateMessage (agentId,
+                                                             sessionId,
+                                                             bodyRotation,
+                                                             headRotation,
+                                                             agentState,
+                                                             cameraCentre,
+                                                             cameraAtAxis,
+                                                             cameraLeftAxis,
+                                                             cameraUpAxis,
+                                                             farClipPlane,
+                                                             controlFlags,
+                                                             updateFlags);
+        Send (message);
     }
 
     public async Task SendCompleteAgentMovement(Guid agentId, Guid sessionId, UInt32 circuitCode)
     {
-        //Logger.LogDebug($"Circuit.SendCompleteAgentMovement({agentId}, {sessionId}, {circuitCode:x8}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendCompleteAgentMovement({agentId}, {sessionId}, {circuitCode:x8})", $"Sending to {Address}:{Port}");
 
         CompleteAgentMovementMessage message = new CompleteAgentMovementMessage(agentId, sessionId, circuitCode);
         await SendReliable(message);
@@ -141,7 +146,7 @@ public class Circuit : IDisposable
 
     public async Task SendAgentDataUpdateRequest(Guid agentId, Guid sessionId)
     {
-        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId}): Sending to Host={Host}");
+        Logger.LogDebug($"Circuit.SendAgentDataUpdateRequest({agentId}, {sessionId})", $"Sending to Host={Host}");
 
         AgentDataUpdateRequestMessage message = new AgentDataUpdateRequestMessage(agentId, sessionId);
         await SendReliable(message);
@@ -158,6 +163,7 @@ public class Circuit : IDisposable
         Guid sessionId = Session.Instance.SessionId;
 
         ChatFromViewerMessage msg = new ChatFromViewerMessage(agentId, sessionId, message, chatType, channel);
+        Logger.LogDebug("Circuit.SendChatFromViewer", msg.ToString());
         await SendReliable(msg);
     }
 
@@ -196,11 +202,12 @@ public class Circuit : IDisposable
     #region MessageSystem
     public async Task SendUseCircuitCode(UInt32 circuitCode, Guid sessionId, Guid agentId)
     {
-        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendUseCircuitCode({circuitCode:x8}, {sessionId}, {agentId})", $"Sending to {Address}:{Port}");
 
         UseCircuitCodeMessage message = new UseCircuitCodeMessage(circuitCode, sessionId, agentId);
         await SendReliable(message);
     }
+    
     public async Task SendAgentThrottle()
     {
         Guid agentId = Session.Instance.AgentId;
@@ -211,9 +218,9 @@ public class Circuit : IDisposable
         float wind = 20 * 1024f;
         float cloud = 20 * 1024f;
         float task = 310 * 1024f;
-        float texture = 310 * 1024f;
+        float texture = 310 * 1024f; 
         float asset = 140 * 1024f;
-        //Logger.LogDebug($"Circuit.SendAgentThrottle({agentId}, {sessionId}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendAgentThrottle({agentId}, {sessionId})", $"Sending to {Address}:{Port}");
 
         AgentThrottleMessage message = new AgentThrottleMessage(agentId, sessionId, circuitCode, 0, resend, land, wind, cloud, task, texture, asset);
         await SendReliable(message);
@@ -221,9 +228,9 @@ public class Circuit : IDisposable
 
     public async Task SendLogoutRequest(Guid agentId, Guid sessionId)
     {
-        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId}): Sending to Host={Host}");
+        Logger.LogDebug($"Circuit.SendLogoutRequest({agentId}, {sessionId})", $"Sending to Host={Host}");
 
-        LogoutRequestMessage message = new LogoutRequestMessage(agentId, sessionId);
+        LogoutRequestMessage message = new LogoutRequestMessage (agentId, sessionId);
         await SendReliable(message);
     }
     #endregion MessageSystem
@@ -234,7 +241,7 @@ public class Circuit : IDisposable
     #region Region
     public async Task SendRegionHandshakeReply(Guid agentId, Guid sessionId, RegionHandshakeReplyFlags flags)
     {
-        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags}): Sending to Host={Host}");
+        //Logger.LogDebug($"Circuit.SendRegionHandshakeReply({agentId}, {sessionId}, {flags})", $"Sending to Host={Host}");
 
         RegionHandshakeReplyMessage message = new RegionHandshakeReplyMessage(agentId, sessionId, flags);
         await SendReliable(message);
@@ -247,7 +254,7 @@ public class Circuit : IDisposable
         Guid agentId = Session.Instance.AgentId;
         Guid sessionId = Session.Instance.SessionId;
         UInt32 circuitCode = Session.Instance.CircuitCode;
-        //Logger.LogDebug($"Circuit.SendAgentHeightWidth({agentId}, {sessionId}): Sending to {Address}:{Port}");
+        //Logger.LogDebug($"Circuit.SendAgentHeightWidth({agentId}, {sessionId})", $"Sending to {Address}:{Port}");
 
         AgentHeightWidthMessage message = new AgentHeightWidthMessage(agentId, sessionId, circuitCode, 0, height, width);
         await SendReliable(message);
@@ -275,7 +282,7 @@ public class Circuit : IDisposable
         }
 
         int len = message.GetSerializedLength();
-        lock (WaitingForInboundAck)
+        lock (WaitingForOutboundAck)
         {
             int nAcks = WaitingForOutboundAck.Count;
 
@@ -317,7 +324,7 @@ public class Circuit : IDisposable
         if (waitTask != await Task.WhenAny(waitTask, Task.Delay(timeout)))
         {
             // TODO: Retry somehow
-            Logger.LogError ($"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds. ({messageId})");
+            Logger.LogError ("Circuit.Ack", $"Message with sequence number {sequenceNumber} was not ACKed within {timeout} seconds. ({messageId})");
             // Fall through to ignore the missing ACK
         }
     }
@@ -384,7 +391,7 @@ public class Circuit : IDisposable
 
     public void Dispose()
     {
-        Logger.LogDebug($"Circuit.Dispose: Host={Host}");
+        Logger.LogDebug("Circuit.Dispose", $"Host={Host}");
         Stop();
     }
 }

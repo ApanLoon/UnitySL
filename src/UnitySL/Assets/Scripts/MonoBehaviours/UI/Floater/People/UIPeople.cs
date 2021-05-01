@@ -25,7 +25,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
 
             public override void Changed(ChangeType change)
             {
-                Logger.LogDebug($"People.PeopleFriendsObserver.Changed: {change}");
+                Logger.LogDebug("People.PeopleFriendsObserver.Changed", change.ToString());
 
                 switch (change)
                 {

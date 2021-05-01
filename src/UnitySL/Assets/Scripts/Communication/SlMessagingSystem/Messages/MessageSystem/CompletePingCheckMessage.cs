@@ -1,44 +1,47 @@
-﻿public class CompletePingCheckMessage : Message
+﻿namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 {
-    public byte PingId { get; set; }
-
-    public CompletePingCheckMessage()
+    public class CompletePingCheckMessage : Message
     {
-        MessageId = MessageId.CompletePingCheck;
-        Flags = 0;
-    }
+        public byte PingId { get; set; }
 
-    public CompletePingCheckMessage(byte pingId) : this()
-    {
-        PingId = pingId;
-    }
+        public CompletePingCheckMessage()
+        {
+            MessageId = MessageId.CompletePingCheck;
+            Flags = 0;
+        }
 
-    #region Serialise
-    public override int GetSerializedLength()
-    {
-        return base.GetSerializedLength()
-               + 1;  // PingId
-    }
-    public override int Serialize(byte[] buffer, int offset, int length)
-    {
-        int o = offset;
-        o += base.Serialize(buffer, offset, length);
+        public CompletePingCheckMessage(byte pingId) : this()
+        {
+            PingId = pingId;
+        }
 
-        buffer[o++] = PingId;
+        #region Serialise
+        public override int GetSerializedLength()
+        {
+            return base.GetSerializedLength()
+                   + 1;  // PingId
+        }
+        public override int Serialize(byte[] buffer, int offset, int length)
+        {
+            int o = offset;
+            o += base.Serialize(buffer, offset, length);
 
-        return o - offset;
-    }
-    #endregion Serialise
+            buffer[o++] = PingId;
 
-    #region DeSerialise
-    protected override void DeSerialise(byte[] buf, ref int o, int length)
-    {
-        PingId = buf[o++];
-    }
-    #endregion DeSerialise
+            return o - offset;
+        }
+        #endregion Serialise
 
-    public override string ToString()
-    {
-        return $"{base.ToString()}: PingId={PingId}";
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
+        {
+            PingId = buf[o++];
+        }
+        #endregion DeSerialise
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}: PingId={PingId}";
+        }
     }
 }

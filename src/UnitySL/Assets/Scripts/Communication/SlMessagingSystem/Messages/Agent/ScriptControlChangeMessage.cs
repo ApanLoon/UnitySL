@@ -1,48 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 
-public class ControlsChange
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
 {
-    public bool TakeControls { get; set; }
-    public AgentControlFlags ControlFlags { get; set; }
-    public bool PassToAgent { get; set; }
-}
-
-public class ScriptControlChangeMessage : Message
-{
-    public List<ControlsChange> Controls { get; set; } = new List<ControlsChange>();
-
-    public ScriptControlChangeMessage()
+    public class ControlsChange
     {
-        MessageId = MessageId.ScriptControlChange;
-        Flags = 0;
+        public bool TakeControls { get; set; }
+        public AgentControlFlags ControlFlags { get; set; }
+        public bool PassToAgent { get; set; }
     }
 
-    #region DeSerialise
-    protected override void DeSerialise(byte[] buf, ref int o, int length)
+    public class ScriptControlChangeMessage : Message
     {
-        byte nControls = buf[o++];
-        for (byte i = 0; i < nControls; i++)
+        public List<ControlsChange> Controls { get; set; } = new List<ControlsChange>();
+
+        public ScriptControlChangeMessage()
         {
-            ControlsChange c = new ControlsChange();
-            c.TakeControls = buf[o++] == 1;
-            c.ControlFlags = (AgentControlFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
-            c.PassToAgent  = buf[o++] == 1;
-            Controls.Add(c);
-            //Logger.LogDebug($"ScriptControlChangeMessage: TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
+            MessageId = MessageId.ScriptControlChange;
+            Flags = 0;
         }
 
-    }
-    #endregion DeSerialise
-
-    public override string ToString()
-    {
-        string s = $"{base.ToString()}:";
-        foreach (ControlsChange control in Controls)
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
         {
-            s += $"\n    TakeControls={control.TakeControls}, ControlFlags={control.ControlFlags}, PassToAgent={control.PassToAgent}";
-        }
+            byte nControls = buf[o++];
+            for (byte i = 0; i < nControls; i++)
+            {
+                ControlsChange c = new ControlsChange();
+                c.TakeControls = BinarySerializer.DeSerializeBool(buf, ref o, length);
+                c.ControlFlags = (AgentControlFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
+                c.PassToAgent  = BinarySerializer.DeSerializeBool(buf, ref o, length);
+                Controls.Add(c);
+                //Logger.LogDebug("ScriptControlChangeMessage.DeSerialise", $"TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
+            }
 
-        return s;
+        }
+        #endregion DeSerialise
+
+        public override string ToString()
+        {
+            string s = $"{base.ToString()}:";
+            foreach (ControlsChange control in Controls)
+            {
+                s += $"\n    TakeControls={control.TakeControls}, ControlFlags={control.ControlFlags}, PassToAgent={control.PassToAgent}";
+            }
+
+            return s;
+        }
     }
 }

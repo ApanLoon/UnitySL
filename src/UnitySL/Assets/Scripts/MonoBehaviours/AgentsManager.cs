@@ -47,7 +47,7 @@ namespace Assets.Scripts.MonoBehaviours
             AgentController controller = go.GetComponent<AgentController>();
             if (controller == null)
             {
-                Logger.LogError("AgentsManager.AddAgentGameObject: Agent prefab has no AgentController.");
+                Logger.LogError("AgentsManager.AddAgentGameObject", "Agent prefab has no AgentController.");
                 return;
             }
 

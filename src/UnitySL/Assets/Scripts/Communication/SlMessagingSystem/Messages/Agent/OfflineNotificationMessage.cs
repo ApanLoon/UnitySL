@@ -1,35 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
 
-public class OfflineNotificationMessage : Message
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
 {
-    public List<Guid> Agents { get; set; } = new List<Guid>();
-
-    public OfflineNotificationMessage()
+    public class OfflineNotificationMessage : Message
     {
-        MessageId = MessageId.OfflineNotification;
-        Flags = 0;
-    }
+        public List<Guid> Agents { get; set; } = new List<Guid>();
 
-    #region DeSerialise
-    protected override void DeSerialise(byte[] buf, ref int o, int length)
-    {
-        byte nAgents = buf[o++];
-        for (byte i = 0; i < nAgents; i++)
+        public OfflineNotificationMessage()
         {
-            Agents.Add(BinarySerializer.DeSerializeGuid(buf, ref o, length));
-            Logger.LogDebug(ToString());
+            MessageId = MessageId.OfflineNotification;
+            Flags = 0;
         }
-    }
-    #endregion DeSerialise
 
-    public override string ToString()
-    {
-        string s = $"{base.ToString()}:";
-        foreach (Guid agent in Agents)
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
         {
-            s += $"\n    AgentId={agent}";
+            byte nAgents = buf[o++];
+            for (byte i = 0; i < nAgents; i++)
+            {
+                Agents.Add(BinarySerializer.DeSerializeGuid(buf, ref o, length));
+                Logger.LogDebug("OfflineNotificationMessage.DeSerialise", ToString());
+            }
         }
-        return s;
+        #endregion DeSerialise
+
+        public override string ToString()
+        {
+            string s = $"{base.ToString()}:";
+            foreach (Guid agent in Agents)
+            {
+                s += $"\n    AgentId={agent}";
+            }
+            return s;
+        }
     }
 }

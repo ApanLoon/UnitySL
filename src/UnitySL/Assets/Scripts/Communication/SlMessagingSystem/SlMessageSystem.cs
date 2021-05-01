@@ -99,10 +99,10 @@ public class SlMessageSystem : IDisposable
     {
         if (_threadLoopTask != null && _threadLoopTask.Status == TaskStatus.Running)
         {
-            Logger.LogDebug("SlMessageSystem.Start: Already started.");
+            Logger.LogDebug("SlMessageSystem.Start","Already started.");
             return;
         }
-        Logger.LogDebug("SlMessageSystem.Start");
+        Logger.LogDebug("SlMessageSystem.Start", "");
 
         _cts = new CancellationTokenSource();
         _threadLoopTask = Task.Run(() => ThreadLoop(_cts.Token), _cts.Token);
@@ -110,7 +110,7 @@ public class SlMessageSystem : IDisposable
 
     public void Stop()
     {
-        Logger.LogDebug("SlMessageSystem.Stop");
+        Logger.LogDebug("SlMessageSystem.Stop", "");
         _cts.Cancel();
 
         foreach (Circuit circuit in CircuitByEndPoint.Values)
@@ -132,7 +132,7 @@ public class SlMessageSystem : IDisposable
         state.EndPoint = new IPEndPoint(IPAddress.Any, Port);
         state.Client = new UdpClient(state.EndPoint);
         UdpClient = state.Client;
-        Logger.LogInfo("SlMessageSystem.ThreadLoop: Running");
+        Logger.LogInfo("SlMessageSystem.ThreadLoop", "Running");
 
         UdpClient.BeginReceive(ReceiveData, state);
         while (ct.IsCancellationRequested == false)
@@ -169,20 +169,20 @@ public class SlMessageSystem : IDisposable
             }
             catch (Exception e)
             {
-                Logger.LogError($"SlMessageSystem.ThreadLoop: {e}");
+                Logger.LogError("SlMessageSystem.ThreadLoop",e.ToString());
             }
 
             await Task.Delay(10, ct); // tune for your situation, can usually be omitted
         }
         // Cancelling appears to kill the task immediately without giving it a chance to get here
-        Logger.LogInfo($"SlMessageSystem.ThreadLoop: Stopping...");
+        Logger.LogInfo("SlMessageSystem.ThreadLoop", "Stopping...");
         UdpClient.Close();
         UdpClient?.Dispose();
     }
 
     public Circuit EnableCircuit(Host host, float heartBeatInterval = 5f, float circuitTimeout = 100f)
     {
-        Logger.LogDebug("SlMessageSystem.EnableCircuit");
+        Logger.LogDebug("SlMessageSystem.EnableCircuit", "");
 
         if (CircuitByHost.ContainsKey(host))
         {
@@ -218,7 +218,7 @@ public class SlMessageSystem : IDisposable
 
     protected async Task Send(byte[] buffer, Circuit circuit)
     {
-        //Logger.LogDebug($"SlMessageSystem.Send: Sending {buffer.Length} bytes...");
+        //Logger.LogDebug("SlMessageSystem.Send", $"Sending {buffer.Length} bytes...");
         await UdpClient.SendAsync(buffer, buffer.Length, circuit.Host.EndPoint);
     }
     
@@ -242,13 +242,13 @@ public class SlMessageSystem : IDisposable
         }
         catch (Exception e)
         {
-            Logger.LogError($"SlMessageSystem.ReceiveData: {e}");
+            Logger.LogError("SlMessageSystem.ReceiveData", e.ToString());
         }
     }
 
     public void Dispose()
     {
-        Logger.LogDebug("SlMessagingSystem.Dispose");
+        Logger.LogDebug("SlMessagingSystem.Dispose", "");
         Stop();
     }
 }

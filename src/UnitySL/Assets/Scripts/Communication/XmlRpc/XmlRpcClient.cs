@@ -57,7 +57,7 @@ namespace SLViewerLib.Communication.XmlRpc
                     while ((count = await contentStream.ReadAsync(buffer, start, length - start)) != 0)
                     {
                         start += count;
-                        //Logger.LogDebug($"XmlRpcClient.Call: Read {count} bytes. ({start}/{length})");
+                        //Logger.LogDebug("XmlRpcClient.Call", $"Read {count} bytes. ({start}/{length})");
                     }
                 }
                 catch (IOException ex)
@@ -76,7 +76,7 @@ namespace SLViewerLib.Communication.XmlRpc
             }
             catch (Exception e)
             {
-                Logger.LogWarning($"XmlRpcClient.Call: Exception {e}");
+                Logger.LogWarning("XmlRpcClient.Call", $"Exception {e}");
             }
             return null;
         }

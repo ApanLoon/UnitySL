@@ -1,22 +1,27 @@
-﻿public class HealthMessage : Message
+﻿using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
 {
-    public float Health { get; set; }
-
-    public HealthMessage()
+    public class HealthMessage : Message
     {
-        MessageId = MessageId.HealthMessage;
-        Flags = 0;
-    }
+        public float Health { get; set; }
 
-    #region DeSerialise
-    protected override void DeSerialise(byte[] buf, ref int o, int length)
-    {
-        Health = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
-    }
-    #endregion DeSerialise
+        public HealthMessage()
+        {
+            MessageId = MessageId.HealthMessage;
+            Flags = 0;
+        }
 
-    public override string ToString()
-    {
-        return $"{base.ToString()}: Health={Health}";
+        #region DeSerialise
+        protected override void DeSerialise(byte[] buf, ref int o, int length)
+        {
+            Health = BinarySerializer.DeSerializeFloat_Le (buf, ref o, length);
+        }
+        #endregion DeSerialise
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}: Health={Health}";
+        }
     }
 }

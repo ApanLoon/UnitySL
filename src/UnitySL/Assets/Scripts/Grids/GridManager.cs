@@ -62,7 +62,7 @@ public class GridManager
         Grid grid = GetGrid(identifier);
         if (grid == null)
         {
-            Logger.LogWarning($"GridManager.SelectGrid: Unknown grid \"{identifier}\".");
+            Logger.LogWarning("GridManager.SelectGrid", $"Unknown grid \"{identifier}\".");
             return;
         }
 

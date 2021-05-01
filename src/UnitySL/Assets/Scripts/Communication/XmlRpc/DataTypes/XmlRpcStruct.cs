@@ -19,20 +19,20 @@ namespace SLViewerLib.Communication.XmlRpc.DataTypes
             {
                 if (member.Name != "member")
                 {
-                    Logger.LogWarning($"XmlRpcStruct.constructor: Unexpected node in xml tree: {member.Name}");
+                    Logger.LogWarning("XmlRpcStruct.constructor", $"Unexpected node in xml tree: {member.Name}");
                     continue;
                 }
 
                 if (member.ChildNodes.Count != 2)
                 {
-                    Logger.LogWarning($"XmlRpcStruct.constructor: Unexpected number of nodes in member node.");
+                    Logger.LogWarning("XmlRpcStruct.constructor", $"Unexpected number of nodes in member node.");
                     continue;
                 }
                 string key = member.FirstChild.InnerText.Trim();
                 XmlNode valueNode = member.LastChild;
                 if (valueNode.ChildNodes.Count != 1)
                 {
-                    Logger.LogWarning($"XmlRpcStruct.constructor: Unexpected number of nodes in value node for member \"{key}\".");
+                    Logger.LogWarning("XmlRpcStruct.constructor", $"Unexpected number of nodes in value node for member \"{key}\".");
                     continue;
                 }
                 XmlRpcValue value = XmlRpcValue.FromXmlNode(valueNode.FirstChild);

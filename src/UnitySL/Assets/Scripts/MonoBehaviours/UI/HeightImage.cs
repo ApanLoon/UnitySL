@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Regions;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class HeightImage : MonoBehaviour

@@ -8,7 +8,8 @@ public class Patch
     public static readonly int NORMAL_PATCH_SIZE = 16;
     public static readonly int LARGE_PATCH_SIZE = 32;
 
-    protected static readonly float SQRT2 = Mathf.Sqrt (2);
+    //protected static readonly float SQRT2 = Mathf.Sqrt (2);
+    protected static readonly float OO_SQRT2 = 1f / Mathf.Sqrt(2); //0.7071067811865475244008443621049f;
 
     protected static int CurrentDecompressorSize;
     protected static float[] PatchDequantizeTable = new float [LARGE_PATCH_SIZE * LARGE_PATCH_SIZE];
@@ -159,7 +160,7 @@ public class Patch
     /// <param name="patchData">Array to place the decoded values in</param>
     public static void Decode (BitPack bitPack, int patchSize, int wordBits, int[] patchData)
     {
-        //Logger.LogDebug($"Patch.Decode: patchSize={patchSize}, wordBits={wordBits}");
+        //Logger.LogDebug("Patch.Decode", $"patchSize={patchSize}, wordBits={wordBits}");
 
         // TODO: Different for Big Endian?
         int i;
@@ -400,7 +401,7 @@ public class Patch
             tpcpIndex = pcpIndex + n;
             tlineinIndex = line_size;
 
-            total = SQRT2 * linein[tlineinIndex++];
+            total = OO_SQRT2 * linein[tlineinIndex++];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += NORMAL_PATCH_SIZE];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += NORMAL_PATCH_SIZE];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += NORMAL_PATCH_SIZE];
@@ -430,7 +431,7 @@ public class Patch
         int u;
         for (n = 0; n < size; n++)
         {
-            total = SQRT2 * linein[line_size];
+            total = OO_SQRT2 * linein[line_size];
             for (u = 1; u < size; u++)
             {
                 total += linein[line_size + u] * PatchICosines[u * size + n];
@@ -456,7 +457,7 @@ public class Patch
             tpcpIndex = pcpIndex + n;
             tlineinIndex = line_size;
 
-            total = SQRT2 * linein[tlineinIndex++];
+            total = OO_SQRT2 * linein[tlineinIndex++];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
@@ -519,7 +520,7 @@ public class Patch
             tpcpIndex = pcpIndex++;
             tlineinIndex = baselineinIndex;
 
-            total = SQRT2 * linein[tlineinIndex++];
+            total = OO_SQRT2 * linein[tlineinIndex++];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
             total += linein[tlineinIndex++] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
@@ -558,7 +559,7 @@ public class Patch
             tpcpIndex = pcpIndex + n;
             tlineinIndex = column;
 
-            total = SQRT2 * linein[tlineinIndex];
+            total = OO_SQRT2 * linein[tlineinIndex];
             total += linein[tlineinIndex += NORMAL_PATCH_SIZE] * PatchICosines[tpcpIndex += NORMAL_PATCH_SIZE];
             total += linein[tlineinIndex += NORMAL_PATCH_SIZE] * PatchICosines[tpcpIndex += NORMAL_PATCH_SIZE];
             total += linein[tlineinIndex += NORMAL_PATCH_SIZE] * PatchICosines[tpcpIndex += NORMAL_PATCH_SIZE];
@@ -588,7 +589,7 @@ public class Patch
 
         for (n = 0; n < size; n++)
         {
-            total = SQRT2 * linein[column];
+            total = OO_SQRT2 * linein[column];
             for (u = 1; u < size; u++)
             {
                 u_size = u * size;
@@ -613,7 +614,7 @@ public class Patch
             tpcpIndex = pcpIndex + n;
             tlineinIndex = column;
 
-            total = SQRT2 * linein[tlineinIndex];
+            total = OO_SQRT2 * linein[tlineinIndex];
             total += linein[tlineinIndex += LARGE_PATCH_SIZE] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
             total += linein[tlineinIndex += LARGE_PATCH_SIZE] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
             total += linein[tlineinIndex += LARGE_PATCH_SIZE] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];
@@ -676,7 +677,7 @@ public class Patch
             tpcpIndex = pcpIndex++;
             tlineinIndex = baselineinIndex;
 
-            total = SQRT2 * linein[tlineinIndex];
+            total = OO_SQRT2 * linein[tlineinIndex];
             for (m = 1; m < NORMAL_PATCH_SIZE; m++)
             {
                 total += linein[tlineinIndex += LARGE_PATCH_SIZE] * PatchICosines[tpcpIndex += LARGE_PATCH_SIZE];

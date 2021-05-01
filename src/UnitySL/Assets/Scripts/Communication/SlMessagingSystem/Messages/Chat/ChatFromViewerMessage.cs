@@ -1,56 +1,59 @@
 ﻿using System;
 using System.Text;
+using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.MessageLogs;
 
-public class ChatFromViewerMessage : Message
+namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
 {
-    public Guid AgentId { get; set; }
-    public Guid SessionId { get; set; }
-    public string Message { get; set; }
-    public ChatType ChatType { get; set; }
-    public Int32 Channel { get; set; }
-
-    public ChatFromViewerMessage(Guid agentId, Guid sessionId, string message, ChatType chatType, Int32 channel)
+    public class ChatFromViewerMessage : Message
     {
-        MessageId = MessageId.ChatFromViewer;
-        Flags = PacketFlags.Reliable; //TODO: Could be zerocoded
+        public Guid AgentId { get; set; }
+        public Guid SessionId { get; set; }
+        public string Message { get; set; }
+        public ChatType ChatType { get; set; }
+        public Int32 Channel { get; set; }
 
-        AgentId = agentId;
-        SessionId = sessionId;
-        Message = message;
-        ChatType = chatType;
-        Channel = channel;
+        public ChatFromViewerMessage(Guid agentId, Guid sessionId, string message, ChatType chatType, Int32 channel)
+        {
+            MessageId = MessageId.ChatFromViewer;
+            Flags = PacketFlags.Reliable; //TODO: Could be zerocoded
+
+            AgentId = agentId;
+            SessionId = sessionId;
+            Message = message;
+            ChatType = chatType;
+            Channel = channel;
+        }
+        
+        #region Serialise
+        public override int GetSerializedLength()
+        {
+            return base.GetSerializedLength()
+                   + 16     // AgentId
+                   + 16     // SessionId
+                   + 2      // messageLength
+                   + BinarySerializer.GetSerializedLength(Message, 2)
+                   + 1      // Type
+                   + 4;     // Channel
+        }
+        public override int Serialize(byte[] buffer, int offset, int length)
+        {
+            int o = offset;
+            o += base.Serialize(buffer, offset, length);
+
+            o = BinarySerializer.Serialize(AgentId, buffer, o, length);
+            o = BinarySerializer.Serialize(SessionId, buffer, o, length);
+            o = BinarySerializer.Serialize(Message, buffer, o, length, 2);
+            buffer[o++] = (byte)ChatType;
+            o = BinarySerializer.Serialize_Le(Channel, buffer, o, length);
+
+            return o - offset;
+        }
+        #endregion Serialise
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}: AgentId={AgentId}, SessionId={SessionId}, ChatType={ChatType}, Channel={Channel}, Message={Message}";
+        }
     }
-
-
-    #region Serialise
-    public override int GetSerializedLength()
-    {
-        return base.GetSerializedLength()
-               + 16     // AgentId
-               + 16     // SessionId
-               + 2      // messageLength
-               + Encoding.UTF8.GetByteCount(Message)
-               + 1      // Type
-               + 4;     // Channel
-    }
-    public override int Serialize(byte[] buffer, int offset, int length)
-    {
-        int o = offset;
-        o += base.Serialize(buffer, offset, length);
-
-        o = BinarySerializer.Serialize(AgentId, buffer, o, length);
-        o = BinarySerializer.Serialize(SessionId, buffer, o, length);
-
-        byte[] messageBytes = Encoding.UTF8.GetBytes(Message);
-        UInt16 messageLength = (UInt16)messageBytes.Length;
-        o = BinarySerializer.Serialize_Le(messageLength, buffer, o, length);
-        Array.Copy(messageBytes, 0, buffer, o, messageLength);
-        o += messageLength;
-
-        buffer[o++] = (byte)ChatType;
-        o = BinarySerializer.Serialize_Le(Channel, buffer, o, length);
-
-        return o - offset;
-    }
-    #endregion Serialise
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Regions;
 using UnityEngine;
 
 //        .   __.
@@ -111,6 +112,9 @@ public class Surface
     public bool HasZData { get; set; }              // We've received any patch data for this surface.
     public float MinZ { get; set; }                 // min z for this region (during the session)
     public float MaxZ { get; set; }                 // max z for this region (during the session)
+
+    public float GetZ(UInt32 k) => SurfaceZ[k];
+    public float GetZ(int i, int j) => SurfaceZ[i + j * GridsPerEdge];
 
     protected int SurfacePatchUpdateCount;          // Number of frames since last update.
 
@@ -513,7 +517,7 @@ public class Surface
             return PatchList[x + y * PatchesPerEdge];
         }
 
-        Logger.LogError("Surface.GetPatch: Asking for patch out of bounds");
+        Logger.LogError("Surface.GetPatch", "Asking for patch out of bounds");
         return null;
     }
 
@@ -588,7 +592,7 @@ public class Surface
         while (true)
         {
             PatchHeader patchHeader = new PatchHeader (bitPack);
-            //Logger.LogDebug($"Surface.DecompressPatches: {patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
+            //Logger.LogDebug("Surface.DecompressPatches", $"{patchHeader} w={patchHeader.PatchIds >> 5} h={patchHeader.PatchIds & 0x1f} (PatchesPerEdge={PatchesPerEdge})");
 
             if (patchHeader.IsEnd)
             {
@@ -600,7 +604,7 @@ public class Surface
 
             if ((i >= PatchesPerEdge) || (j >= PatchesPerEdge))
             {
-                //Logger.LogWarning($"Surface.DecompressPatches: Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
+                //Logger.LogWarning("Surface.DecompressPatches", $"Received invalid terrain packet - patch header patch ID incorrect! {i}x{j} DcOffset={patchHeader.DcOffset} Range={patchHeader.Range} QuantWBits={patchHeader.QuantWBits} PatchIds={patchHeader.PatchIds}");
                 return;
             }
 
@@ -629,6 +633,7 @@ public class Surface
             //// Dirty patch statistics, and flag that the patch has data.
             surfacePatch.DirtyZ();
             surfacePatch.HasReceivedData = true;
+            //break; //TODO: Only do the first patch for testing
         }
     }
 }

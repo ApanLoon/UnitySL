@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Regions;
 
 public enum DirectionIndex : UInt32
 {
@@ -110,17 +111,17 @@ public class World
             Host oldHost = region.Host;
             if (host == oldHost && region.Alive)
             {
-                Logger.LogInfo($"Region with handle {handle} already exists and is alive, using existing region.");
+                Logger.LogInfo("World.AddRegion", $"Region with handle {handle} already exists and is alive, using existing region.");
                 return region;
             }
 
             if (host != oldHost)
             {
-                Logger.LogWarning($"Region with handle {handle} already exists but with a different host. Removing and creating new.");
+                Logger.LogWarning("World.AddRegion", $"Region with handle {handle} already exists but with a different host. Removing and creating new.");
             }
             if (region.Alive == false)
             {
-                Logger.LogWarning($"Region with handle {handle} already exists but it isn't alive. Removing and creating new.");
+                Logger.LogWarning("World.AddRegion", $"Region with handle {handle} already exists but it isn't alive. Removing and creating new.");
             }
 
             // Save capabilities seed URL
@@ -132,7 +133,7 @@ public class World
         }
         else
         {
-            Logger.LogInfo($"Region with handle {handle} does not exist, creating a new one.");
+            Logger.LogInfo("World.AddRegion", $"Region with handle {handle} does not exist, creating a new one.");
         }
 
         UInt32 iindex = handle.X;
@@ -141,7 +142,7 @@ public class World
         int x = (int)(iindex / WIDTH);
         int y = (int)(jindex / WIDTH);
 
-        Logger.LogInfo($"Adding new region {handle} on {host}.");
+        Logger.LogInfo("World.AddRegion", $"Adding new region {handle} on {host}.");
 
         Vector3Double origin_global = handle.ToVector3Double();
 
@@ -199,7 +200,7 @@ public class World
         Region region = GetRegion (host);
         if (region == null)
         {
-            Logger.LogWarning("Trying to remove region that doesn't exist!");
+            Logger.LogWarning("World.RemoveRegion", "Trying to remove region that doesn't exist!");
             return;
         }
 
@@ -208,13 +209,13 @@ public class World
         {
             foreach (Region r in RegionList)
             {
-                Logger.LogWarning($"RegionDump: {r.Host} {r.OriginGlobal}");
+                Logger.LogWarning("World.RemoveRegion", $"RegionDump: {r.Host} {r.OriginGlobal}");
             }
 
-            Logger.LogWarning($"Agent position global {agent.OriginGlobal} agent {agent.Position}");
+            Logger.LogWarning("World.RemoveRegion", $"Agent position global {agent.OriginGlobal} agent {agent.Position}");
             // TODO: Logger.LogWarning($"Regions visited {agent.RegionsVisited}");
             // TODO: Logger.LogWarning($"FrameTimeSeconds {FrameTimeSeconds}");
-            Logger.LogWarning($"Disabling region {region.Name} that agent is in!");
+            Logger.LogWarning("World.RemoveRegion", $"Disabling region {region.Name} that agent is in!");
             
             // TODO: await Session.Instance.Stop ("You have been disconnected.");
 
@@ -225,7 +226,7 @@ public class World
         float x = region.Handle.X;
         float y = region.Handle.Y;
 
-        Logger.LogInfo($"Removing region {x}:{y}");
+        Logger.LogInfo("World.RemoveRegion", $"Removing region {x}:{y}");
 
         RegionByHandle.Remove    (region.Handle);
         RegionByHost.Remove      (host);

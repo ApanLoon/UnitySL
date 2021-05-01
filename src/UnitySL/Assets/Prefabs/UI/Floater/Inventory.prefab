@@ -7,6 +7,46 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1501843800421763387, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1501843800421763387, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1501843801607781060, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_Size
+      value: 0.30766332
+      objectReference: {fileID: 0}
+    - target: {fileID: 1600161115276185273, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5163862247100597779, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5163862247100597779, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5163862247100597779, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5163862247100597779, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9179752565973518594, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
       propertyPath: m_text
@@ -176,6 +216,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9179752567565601703, guid: fa8756cfb8e59124f93653ea70a3bbc9,
+        type: 3}
+      propertyPath: FloaterType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9179752567625460940, guid: fa8756cfb8e59124f93653ea70a3bbc9,
         type: 3}
