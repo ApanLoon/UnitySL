@@ -442,11 +442,15 @@ public static class BinarySerializer
         return o;
     }
 
-    public static string DeSerializeString (byte[] buffer, ref int offset, int length, uint lengthCount)
+    public static string DeSerializeString (byte[] buffer, ref int offset, int length, int lengthCount)
     {
         int len;
         switch (lengthCount)
         {
+            case -1: // No length, always read length bytes
+                len = length;
+                break;
+
             case 0: // NUL-terminated
                 len = offset;
                 while (buffer[len++] != 0) { }
@@ -462,7 +466,7 @@ public static class BinarySerializer
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(lengthCount), lengthCount, "Valid values are 1 and 2");
+                throw new ArgumentOutOfRangeException(nameof(lengthCount), lengthCount, "Valid values are -1, 0, 1 and 2");
         }
 
         string s = Encoding.UTF8.GetString(buffer, offset, len).Replace("\0", "");
@@ -547,6 +551,30 @@ public static class BinarySerializer
         return new Guid(buf);
     }
     #endregion Guid
+
+    #region Vector2
+    public static int Serialize_Le(Vector2 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        o = Serialize_Le(v.x, buffer, o, length);
+        o = Serialize_Le(v.y, buffer, o, length);
+        return o;
+    }
+    public static Vector2 DeSerializeVector2(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4 * 2)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeVector2: Not enough bytes in buffer.");
+        }
+
+        Vector2 v = new Vector2
+        {
+            x = DeSerializeFloat_Le(buffer, ref offset, length),
+            y = DeSerializeFloat_Le(buffer, ref offset, length)
+        };
+        return v;
+    }
+    #endregion Vector2
 
     #region Vector3
     public static int Serialize_Le(Vector3 v, byte[] buffer, int offset, int length)
