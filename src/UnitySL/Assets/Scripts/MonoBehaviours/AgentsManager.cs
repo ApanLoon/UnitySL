@@ -12,6 +12,11 @@ namespace Assets.Scripts.MonoBehaviours
 
         private void OnEnable()
         {
+            foreach (Agent agent in Agent.AllAgents)
+            {
+                OnAgentMoved(agent);
+            }
+
             EventManager.Instance.OnAgentMoved += OnAgentMoved;
             EventManager.Instance.OnLogout += OnLogout;
         }
@@ -19,6 +24,8 @@ namespace Assets.Scripts.MonoBehaviours
         {
             EventManager.Instance.OnAgentMoved -= OnAgentMoved;
             EventManager.Instance.OnLogout -= OnLogout;
+
+            AgentGoById.Clear();
         }
 
         protected void OnAgentMoved(Agent agent)

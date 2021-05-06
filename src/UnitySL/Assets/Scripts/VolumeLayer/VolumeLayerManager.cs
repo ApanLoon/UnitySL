@@ -1,7 +1,6 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Assets.Scripts;
 using Assets.Scripts.Regions;
 
@@ -96,11 +95,10 @@ public class VolumeLayerManager
         }
 
 
-        //TODO: Bogus event for debug purpose (generate a texture):
+        //TODO: Bogus event for debug purpose:
         Region region = Agent.CurrentPlayer.Region;
         Surface surface = region.Land;
         surface.IdleUpdate(0f);
-        EventManager.Instance.RaiseOnHeightsDecoded(region, surface.SurfaceZ, surface.GridsPerEdge, surface.MinZ, surface.MaxZ);
-
+        EventManager.Instance.RaiseOnHeightsDecoded(region, surface);
     }
 }

@@ -74,6 +74,8 @@ public class Agent :IDisposable
 
     protected static Dictionary<Guid, Agent> AgentById = new Dictionary<Guid, Agent>();
 
+    public static IEnumerable<Agent> AllAgents => AgentById.Values;
+
     public static void AddAgent(Guid id, Agent agent)
     {
         AgentById[id] = agent;

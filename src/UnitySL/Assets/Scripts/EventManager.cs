@@ -16,10 +16,10 @@ namespace Assets.Scripts
     {
         public static EventManager Instance = new EventManager();
 
-        public event Action<Region, float[], UInt32, float, float> OnHeightsDecoded;
-        public void RaiseOnHeightsDecoded(Region region, float[] heights, UInt32 size, float minHeight, float maxHeight)
+        public event Action<Region, Surface> OnHeightsDecoded;
+        public void RaiseOnHeightsDecoded(Region region, Surface surface)
         {
-            ThreadManager.ExecuteOnMainThread(() => OnHeightsDecoded?.Invoke(region, heights, size, minHeight, maxHeight));
+            ThreadManager.ExecuteOnMainThread(() => OnHeightsDecoded?.Invoke(region, surface));
         }
 
         #region Agent

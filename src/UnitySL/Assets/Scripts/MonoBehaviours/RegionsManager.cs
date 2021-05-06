@@ -21,6 +21,16 @@ namespace Assets.Scripts.MonoBehaviours
 
         private void OnEnable()
         {
+            if (Agent.CurrentPlayer != null)
+            {
+                Region region = Agent.CurrentPlayer.Region;
+                if (region != null)
+                {
+                    OnRegionDataChanged(region);
+                    OnHeightsDecoded(region, region.Land);
+                }
+            }
+
             EventManager.Instance.OnRegionDataChanged += OnRegionDataChanged;
             EventManager.Instance.OnHeightsDecoded += OnHeightsDecoded;
             EventManager.Instance.OnLogout += OnLogout;
@@ -58,19 +68,19 @@ namespace Assets.Scripts.MonoBehaviours
             rgo.Water.transform.position = pos;
         }
 
-        protected void OnHeightsDecoded (Region region, float[] heights, uint width, float minHeight, float maxHeight)
+        protected void OnHeightsDecoded (Region region, Surface surface)
         {
             if (RegionGoByRegion.ContainsKey(region) == false)
             {
                 return;
             }
 
-            float[,] newHeights = new float[width - 1, width - 1];
-            for (int y = 0; y < width - 1; y++)
+            float[,] newHeights = new float[surface.GridsPerEdge - 1, surface.GridsPerEdge - 1];
+            for (int y = 0; y < surface.GridsPerEdge - 1; y++)
             {
-                for (int x = 0; x < width - 1; x++)
+                for (int x = 0; x < surface.GridsPerEdge - 1; x++)
                 {
-                    newHeights[y, x] = Mathf.InverseLerp(minHeight, maxHeight, heights[y * width + x]);
+                    newHeights[y, x] = Mathf.InverseLerp(surface.MinZ, surface.MaxZ, surface.SurfaceZ[y * surface.GridsPerEdge + x]);
                 }
             }
 
@@ -78,12 +88,12 @@ namespace Assets.Scripts.MonoBehaviours
             Terrain terrain = rgo.Terrain;
 
             Vector3 pos = terrain.transform.position;
-            terrain.transform.position = new Vector3(pos.x, minHeight + 0.5f, pos.z); // TODO: What is the correct y-value here?
+            terrain.transform.position = new Vector3(pos.x, surface.MinZ + 0.5f, pos.z); // TODO: What is the correct y-value here?
 
             TerrainData data = new TerrainData
             {
-                heightmapResolution = (int) width,
-                size = new Vector3(256f, maxHeight - minHeight, 256f)
+                heightmapResolution = (int)surface.GridsPerEdge,
+                size = new Vector3(256f, surface.MaxZ - surface.MinZ, 256f)
             };
 
             data.SetDetailResolution ((int)256, 16);

@@ -35,6 +35,11 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
 
         private void OnEnable()
         {
+            if (Agent.CurrentPlayer != null)
+            {
+                OnParcelOverlayChanged(Agent.CurrentPlayer.Region);
+            }
+
             EventManager.Instance.OnParcelOverlayChanged += OnParcelOverlayChanged; 
             EventManager.Instance.OnCoarseLocationUpdateMessage += OnCoarseLocationUpdateMessage; // TODO: This should probably use some higher level mechanism to get updates. Possibly AvatarTracker
             EventManager.Instance.OnLogout += OnLogout;
