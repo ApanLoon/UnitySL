@@ -15,11 +15,9 @@ namespace Assets.Scripts.MessageLogs
         public bool CanSend => Send != null;
         protected Func<string, Task> Send { get; set; }
 
-        public MessageLog(Action<MessageLog> init, Func<string, Task> send = null)
+        public MessageLog(Func<string, Task> send = null)
         {
             Send = send;
-
-            init?.Invoke(this);
         }
 
         public void Clear()

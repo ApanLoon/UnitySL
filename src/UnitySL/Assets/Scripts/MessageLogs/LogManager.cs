@@ -9,10 +9,8 @@ namespace Assets.Scripts.MessageLogs
     {
         public static LogManager Instance = new LogManager();
 
-        public MessageLog DebugLog = new MessageLog(log => Logger.OnLog += (level, senderName, message) => log.AddMessage(new DebugMessage(level, senderName, message)));
-        public MessageLog ChatLog  = new MessageLog(
-            log           => EventManager.Instance.OnChatFromSimulatorMessage += (message) => log.AddMessage(new ChatMessage(message)),
-            async s => await (Agent.CurrentPlayer?.Region?.Circuit?.SendChatFromViewer(s, ChatType.Normal, 0) ?? Task.CompletedTask)
+        public MessageLog DebugLog = new MessageLog();
+        public MessageLog ChatLog  = new MessageLog(async s => await (Agent.CurrentPlayer?.Region?.Circuit?.SendChatFromViewer(s, ChatType.Normal, 0) ?? Task.CompletedTask)
         );
 
         public event Action<Guid, string, MessageLog> OnNewInstantMessageSession;
@@ -20,7 +18,19 @@ namespace Assets.Scripts.MessageLogs
 
         public LogManager()
         {
+            Logger.OnLog += OnLog;
+            EventManager.Instance.OnChatFromSimulatorMessage += OnChatFromSimulatorMessage;
             EventManager.Instance.OnImprovedInstantMessageMessage += OnImprovedInstantMessageMessage;
+        }
+
+        protected void OnLog(Logger.LogLevel level, string senderName, string message)
+        {
+            DebugLog.AddMessage(new DebugMessage(level, senderName, message));
+        }
+
+        protected void OnChatFromSimulatorMessage(ChatFromSimulatorMessage message)
+        {
+            ChatLog.AddMessage(new ChatMessage(message));
         }
 
         protected void OnImprovedInstantMessageMessage(ImprovedInstantMessageMessage message)
@@ -30,7 +40,7 @@ namespace Assets.Scripts.MessageLogs
             {
                 Logger.LogInfo("LogManager.OnImprovedInstantMessageMessage", $"Adding message log for {message.FromAgentName}. Dialog Id={dialogId}");
                 InstantMessageLogs.Add(dialogId, 
-                    new MessageLog(null, 
+                    new MessageLog(
                     async s =>
                     {
                         if (Agent.CurrentPlayer?.Region?.Circuit == null)
