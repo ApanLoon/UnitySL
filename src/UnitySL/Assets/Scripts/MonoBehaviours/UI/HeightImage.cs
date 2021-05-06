@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Regions;
+﻿using Assets.Scripts;
+using Assets.Scripts.Regions;
 using UnityEngine;
 using UnityEngine.UI;
 
