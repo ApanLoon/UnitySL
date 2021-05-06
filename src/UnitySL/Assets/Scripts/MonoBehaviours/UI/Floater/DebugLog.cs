@@ -13,6 +13,8 @@ public class DebugLog : MonoBehaviour
 
     [SerializeField] protected UIMessageLog messageView;
 
+    protected bool FirstFrame = true;
+
     private void OnEnable()
     {
         LogHorizontalScrollbar.value = 0f;
@@ -26,6 +28,18 @@ public class DebugLog : MonoBehaviour
         LogManager.Instance.DebugLog.OnMessage -= OnDebugMessage;
     }
 
+    private void Update()
+    {
+        if (FirstFrame)
+        {
+            FirstFrame = false;
+
+            foreach (LogMessage message in LogManager.Instance.DebugLog.Log)
+            {
+                OnDebugMessage(LogManager.Instance.DebugLog, message);
+            }
+        }
+    }
     protected void OnDebugMessage(MessageLog log, LogMessage msg)
     {
         messageView?.AppendMessage(msg.ToRtfString());
