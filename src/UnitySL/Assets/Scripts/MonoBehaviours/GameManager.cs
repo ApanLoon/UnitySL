@@ -48,7 +48,8 @@ public class GameManager : MonoBehaviour
             await Session.Instance.Stop(); // Logout
         }
 
-        // TODO: Perform cleanup
+        // Perform cleanup:
+        SlMessageSystem.Instance.Stop();
 
         Settings.Instance.Save(); // TODO: Is this the best place to save the settings?
     }
