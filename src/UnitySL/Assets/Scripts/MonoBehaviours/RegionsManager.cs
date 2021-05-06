@@ -19,18 +19,18 @@ namespace Assets.Scripts.MonoBehaviours
 
         protected RegionGo CurrentRegionGo;
 
-        private void Start()
+        private void OnEnable()
         {
             EventManager.Instance.OnRegionDataChanged += OnRegionDataChanged;
             EventManager.Instance.OnHeightsDecoded += OnHeightsDecoded;
-            EventManager.Instance.OnLogout += () =>
-            {
-                foreach (RegionGo regionGo in RegionGoByRegion.Values)
-                {
-                    Destroy(regionGo.Root);                
-                }
-                RegionGoByRegion.Clear();
-            };
+            EventManager.Instance.OnLogout += OnLogout;
+        }
+
+        private void OnDisable()
+        {
+            EventManager.Instance.OnRegionDataChanged -= OnRegionDataChanged;
+            EventManager.Instance.OnHeightsDecoded -= OnHeightsDecoded;
+            EventManager.Instance.OnLogout -= OnLogout;
         }
 
         protected void OnRegionDataChanged(Region region)
@@ -90,6 +90,15 @@ namespace Assets.Scripts.MonoBehaviours
             data.SetHeights          (0, 0, newHeights);
             data.SyncHeightmap();
             terrain.terrainData = data;
+        }
+
+        private void OnLogout()
+        {
+            foreach (RegionGo regionGo in RegionGoByRegion.Values)
+            {
+                Destroy(regionGo.Root);
+            }
+            RegionGoByRegion.Clear();
         }
     }
 }

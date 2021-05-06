@@ -9,9 +9,13 @@ public class ProgressPopup : MonoBehaviour
     [SerializeField] protected TMP_Text MessageText;
     [SerializeField] protected Image ProgressFillerImage;
 
-    private void Start()
+    private void OnEnable()
     {
         EventManager.Instance.OnProgressUpdate += OnProgressUpdate;
+    }
+    private void OnDisable()
+    {
+        EventManager.Instance.OnProgressUpdate -= OnProgressUpdate;
     }
 
     protected void OnProgressUpdate(string title, string message, float progress, bool close, float maxProgress)

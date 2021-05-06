@@ -10,17 +10,15 @@ namespace Assets.Scripts.MonoBehaviours
     
         protected static Dictionary<Guid, GameObject> AgentGoById = new Dictionary<Guid, GameObject>();
 
-        private void Start()
+        private void OnEnable()
         {
             EventManager.Instance.OnAgentMoved += OnAgentMoved;
-            EventManager.Instance.OnLogout += () =>
-            {
-                foreach (GameObject go in AgentGoById.Values)
-                {
-                    Destroy(go);
-                }
-                AgentGoById.Clear();
-            };
+            EventManager.Instance.OnLogout += OnLogout;
+        }
+        private void OnDisable()
+        {
+            EventManager.Instance.OnAgentMoved -= OnAgentMoved;
+            EventManager.Instance.OnLogout -= OnLogout;
         }
 
         protected void OnAgentMoved(Agent agent)
@@ -37,6 +35,16 @@ namespace Assets.Scripts.MonoBehaviours
             Vector3 bodyLookAt = agent.LookAt;
             bodyLookAt.y = agent.Position.y;
             go.transform.LookAt(bodyLookAt);
+        }
+
+        private void OnLogout()
+        {
+            foreach (GameObject go in AgentGoById.Values)
+            {
+                Destroy(go);
+            }
+
+            AgentGoById.Clear();
         }
 
         protected void AddAgentGameObject(Agent agent)

@@ -33,21 +33,17 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
         protected const float ZoomMax = 3f;
         protected float ZoomSensitivity = 8f;
 
-        private void Start()
+        private void OnEnable()
         {
             EventManager.Instance.OnParcelOverlayChanged += OnParcelOverlayChanged; 
             EventManager.Instance.OnCoarseLocationUpdateMessage += OnCoarseLocationUpdateMessage; // TODO: This should probably use some higher level mechanism to get updates. Possibly AvatarTracker
-            EventManager.Instance.OnLogout += () =>
-            {
-                // Remove markers:
-                for (int i = MarkerInfoByAgentId.Count - 1; i >= 0; i--)
-                {
-                    Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
-                    MarkerInfo mi = MarkerInfoByAgentId[key];
-                    Destroy(MarkerInfoByAgentId[key].GameObject);
-                    MarkerInfoByAgentId.Remove(key);
-                }
-            };
+            EventManager.Instance.OnLogout += OnLogout;
+        }
+        private void OnDisable()
+        {
+            EventManager.Instance.OnParcelOverlayChanged -= OnParcelOverlayChanged;
+            EventManager.Instance.OnCoarseLocationUpdateMessage -= OnCoarseLocationUpdateMessage;
+            EventManager.Instance.OnLogout -= OnLogout;
         }
 
         private void Update()
@@ -134,6 +130,18 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
                     Destroy(MarkerInfoByAgentId[key].GameObject);
                     MarkerInfoByAgentId.Remove(key);
                 }
+            }
+        }
+
+        private void OnLogout()
+        {
+            // Remove markers:
+            for (int i = MarkerInfoByAgentId.Count - 1; i >= 0; i--)
+            {
+                Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
+                MarkerInfo mi = MarkerInfoByAgentId[key];
+                Destroy(MarkerInfoByAgentId[key].GameObject);
+                MarkerInfoByAgentId.Remove(key);
             }
         }
 

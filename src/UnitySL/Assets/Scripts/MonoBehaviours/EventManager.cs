@@ -11,21 +11,21 @@ using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
 using Assets.Scripts.Regions;
 using UnityEngine;
 
-public class EventManager : MonoBehaviour
+public class EventManager// : MonoBehaviour
 {
-    public static EventManager Instance;
-    
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Debug.LogError($"Multiple instances of EventManager in scene, disabling the one on {name}.");
-            enabled = false;
-            return;
-        }
+    public static EventManager Instance = new EventManager();
 
-        Instance = this;
-    }
+    //private void Awake()
+    //{
+    //    if (Instance != null && Instance != this)
+    //    {
+    //        Debug.LogError($"Multiple instances of EventManager in scene, disabling the one on {name}.");
+    //        enabled = false;
+    //        return;
+    //    }
+
+    //    Instance = this;
+    //}
 
     public event Action<Region, float[], UInt32, float, float> OnHeightsDecoded;
     public void RaiseOnHeightsDecoded(Region region, float[] heights, UInt32 size, float minHeight, float maxHeight)

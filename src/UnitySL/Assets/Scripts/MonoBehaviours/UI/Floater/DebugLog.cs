@@ -13,12 +13,17 @@ public class DebugLog : MonoBehaviour
 
     [SerializeField] protected UIMessageLog messageView;
 
-    private void Start()
+    private void OnEnable()
     {
         LogHorizontalScrollbar.value = 0f;
         LogVerticalScrollbar.value = 0f;
 
         LogManager.Instance.DebugLog.OnMessage += OnDebugMessage;
+    }
+
+    private void OnDisable()
+    {
+        LogManager.Instance.DebugLog.OnMessage -= OnDebugMessage;
     }
 
     protected void OnDebugMessage(LogMessage msg)

@@ -38,11 +38,20 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.People
             }
         }
 
-        private void Start()
+        protected PeopleFriendsObserver FriendsObserver;
+
+        private void OnEnable()
         {
             friendsListItems.Initialize();
-            AvatarTracker.Instance.AddObserver(new PeopleFriendsObserver(this));
+            FriendsObserver = new PeopleFriendsObserver(this);
+            AvatarTracker.Instance.AddObserver(FriendsObserver);
             GetFriends(); // TODO: There is no real point in calling this here as the friends list has not been populated yet.
+        }
+
+        private void OnDisable()
+        {
+            AvatarTracker.Instance.RemoveObserver(FriendsObserver);
+            FriendsObserver = null;
         }
 
         protected void GetFriends()
