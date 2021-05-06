@@ -4545,6 +4545,21 @@ PrefabInstance:
       propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8896887060479871321, guid: 8bc2f5c29b110af4ba31679dc72140a4,
+        type: 3}
+      propertyPath: onColor.b
+      value: 0.30588236
+      objectReference: {fileID: 0}
+    - target: {fileID: 8896887060479871321, guid: 8bc2f5c29b110af4ba31679dc72140a4,
+        type: 3}
+      propertyPath: onColor.g
+      value: 0.3921569
+      objectReference: {fileID: 0}
+    - target: {fileID: 8896887060479871321, guid: 8bc2f5c29b110af4ba31679dc72140a4,
+        type: 3}
+      propertyPath: onColor.r
+      value: 0.54509807
+      objectReference: {fileID: 0}
     - target: {fileID: 9082558946975343227, guid: 8bc2f5c29b110af4ba31679dc72140a4,
         type: 3}
       propertyPath: m_AnchorMax.x

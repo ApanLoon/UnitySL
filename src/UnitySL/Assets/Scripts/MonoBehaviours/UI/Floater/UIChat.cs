@@ -18,12 +18,8 @@ public class UIChat : MonoBehaviour
     private void Start()
     {
         tabs.Initialize();
-        // Create placeholder tabs
         localChatTab = CreateTab("Local", false, LogManager.Instance.ChatLog);
         debugChatTab = CreateTab("Debug", false, LogManager.Instance.DebugLog);
-        //CreateTab("Quackman", true);
-        //CreateTab("Bot-6542", true);
-        //CreateTab("Skeleton society", true);
 
         LogManager.Instance.OnNewInstantMessageSession += OnNewInstantMessageSession;
 
@@ -68,7 +64,6 @@ public class UIChat : MonoBehaviour
     {
         activeTab = tab;
         messageView.Load(activeTab.MessageLog.AllMessagesAsRtfStrings);
-        Debug.Log("Set active tab: " + activeTab.name);
     }
 
     public async void SendMessage()

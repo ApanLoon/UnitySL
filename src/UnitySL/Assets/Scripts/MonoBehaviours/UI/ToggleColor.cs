@@ -7,34 +7,19 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Toggle))]
 public class ToggleColor : MonoBehaviour
 {
-    public Toggle toggle { get { return _toggle != null ? _toggle : _toggle = GetComponent<Toggle>(); } }
+    public Toggle toggle => _toggle != null ? _toggle : _toggle = GetComponent<Toggle>();
     private Toggle _toggle;
-    public Color onColor;
-    private ColorBlock originalColors;
+    public ColorBlock offColors;
+    public ColorBlock onColors;
 
     private void Awake()
     {
-        originalColors = toggle.colors;
         toggle.onValueChanged.AddListener(OnValueChanged);
+        OnValueChanged(toggle.isOn);
     }
 
     private void OnValueChanged(bool on)
     {
-        if (on)
-        {
-            ColorBlock block = new ColorBlock()
-            {
-                normalColor = onColor,
-                highlightedColor = onColor,
-                selectedColor = onColor,
-                pressedColor = onColor,
-                colorMultiplier = 1
-            };
-            toggle.colors = block;
-        }
-        else
-        {
-            toggle.colors = originalColors;
-        }
+        toggle.colors = on ? onColors : offColors;
     }
 }
