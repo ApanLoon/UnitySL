@@ -9,10 +9,8 @@ using TMPro;
 public class UIMessageLog : MonoBehaviour
 {
     public TextTemplate labels;
-    public UIScrollRect scrollRect { get { return _scrollRect != null ? _scrollRect : _scrollRect = GetComponent<UIScrollRect>(); } }
-    private UIScrollRect _scrollRect;
-    public RectTransform rectTransform { get { return _rectTransform != null ? _rectTransform : _rectTransform = GetComponent<RectTransform>(); } }
-    private RectTransform _rectTransform;
+    public UIScrollRect scrollRect { get; protected set; }
+    public RectTransform rectTransform { get; protected set; }
 
     public List<Message> messages = new List<Message>();
 
@@ -35,17 +33,24 @@ public class UIMessageLog : MonoBehaviour
         }
     }
 
-    private void Awake()
+    private void OnEnable()
     {
         labels.Initialize();
+
+        rectTransform = GetComponent<RectTransform>();
+        scrollRect = GetComponent<UIScrollRect>();
+
         scrollRect.onValueChanged.AddListener(OnScroll);
         scrollRect.disableDirectDragging = true;
-    }
 
-    private void Start()
-    {
         Canvas.ForceUpdateCanvases();
         Vector2 size = scrollRect.content.rect.size;
+    }
+
+    private void OnDisable()
+    {
+        scrollRect.onValueChanged.RemoveListener(OnScroll);
+        labels.Clear();
     }
 
     private void OnScroll(Vector2 pos)

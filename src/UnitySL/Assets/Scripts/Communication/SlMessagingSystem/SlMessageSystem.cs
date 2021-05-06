@@ -10,6 +10,11 @@ public class SlMessageSystem : IDisposable
 {
     public static SlMessageSystem Instance = new SlMessageSystem();
 
+    public SlMessageSystem()
+    {
+        Start();
+    }
+
     /// <summary>
     /// Local UDP port number
     /// </summary>

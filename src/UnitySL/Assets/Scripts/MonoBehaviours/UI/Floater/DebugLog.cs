@@ -26,7 +26,7 @@ public class DebugLog : MonoBehaviour
         LogManager.Instance.DebugLog.OnMessage -= OnDebugMessage;
     }
 
-    protected void OnDebugMessage(LogMessage msg)
+    protected void OnDebugMessage(MessageLog log, LogMessage msg)
     {
         messageView?.AppendMessage(msg.ToRtfString());
     }

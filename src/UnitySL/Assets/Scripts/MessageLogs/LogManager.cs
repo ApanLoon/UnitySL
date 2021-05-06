@@ -9,8 +9,8 @@ namespace Assets.Scripts.MessageLogs
     {
         public static LogManager Instance = new LogManager();
 
-        public MessageLog DebugLog = new MessageLog();
-        public MessageLog ChatLog  = new MessageLog(async s => await (Agent.CurrentPlayer?.Region?.Circuit?.SendChatFromViewer(s, ChatType.Normal, 0) ?? Task.CompletedTask)
+        public MessageLog DebugLog = new MessageLog("Debug");
+        public MessageLog ChatLog  = new MessageLog("Local", async s => await (Agent.CurrentPlayer?.Region?.Circuit?.SendChatFromViewer(s, ChatType.Normal, 0) ?? Task.CompletedTask)
         );
 
         public event Action<Guid, string, MessageLog> OnNewInstantMessageSession;
@@ -41,6 +41,7 @@ namespace Assets.Scripts.MessageLogs
                 Logger.LogInfo("LogManager.OnImprovedInstantMessageMessage", $"Adding message log for {message.FromAgentName}. Dialog Id={dialogId}");
                 InstantMessageLogs.Add(dialogId, 
                     new MessageLog(
+                        message.FromAgentName,
                     async s =>
                     {
                         if (Agent.CurrentPlayer?.Region?.Circuit == null)

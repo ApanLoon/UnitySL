@@ -7,15 +7,19 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Toggle))]
 public class UIChatTab : MonoBehaviour, IPointerClickHandler
 {
-    public UIChat uiChat => _uiChat != null ? _uiChat : _uiChat = GetComponentInParent<UIChat>();
-    private UIChat _uiChat;
-    public Toggle toggle => _toggle != null ? _toggle : _toggle = GetComponent<Toggle>();
+    public UIChat uiChat { get; protected set; }
+    public Toggle toggle { get; protected set; }
 
-    private Toggle _toggle;
     public Text label;
 
     [NonSerialized] public MessageLog MessageLog;
     [NonSerialized] public bool canClose;
+
+    private void OnEnable()
+    {
+        uiChat = GetComponentInParent<UIChat>();
+        toggle = GetComponent<Toggle>();
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {

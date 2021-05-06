@@ -13,9 +13,13 @@ public class ViewerEffectsManager : MonoBehaviour
 
     protected Dictionary<Guid, GameObject> GameObjectByEffectId = new Dictionary<Guid, GameObject>();
 
-    public void Start()
+    public void OnEnable()
     {
         EventManager.Instance.OnViewerEffectMessage += OnViewerEffectMessage;
+    }
+    public void OnDisable()
+    {
+        EventManager.Instance.OnViewerEffectMessage -= OnViewerEffectMessage;
     }
 
     protected void OnViewerEffectMessage(ViewerEffectMessage message)
