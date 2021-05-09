@@ -1,8 +1,6 @@
 ﻿
 using System;
-using System.Collections.Generic;
 using System.IO;
-using UnityEditor.Experimental;
 using UnityEngine;
 
 namespace Assets.Scripts.Appearance
