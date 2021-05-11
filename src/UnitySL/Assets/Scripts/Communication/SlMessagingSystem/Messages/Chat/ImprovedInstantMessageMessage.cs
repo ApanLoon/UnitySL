@@ -1,6 +1,6 @@
 ﻿using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
-using Assets.Scripts.SystemExtensions;
+using Assets.Scripts.Extensions.SystemExtensions;
 using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat

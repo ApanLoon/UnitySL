@@ -1,6 +1,7 @@
 ﻿using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Primitives;
 using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
@@ -132,19 +133,19 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                     {
                         logMessage += ", ExtraParameters=(";
                     }
-                    ExtraParamType type = (ExtraParamType)BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, compressedLength);
+                    ExtraParameterType type = (ExtraParameterType)BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, compressedLength);
                     len = BinarySerializer.DeSerializeUInt32_Le(compressedData, ref compressedOffset, compressedLength);
                     switch (type)
                     {
-                        case ExtraParamType.Flexible:
+                        case ExtraParameterType.Flexible:
                             break;
-                        case ExtraParamType.Light:
+                        case ExtraParameterType.Light:
                             break;
-                        case ExtraParamType.Sculpt:
+                        case ExtraParameterType.Sculpt:
                             break;
-                        case ExtraParamType.LightImage:
+                        case ExtraParameterType.LightImage:
                             break;
-                        case ExtraParamType.Mesh:
+                        case ExtraParameterType.Mesh:
                             break;
                         default:
                             Logger.LogWarning("ObjectUpdateCompressedMessage.DeSerialise", $"Unknown ExtraParamType: {type}");

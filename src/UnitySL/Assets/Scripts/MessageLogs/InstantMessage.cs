@@ -1,5 +1,6 @@
 ﻿using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat;
+using Assets.Scripts.Extensions.UnityExtensions;
 using UnityEngine;
 
 namespace Assets.Scripts.MessageLogs

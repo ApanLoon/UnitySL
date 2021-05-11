@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Extensions.SystemExtensions;
 using Assets.Scripts.Primitives;
 using UnityEngine;
 
@@ -132,25 +133,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
         Light
     }
 
-    /// <summary>
-    /// Extra parameters for primitives, these flags are for features that have
-    /// been added after the original ObjectFlags that has all eight bits 
-    /// reserved already
-    /// </summary>
-    [Flags]
-    public enum ExtraParamType : ushort
-    {
-        /// <summary>Whether this object has flexible parameters</summary>
-        Flexible = 0x10,
-        /// <summary>Whether this object has light parameters</summary>
-        Light = 0x20,
-        /// <summary>Whether this object is a sculpted prim</summary>
-        Sculpt = 0x30,
-        /// <summary>Whether this object is a light image map</summary>
-        LightImage = 0x40,
-        /// <summary>Whether this object is a mesh</summary>
-        Mesh = 0x60,
-    }
     public enum JointType : byte
     {
         /// <summary></summary>
@@ -234,7 +216,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
             public byte[] ParticleSystemData { get; set; }
 
-            public byte[] ExtraParameters { get; set; }
+            public ExtraParameters ExtraParameters { get; set; }
 
             public Guid SoundId { get; set; }
             public Guid OwnerId { get; set; }
@@ -327,10 +309,11 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 Array.Copy(buf, o, data.ParticleSystemData, 0, len);
                 o += len;
 
-                len = buf[o++];
-                data.ExtraParameters    = new byte[len];
-                Array.Copy(buf, o, data.ExtraParameters, 0, len);
-                o += len;
+                data.ExtraParameters = BinarySerializer.DeSerializeExtraParameters(buf, ref o, length);
+                //len = buf[o++];
+                //data.ExtraParameters    = new byte[len];
+                //Array.Copy(buf, o, data.ExtraParameters, 0, len);
+                //o += len;
 
                 data.SoundId            = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
                 data.OwnerId            = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
@@ -341,6 +324,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.JointType          = (JointType)buf[o++];
                 data.JointPivot         = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
                 data.JointAxisOrAnchor  = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
+
+                Logger.LogDebug("ObjectUpdateMessage.DeSerialise", ToString());
             }
         }
         #endregion DeSerialise
@@ -358,7 +343,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                      + $"\n                     TextureAnims({data.TextureAnims.Count})"
                      + $"\n                     NameValue={data.NameValue.Replace("\n", "\\n")}, Data2({data.Data2.Length}), Text={data.Text}, TextColour={data.TextColour}, MediaUrl={data.MediaUrl}"
                      + $"\n                     ParticleSystemData({data.ParticleSystemData.Length})"
-                     + $"\n                     ExtraParams({data.ExtraParameters.Length})"
+                     + $"\n                     ExtraParams({data.ExtraParameters})"
                      + $"\n                     SoundId={data.SoundId}, OwnerId={data.OwnerId}, Gain={data.Gain}, Flags={data.SoundFlags}, Radius={data.Radius}"
                      + $"\n                     JointType={data.JointType}, JointPivot={data.JointPivot}, JointAxisOrAnchor={data.JointAxisOrAnchor}"
                     ;

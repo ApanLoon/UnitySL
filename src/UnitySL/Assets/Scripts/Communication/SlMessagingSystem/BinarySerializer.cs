@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Assets.Scripts.Primitives;
 using UnityEngine;
-
+using Assets.Scripts.Extensions.SystemExtensions;
 public static class BinarySerializer
 {
     #region BasicTypes
@@ -820,6 +820,111 @@ public static class BinarySerializer
     }
     #endregion ZeroCode
 
+    #region Primitives
+    #region ExtraData
+
+    public static ExtraParameters DeSerializeExtraParameters(byte[] buffer, ref int offset, int length)
+    {
+        ExtraParameters parameters = new ExtraParameters();
+        byte extraDataLen = buffer[offset++]; // TODO: The following code should check against this length instead.
+        byte nParameters = buffer[offset++];
+        for (int i = 0; i < nParameters; i++)
+        {
+            ExtraParameterType type = (ExtraParameterType)BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length);
+            int len = (int)BinarySerializer.DeSerializeUInt32_Le(buffer, ref offset, length);
+            int paramLimit = offset + len;
+            switch (type)
+            {
+                case ExtraParameterType.Light:
+                    parameters.LightParameter = DeSerializeLightParameter(buffer, ref offset, paramLimit);
+                    break;
+                case ExtraParameterType.Flexible:
+                    parameters.FlexibleObjectData = DeSerializeFlexibleObjectData(buffer, ref offset, paramLimit);
+                    break;
+                case ExtraParameterType.Mesh: // A Mesh is a Sculpt with SculptType = Mesh
+                case ExtraParameterType.Sculpt:
+                    parameters.SculptParams = DeSerializeSculptParams(buffer, ref offset, paramLimit);
+                    break;
+                case ExtraParameterType.LightImage:
+                    parameters.LightImageParams = DeSerializeLightImageParams(buffer, ref offset, paramLimit);
+                    break;
+                case ExtraParameterType.ExtendedMesh:
+                    parameters.ExtendedMeshParams = DeSerializeExtendedMeshParams(buffer, ref offset, paramLimit);
+                    break;
+                default:
+                    Logger.LogWarning("ObjectUpdateCompressedMessage.DeSerialise", $"Unknown ExtraParameterType: {type}");
+                    offset += len;
+                    break;
+            }
+
+        }
+        return parameters;
+    }
+
+    public static LightParameter DeSerializeLightParameter(byte[] buffer, ref int offset, int length)
+    {
+        LightParameter parameter = new LightParameter();
+        parameter.SetLinearColour(DeSerializeColor(buffer, ref offset, length));
+        parameter.Radius  = DeSerializeFloat_Le(buffer, ref offset, length);
+        parameter.Cutoff  = DeSerializeFloat_Le(buffer, ref offset, length);
+        parameter.Falloff = DeSerializeFloat_Le(buffer, ref offset, length);
+        return parameter;
+    }
+
+    public static FlexibleObjectData DeSerializeFlexibleObjectData(byte[] buffer, ref int offset, int length)
+    {
+        int start = offset;
+        FlexibleObjectData parameter = new FlexibleObjectData();
+
+        byte bit1;
+        byte bit2;
+        byte b;
+        b = buffer[offset++];
+        bit1 = (byte)((b >> 6) & 2);
+        parameter.Tension = (b & 0x7f) / 10f;
+        b = buffer[offset++];
+        bit2 = (byte) ((b >> 7) & 1);
+        parameter.AirFriction = (b & 0x7f) / 10f;
+        parameter.SimulateLod = bit1 | bit2;
+        b = buffer[offset++];
+        parameter.Gravity = b / 10f - 10f;
+        b = buffer[offset++];
+        parameter.WindSensitivity = b / 10f;
+
+        if (length > offset - start)
+        {
+            parameter.UserForce = DeSerializeVector3(buffer, ref offset, length);
+        }
+
+        return parameter;
+    }
+
+    public static SculptParams DeSerializeSculptParams(byte[] buffer, ref int offset, int length)
+    {
+        SculptParams parameter = new SculptParams();
+        parameter.SculptTextureId = DeSerializeGuid(buffer, ref offset, length);
+        byte b = buffer[offset++];
+        parameter.SculptType = (SculptType)(b & (byte)(SculptType.Sphere | SculptType.Torus | SculptType.Plane | SculptType.Cylinder | SculptType.Mesh));
+        parameter.SculptFlags = (SculptFlags)(b & (byte)(SculptFlags.Invert | SculptFlags.Mirror));
+        return parameter;
+    }
+
+    public static LightImageParams DeSerializeLightImageParams(byte[] buffer, ref int offset, int length)
+    {
+        LightImageParams parameter = new LightImageParams();
+        parameter.LightTextureId = DeSerializeGuid(buffer, ref offset, length);
+        parameter.Params = DeSerializeVector3(buffer, ref offset, length);
+        return parameter;
+    }
+
+    public static ExtendedMeshParams DeSerializeExtendedMeshParams(byte[] buffer, ref int offset, int length)
+    {
+        ExtendedMeshParams parameter = new ExtendedMeshParams();
+        parameter.Flags = (ExtendedMeshFlags)DeSerializeUInt32_Le(buffer, ref offset, length);
+        return parameter;
+    }
+
+    #endregion ExtraData
     #region TextureEntry
     /// <summary>
     /// De-serialises a TextureEntry object
@@ -1170,4 +1275,5 @@ public static class BinarySerializer
     }
 
     #endregion TextureEntry
+    #endregion Primitives
 }

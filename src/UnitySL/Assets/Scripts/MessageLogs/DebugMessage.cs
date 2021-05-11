@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Extensions.UnityExtensions;
 using UnityEngine;
 
 namespace Assets.Scripts.MessageLogs
