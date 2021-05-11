@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.MathExtensions;
+using Assets.Scripts.Extensions.MathExtensions;
 using UnityEngine;
 
 namespace Assets.Scripts.Character

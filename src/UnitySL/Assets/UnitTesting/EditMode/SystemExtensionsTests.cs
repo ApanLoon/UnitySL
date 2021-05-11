@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.SystemExtensions;
+﻿using Assets.Scripts.Extensions.SystemExtensions;
 using NUnit.Framework;
 
 namespace Tests

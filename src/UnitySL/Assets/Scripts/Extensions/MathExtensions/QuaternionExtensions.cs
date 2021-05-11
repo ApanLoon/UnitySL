@@ -1,7 +1,7 @@
 ﻿
 using UnityEngine;
 
-namespace Assets.Scripts.MathExtensions
+namespace Assets.Scripts.Extensions.MathExtensions
 {
     public static class QuaternionExtensions
     {

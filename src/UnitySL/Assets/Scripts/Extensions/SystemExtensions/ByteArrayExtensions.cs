@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Assets.Scripts.SystemExtensions
+namespace Assets.Scripts.Extensions.SystemExtensions
 {
     public static class ByteArrayExtensions
     {
@@ -35,5 +35,33 @@ namespace Assets.Scripts.SystemExtensions
             }
             return s;
         }
+
+        public static string ToCSharp(this Byte[] buf)
+        {
+            string s = "    byte[] buf = \n    {\n";
+            string line = "";
+            for (int i = 0; i < buf.Length; i++)
+            {
+                if (i > 0 && (i % 8 == 0))
+                {
+                    line += " ";
+                }
+
+                if (i > 0 && (i % 16 == 0))
+                {
+                    s += $"        {line}\n";
+                    line = "";
+                }
+
+                line += $"0x{buf[i]:x2}, ";
+            }
+
+            if (s.Length > 0)
+            {
+                s += $"        {line}\n";
+            }
+            return s + "    };";
+        }
+
     }
 }
