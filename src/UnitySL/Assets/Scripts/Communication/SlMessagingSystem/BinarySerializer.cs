@@ -641,6 +641,35 @@ public static class BinarySerializer
     }
     #endregion Vector3Double
 
+    #region Vector4
+    public static int Serialize_Le(Vector4 v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        // Convert handedness TODO: Not sure about this, what are Vector4 used for?
+        o = Serialize_Le(v.x, buffer, o, length);
+        o = Serialize_Le(v.z, buffer, o, length);
+        o = Serialize_Le(v.y, buffer, o, length);
+        o = Serialize_Le(v.w, buffer, o, length);
+        return o;
+    }
+    public static Vector4 DeSerializeVector4(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 4 * 4)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeVector3: Not enough bytes in buffer.");
+        }
+
+        Vector4 v = new Vector4 // Convert handedness: TODO: Not sure about this, what are Vector4 used for?
+        {
+            x = DeSerializeFloat_Le(buffer, ref offset, length),
+            z = DeSerializeFloat_Le(buffer, ref offset, length),
+            y = DeSerializeFloat_Le(buffer, ref offset, length),
+            w = DeSerializeFloat_Le(buffer, ref offset, length)
+        };
+        return v;
+    }
+    #endregion Vector4
+
     #region Quaternion
     public static int Serialize_Le (Quaternion q, byte[] buffer, int offset, int length)
     {
@@ -822,7 +851,6 @@ public static class BinarySerializer
 
     #region Primitives
     #region ExtraData
-
     public static ExtraParameters DeSerializeExtraParameters(byte[] buffer, ref int offset, int length)
     {
         ExtraParameters parameters = new ExtraParameters();

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Extensions.MathExtensions;
 using Assets.Scripts.Extensions.SystemExtensions;
 using Assets.Scripts.Primitives;
 using UnityEngine;
@@ -181,7 +182,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public Vector3 Position { get; set; } // In data?
             public Quaternion Rotation { get; set; } // In data?
             public Vector3 AngularVelocity { get; set; }
-            public byte[] Data1 { get; set; } // TODO: What is this?
+            public MovementUpdate MovementUpdate { get; set; }
 
             public UInt32 ParentId { get; set; }
             public ObjectUpdateFlags UpdateFlags { get; set; }
@@ -231,6 +232,21 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public bool IsAttachment { get; set; }
         }
 
+        public class MovementUpdate
+        {
+            public Vector4 FootPlane { get; set; }
+            public Vector3 Position { get; set; }
+            public Vector3 Velocity { get; set; }
+            public Vector3 Acceleration { get; set; }
+            public Quaternion Rotation { get; set; }
+            public Vector3 AngularVelocity { get; set; }
+
+            public override string ToString()
+            {
+                return $"FootPlane={FootPlane}, Position={Position}, Velocity={Velocity}, Acceleration={Acceleration}, Rotation= {Rotation}, AngularVelocity={AngularVelocity}";
+            }
+        }
+
         public ObjectUpdateMessage()
         {
             MessageId = MessageId.ObjectUpdate;
@@ -259,10 +275,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.Material           = (MaterialType)buf[o++];
                 data.ClickAction        = (ClickAction)buf[o++];
                 data.Scale              = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
-                len = buf[o++];
-                data.Data1              = new byte[len];
-                Array.Copy(buf, o, data.Data1, 0, len);
-                o += len;
+                data.MovementUpdate     = DeSerializeMovementUpdate(buf, ref o, buf.Length);
 
                 data.ParentId           = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
                 data.UpdateFlags        = (ObjectUpdateFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
@@ -328,6 +341,88 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 Logger.LogDebug("ObjectUpdateMessage.DeSerialise", ToString());
             }
         }
+
+        public MovementUpdate DeSerializeMovementUpdate(byte[] buffer, ref int offset, int length)
+        {
+            float size = 256; // TODO: This should be fetched from the Region.WidthInMetres of the region this message is for.
+            float minHeight = -256; // TODO: I don't know where this should come from
+            float maxHeight = 3 * 256; // TODO: I don't know where this should come from
+
+            MovementUpdate update = new MovementUpdate();
+
+            int len = buffer[offset++];
+            int limit = offset + len;
+            switch (len)
+            {
+                case 60 + 16:
+                    // pull out collision normal for avatar
+                    update.FootPlane       = BinarySerializer.DeSerializeVector4(buffer, ref offset, limit);
+                    goto case 60;
+
+                case 60:
+                    update.Position        = BinarySerializer.DeSerializeVector3(buffer, ref offset, limit);
+                    update.Velocity        = BinarySerializer.DeSerializeVector3(buffer, ref offset, limit);
+                    update.Acceleration    = BinarySerializer.DeSerializeVector3(buffer, ref offset, limit);
+                    update.Rotation        = BinarySerializer.DeSerializeQuaternion(buffer, ref offset, limit); // Theta
+                    update.AngularVelocity = BinarySerializer.DeSerializeVector3(buffer, ref offset, limit); // Omega
+                    break;
+
+                case 32 + 16:
+                    // pull out collision normal for avatar
+                    update.FootPlane = BinarySerializer.DeSerializeVector4(buffer, ref offset, limit);
+
+                    goto case 32;
+
+                case 32: // Values are UInt16 and needs to be quantized to floats
+                    update.Position = new Vector3(
+                        x:BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-0.5f * size, 1.5f * size),
+                        z:BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(minHeight, maxHeight), // Handedness
+                        y:BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-0.5f * size, 1.5f * size));
+                    update.Velocity = new Vector3(
+                        x:BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size),
+                        z:BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size), // Handedness
+                        y:BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size));
+                    update.Acceleration = new Vector3(
+                        x: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size),
+                        z: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size), // Handedness
+                        y: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size));
+                    update.Rotation = new Quaternion(
+                        x: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-1f, 1f),
+                        z: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-1f, 1f), // Handedness
+                        y: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-1f, 1f),
+                        w: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-1f, 1f));
+                    update.AngularVelocity = new Vector3(
+                        x: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size),
+                        z: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size), // Handedness
+                        y: BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, limit).ToFloat(-size, size));
+                    break;
+
+                case 16:// Values are UInt8 and needs to be quantized to floats
+                    update.Position = new Vector3(
+                        x: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-0.5f * size, 1.5f * size),
+                        z: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(minHeight, maxHeight), // Handedness
+                        y: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-0.5f * size, 1.5f * size));
+                    update.Velocity = new Vector3(
+                        x: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size),
+                        z: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size), // Handedness
+                        y: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size));
+                    update.Acceleration = new Vector3(
+                        x: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size),
+                        z: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size), // Handedness
+                        y: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size));
+                    update.Rotation = new Quaternion(
+                        x: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-1f, 1f),
+                        z: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-1f, 1f), // Handedness
+                        y: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-1f, 1f),
+                        w: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-1f, 1f));
+                    update.AngularVelocity = new Vector3(
+                        x: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size),
+                        z: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size), // Handedness
+                        y: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size));
+                    break;
+            }
+            return update;
+        }
         #endregion DeSerialise
 
         public override string ToString()
@@ -336,7 +431,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             foreach (ObjectUpdateMessage.ObjectData data in Objects)
             {
                 s += $"\n                     ObjectId={data.LocalId}, State={data.State}"
-                     + $"\n                     FullId={data.FullId}, Crc={data.Crc}, PCode={data.PCode}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}, Data1({data.Data1.Length})"
+                     + $"\n                     FullId={data.FullId}, Crc={data.Crc}, PCode={data.PCode}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}"
+                     + $"\n                     MovementUpdate={data.MovementUpdate}"
                      + $"\n                     ParentId={data.ParentId}, UpdateFlags={data.UpdateFlags}"
                      + $"\n                     PathCurve={data.PathCurve}, ProfileCurve={data.ProfileCurve}, Path=({data.PathBegin}-{data.PathEnd}), PathScale=({data.PathScaleX}, {data.PathScaleY}), PathShear=({data.PathShearX}, {data.PathShearY}), PathTwist={data.PathTwist}, PathTwistBegin={data.PathTwistBegin}, PathRadiusOffset={data.PathRadiusOffset}, PathTaper=({data.PathTaperX}, {data.PathTaperY}), PathRevolutions={data.PathRevolutions}, PathSkew={data.PathSkew}, Profile=({data.ProfileBegin}-{data.ProfileEnd}), Hollow={data.ProfileHollow}"
                      + $"\n                     TextureEntry({data.TextureEntry})"
