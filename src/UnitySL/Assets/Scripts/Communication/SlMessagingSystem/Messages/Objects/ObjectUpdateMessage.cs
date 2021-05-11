@@ -323,10 +323,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 o += len;
 
                 data.ExtraParameters = BinarySerializer.DeSerializeExtraParameters(buf, ref o, length);
-                //len = buf[o++];
-                //data.ExtraParameters    = new byte[len];
-                //Array.Copy(buf, o, data.ExtraParameters, 0, len);
-                //o += len;
 
                 data.SoundId            = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
                 data.OwnerId            = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
@@ -338,7 +334,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.JointPivot         = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
                 data.JointAxisOrAnchor  = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
 
-                Logger.LogDebug("ObjectUpdateMessage.DeSerialise", ToString());
+                //Logger.LogDebug("ObjectUpdateMessage.DeSerialise", ToString());
             }
         }
 
