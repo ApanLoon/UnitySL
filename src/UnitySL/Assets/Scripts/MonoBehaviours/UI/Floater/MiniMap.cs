@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Agents;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Map;
+using Assets.Scripts.MonoBehaviours.UI.ToolTips;
 using Assets.Scripts.Regions;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,7 +22,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
             public GameObject GameObject;
             public RectTransform Transform;
             public Image Image;
-            public TMP_Text Text;
+            public ToolTipTarget ToolTipTarget;
         }
 
         protected Dictionary<Guid, MarkerInfo> MarkerInfoByAgentId = new Dictionary<Guid, MarkerInfo>();
@@ -88,7 +88,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
                     mi.GameObject = Instantiate(MarkerPrefab, MarkerContainer);
                     mi.Transform = mi.GameObject.GetComponent<RectTransform>();
                     mi.Image = mi.GameObject.GetComponent<Image>();
-                    mi.Text = mi.GameObject.GetComponentInChildren<TMP_Text>(true);
+                    mi.ToolTipTarget = mi.GameObject.GetComponent<ToolTipTarget>();
 
                     MarkerInfoByAgentId[location.AgentId] = mi;
                 }
@@ -108,7 +108,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
                 }
                 mi.Image.color = c;
 
-                mi.Text.text = location.AgentId.ToString();
+                mi.ToolTipTarget.Text = location.AgentId.ToString();
 
                 AvatarNameCache.Instance.Get(location.AgentId, OnNameReceived);
 
@@ -154,7 +154,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
         {
             if (MarkerInfoByAgentId.ContainsKey(agentId))
             {
-                MarkerInfoByAgentId[agentId].Text.text = avatarName.DisplayName;
+                MarkerInfoByAgentId[agentId].ToolTipTarget.Text = avatarName.DisplayName;
             }
         }
 
