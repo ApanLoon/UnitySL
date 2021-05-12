@@ -108,6 +108,11 @@ public class UIMessageLog : MonoBehaviour
 
     public void Load(IEnumerable<string> messages)
     {
+        if (scrollRect == null)
+        {
+            return;
+        }
+
         Clear();
         foreach (string msg in messages)
         {
