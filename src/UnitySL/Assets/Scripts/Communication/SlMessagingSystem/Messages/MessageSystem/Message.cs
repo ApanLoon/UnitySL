@@ -8,6 +8,7 @@ using Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Region;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Viewer;
 using Assets.Scripts.Extensions.SystemExtensions;
+using Assets.Scripts.MonoBehaviours.DebugScripts;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
 {
@@ -361,11 +362,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             MessageId messageId = (MessageId)id;
             #endregion MessageId
 
-            //// Here we can get a dump of a particular message type in its original form to create unit tests:
-            //if (messageId == MessageId.ObjectUpdateCompressed)
-            //{
-            //    Logger.LogDebug("RAW MESSAGE\n", buf.ToCSharp());
-            //}
+            // Here we can get a dump of a particular message type in its original form to create unit tests:
+            LogMessageDebug(buf, messageId, MessageDebug.Source.Original);
 
             #region DataBuffer
             byte[] dataBuffer = buf;
@@ -379,6 +377,9 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             }
             #endregion DataBuffer
 
+            // Here we can get a dump of the uncompressed message:
+            LogMessageDebug(buf, messageId, MessageDebug.Source.Uncompressed);
+
             Message message = MessageCreator[messageId]();
             message.Flags          = packetFlags;
             message.SequenceNumber = sequenceNumber;
@@ -386,8 +387,31 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             message.Acks           = acks;
 
             message.DeSerialise (dataBuffer, ref dataOffset, dataLen);
-            //Logger.LogDebug ("Message.DeSerialiseMessage", message);
+
+            // Here we can get the string representation of the decoded message:
+            if (MessageDebug.Messages.ContainsKey(messageId) &&
+                MessageDebug.Messages[messageId].Output.HasFlag(MessageDebug.Output.String))
+            {
+                Logger.LogDebug ($"MESSAGE", $"\n{message}");
+            }
             return message;
+        }
+
+        protected static void LogMessageDebug(byte[] buf, MessageId messageId, MessageDebug.Source source)
+        {
+            if (   MessageDebug.Messages.ContainsKey(messageId)
+                && MessageDebug.Messages[messageId].Source.HasFlag(source))
+            {
+                if (MessageDebug.Messages[messageId].Output.HasFlag(MessageDebug.Output.HexDump))
+                {
+                    Logger.LogDebug($"MESSAGE {messageId} ({source})", $"\n{buf.ToHexDump()}");
+                }
+
+                if (MessageDebug.Messages[messageId].Output.HasFlag(MessageDebug.Output.CSharp))
+                {
+                    Logger.LogDebug($"MESSAGE {messageId} ({source})", $"\n{buf.ToCSharp()}");
+                }
+            }
         }
 
         protected virtual void DeSerialise(byte[] buf, ref int offset, int length)

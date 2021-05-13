@@ -31,7 +31,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
                 c.ControlFlags = (AgentControlFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
                 c.PassToAgent  = BinarySerializer.DeSerializeBool(buf, ref o, length);
                 Controls.Add(c);
-                //Logger.LogDebug("ScriptControlChangeMessage.DeSerialise", $"TakeControls={c.TakeControls}, Controls={c.Controls}, PassToAgent={c.PassToAgent}");
             }
 
         }

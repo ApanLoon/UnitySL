@@ -35,14 +35,12 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
             ActiveGroupId = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
             GroupPowers   = BinarySerializer.DeSerializeUInt64_Le (buf, ref o, length);
             GroupName     = BinarySerializer.DeSerializeString    (buf, ref o, length, 1);
-
-            Logger.LogDebug("AgentDataUpdateMessage.DeSerialise", $"AgentId={AgentId}, FirstName={FirstName}, LastName={LastName}, GroupTitle={GroupTitle}, ActiveGroupId={ActiveGroupId}, GroupName={GroupName}");
         }
         #endregion DeSerialise
 
         public override string ToString()
         {
-            return $"{base.ToString()}: Name={FirstName} {LastName}, Group=\"{GroupName}\", Title=\"{GroupTitle}\"";
+            return $"{base.ToString()}: AgentId = {AgentId}, FirstName = {FirstName}, LastName = {LastName}, GroupTitle = {GroupTitle}, ActiveGroupId = {ActiveGroupId}, GroupName = {GroupName}";
         }
     }
 }

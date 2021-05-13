@@ -307,8 +307,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             BinaryBucket   = new byte[len];
             Array.Copy(buf, o, BinaryBucket, 0, len);
             o += len;
-
-            //Logger.LogDebug("ImprovedInstantMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

@@ -34,7 +34,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio
                     SoundId  = BinarySerializer.DeSerializeGuid (buf, ref o, length)
                 };
                 Sounds.Add(si);
-                // Logger.LogDebug("PreloadSoundMessage.DeSerialise", $"ObjectId={si.ObjectId} OwnerId={si.OwnerId} SoundId={si.SoundId}");
             }
         }
         #endregion DeSerialise

@@ -31,8 +31,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
             SunDirection   = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
             SunPhase       = BinarySerializer.DeSerializeFloat_Le  (buf, ref o, length);
             SunAngVelocity = BinarySerializer.DeSerializeVector3   (buf, ref o, buf.Length);
-            Logger.LogDebug("SimulatorViewerTimeMessage.DeSerialise", ToString());
-
         }
         #endregion DeSerialise
 

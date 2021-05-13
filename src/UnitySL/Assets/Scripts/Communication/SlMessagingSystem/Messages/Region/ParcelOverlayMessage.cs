@@ -31,8 +31,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Region
             UInt16 len = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
             Data = new OwnershipFlags[len];
             Array.Copy(buf, o, Data, 0, len);
-
-            Logger.LogDebug("ParcelOverlayMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 

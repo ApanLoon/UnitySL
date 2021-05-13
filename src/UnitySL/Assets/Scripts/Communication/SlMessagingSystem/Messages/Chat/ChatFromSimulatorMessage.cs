@@ -33,8 +33,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Chat
             AudibleLevel = (ChatAudibleLevel)buf[o++];
             Position     = BinarySerializer.DeSerializeVector3(buf, ref o, length);
             Message      = BinarySerializer.DeSerializeString(buf, ref o, length, 2);
-
-            Logger.LogDebug ("ChatFromSimulatorMessage.DeSerialise", ToString());
         }
         #endregion DeSerialise
 
