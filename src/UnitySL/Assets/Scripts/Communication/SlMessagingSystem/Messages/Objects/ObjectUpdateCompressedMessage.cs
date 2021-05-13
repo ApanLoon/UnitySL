@@ -45,8 +45,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
         #region DeSerialise
         protected override void DeSerialise(byte[] buf, ref int o, int length)
         {
-            return; // TODO: This de-serialisation is wrong and causes a lot of error logging
-
             RegionHandle = new RegionHandle(BinarySerializer.DeSerializeUInt64_Le(buf, ref o, length));
             TimeDilation = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
 
@@ -126,40 +124,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                     logMessage += $", ParticleSystem({len})";
                 }
 
-                byte nExtraParameters = compressedData[compressedOffset++];
-                for (int j = 0; j < nExtraParameters; j++)
-                {
-                    if (j == 0)
-                    {
-                        logMessage += ", ExtraParameters=(";
-                    }
-                    ExtraParameterType type = (ExtraParameterType)BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, compressedLength);
-                    len = BinarySerializer.DeSerializeUInt32_Le(compressedData, ref compressedOffset, compressedLength);
-                    switch (type)
-                    {
-                        case ExtraParameterType.Flexible:
-                            break;
-                        case ExtraParameterType.Light:
-                            break;
-                        case ExtraParameterType.Sculpt:
-                            break;
-                        case ExtraParameterType.LightImage:
-                            break;
-                        case ExtraParameterType.Mesh:
-                            break;
-                        default:
-                            Logger.LogWarning("ObjectUpdateCompressedMessage.DeSerialise", $"Unknown ExtraParamType: {type}");
-                            continue; // TODO: This is not right
-                    }
-                    logMessage += $"{type}, ";
-
-                    compressedOffset += (int)len; // TODO: These offsets and length should all be UInt32
-
-                    if (j == nExtraParameters - 1)
-                    {
-                        logMessage += ")";
-                    }
-                }
+                data.ExtraParameters = BinarySerializer.DeSerializeExtraParameters(compressedData, ref compressedOffset, compressedOffset + compressedLength);
 
                 if ((compressedFlags & CompressedFlags.HasSound) != 0)
                 {
@@ -197,8 +162,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ProfileHollow    = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * HOLLOW_QUANTA;
 
                 UInt32 textureEntryLength = BinarySerializer.DeSerializeUInt32_Le(compressedData, ref compressedOffset, length);
-                //compressedOffset += (int)textureEntryLength;
-                data.TextureEntry = BinarySerializer.DeSerializeTextureEntry(compressedData, ref compressedOffset, (int)textureEntryLength);
+                data.TextureEntry = BinarySerializer.DeSerializeTextureEntry(compressedData, ref compressedOffset, compressedOffset + (int)textureEntryLength);
                 logMessage += $", TextureEntry={data.TextureEntry}";
 
                 if ((compressedFlags & CompressedFlags.TextureAnimation) != 0)

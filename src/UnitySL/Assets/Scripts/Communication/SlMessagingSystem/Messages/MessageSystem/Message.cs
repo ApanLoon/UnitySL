@@ -362,7 +362,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
             #endregion MessageId
 
             //// Here we can get a dump of a particular message type in its original form to create unit tests:
-            //if (messageId == MessageId.ObjectUpdate)
+            //if (messageId == MessageId.ObjectUpdateCompressed)
             //{
             //    Logger.LogDebug("RAW MESSAGE\n", buf.ToCSharp());
             //}

@@ -300,7 +300,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ProfileHollow      = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * HOLLOW_QUANTA;
 
                 len                     = BinarySerializer.DeSerializeUInt16_Le   (buf, ref o, length);
-                data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, len);
+                data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, o + len);
 
                 len = buf[o++];
                 for (int j = 0; j < len; j++)
@@ -322,7 +322,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 Array.Copy(buf, o, data.ParticleSystemData, 0, len);
                 o += len;
 
-                data.ExtraParameters = BinarySerializer.DeSerializeExtraParameters(buf, ref o, length);
+                len = buf[o++];
+                data.ExtraParameters = BinarySerializer.DeSerializeExtraParameters(buf, ref o, o + len);
 
                 data.SoundId            = BinarySerializer.DeSerializeGuid      (buf, ref o, length);
                 data.OwnerId            = BinarySerializer.DeSerializeGuid      (buf, ref o, length);

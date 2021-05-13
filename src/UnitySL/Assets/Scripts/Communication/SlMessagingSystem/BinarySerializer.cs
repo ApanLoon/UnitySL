@@ -850,11 +850,11 @@ public static class BinarySerializer
     #endregion ZeroCode
 
     #region Primitives
+    
     #region ExtraData
     public static ExtraParameters DeSerializeExtraParameters(byte[] buffer, ref int offset, int length)
     {
         ExtraParameters parameters = new ExtraParameters();
-        byte extraDataLen = buffer[offset++]; // TODO: The following code should check against this length instead.
         byte nParameters = buffer[offset++];
         for (int i = 0; i < nParameters; i++)
         {
@@ -951,8 +951,8 @@ public static class BinarySerializer
         parameter.Flags = (ExtendedMeshFlags)DeSerializeUInt32_Le(buffer, ref offset, length);
         return parameter;
     }
-
     #endregion ExtraData
+
     #region TextureEntry
     /// <summary>
     /// De-serialises a TextureEntry object
@@ -963,12 +963,10 @@ public static class BinarySerializer
     /// <returns></returns>
     public static TextureEntry DeSerializeTextureEntry(byte[] buffer, ref int offset, int length)
     {
-        int start = offset;
-        int len = offset + length;
         TextureEntry entry = new TextureEntry();
 
         string logMessage = "TextureEntry:\n**** image_id:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+            DeSerializeTextureEntryField(buffer, ref offset, length,
             
             DeSerializeGuid,
 
@@ -986,7 +984,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** colour:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len, 
+        DeSerializeTextureEntryField(buffer, ref offset, length, 
             
             DeSerializeColorInv,
 
@@ -1003,7 +1001,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** scale_s:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len, 
+        DeSerializeTextureEntryField(buffer, ref offset, length, 
             
             DeSerializeFloat_Le,
             
@@ -1020,7 +1018,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** scale_t:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
             
             DeSerializeFloat_Le,
             
@@ -1038,7 +1036,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** offset_s:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
 
             (byte[] b, ref int o, int l) => DeSerializeInt16_Le(b, ref o, l) / (float)0x7fff,
 
@@ -1056,7 +1054,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** offset_t:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
 
             (byte[] b, ref int o, int l) => DeSerializeInt16_Le(b, ref o, l) / (float)0x7fff,
 
@@ -1073,7 +1071,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** image_rot:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
 
             (byte[] b, ref int o, int l) => DeSerializeInt16_Le(b, ref o, l) / _teTextureRotationPackFactor * Mathf.PI * 2,
 
@@ -1090,7 +1088,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** bump:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
 
             (byte[] b, ref int o, int l) => new BumpShinyFullBright(DeSerializeUInt8(b, ref o, l)),
 
@@ -1120,7 +1118,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** media_flags:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
 
             (byte[] b, ref int o, int l) => new MediaTexGen(DeSerializeUInt8(b, ref o, l)),
 
@@ -1147,7 +1145,7 @@ public static class BinarySerializer
             }));
 
         logMessage += "**** glow:\n";
-        DeSerializeTextureEntryField(buffer, ref offset, len,
+        DeSerializeTextureEntryField(buffer, ref offset, length,
 
             (byte[] b, ref int o, int l) => DeSerializeUInt8(b, ref o, l) / (float)0xff,
 
@@ -1164,10 +1162,10 @@ public static class BinarySerializer
                 logMessage += $"    0x{mask:x16} {value}\n";
             }));
 
-        if (offset < len)
+        if (offset < length)
         {
             logMessage += "**** material_id:\n";
-            DeSerializeTextureEntryField(buffer, ref offset, len,
+            DeSerializeTextureEntryField(buffer, ref offset, length,
                 
                 DeSerializeGuid,
 
@@ -1303,5 +1301,6 @@ public static class BinarySerializer
     }
 
     #endregion TextureEntry
+
     #endregion Primitives
 }

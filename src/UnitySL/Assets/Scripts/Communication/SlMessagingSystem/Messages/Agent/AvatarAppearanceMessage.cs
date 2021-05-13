@@ -36,7 +36,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Agent
             SenderIsTrial = BinarySerializer.DeSerializeBool(buf, ref o, length);
 
             UInt16 len = BinarySerializer.DeSerializeUInt16_Le(buf, ref o, length);
-            TextureEntry = BinarySerializer.DeSerializeTextureEntry(buf, ref o, len);
+            TextureEntry = BinarySerializer.DeSerializeTextureEntry(buf, ref o, o + len);
 
             len = buf[o++];
             // TODO: Decode visual params: Each byte appears to be a weight that needs to be scaled between the min and max values of the parameter identified by the index

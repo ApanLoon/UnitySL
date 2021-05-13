@@ -148,7 +148,7 @@ public class Agent :IDisposable
             return;
         }
 
-        // TODO: Check timestamp to make sure the movement compleation makes sense.
+        // TODO: Check timestamp to make sure the movement completion makes sense.
 
         Position = message.Position;
         LookAt = message.LookAt;
