@@ -52,6 +52,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.ToolTips
                 {
                     Text.text = target.Text;
                     LayoutRebuilder.ForceRebuildLayoutImmediate(RectTransform);
+                    //SetPosition(mousePos); // TODO: Do we want the tool tip to stay in position or...
                 }
             }
 
@@ -60,10 +61,15 @@ namespace Assets.Scripts.MonoBehaviours.UI.ToolTips
                 return;
             }
 
+            SetPosition(mousePos); // TODO: do we want the tool tip to follow the mouse?
+        }
+
+        protected void SetPosition(Vector3 mousePos)
+        {
             Vector3 vpPos = Camera.main.ScreenToViewportPoint(mousePos);
-            
-            bool isOnLeftSide    = vpPos.x < 0.5f;
-            bool isOnBottomSide  = vpPos.y < 0.5f;
+
+            bool isOnLeftSide = vpPos.x < 0.5f;
+            bool isOnBottomSide = vpPos.y < 0.5f;
 
             Vector2 anchor = new Vector2(isOnLeftSide ? 0f : 1f, isOnBottomSide ? 0f : 1f);
             RectTransform.anchorMin = anchor;
