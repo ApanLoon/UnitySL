@@ -299,8 +299,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ProfileEnd         = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * CUT_QUANTA;
                 data.ProfileHollow      = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * HOLLOW_QUANTA;
 
-                len                     = BinarySerializer.DeSerializeUInt16_Le   (buf, ref o, length);
-                data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, o + len);
+                data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, length);
                 data.TextureAnimation   = BinarySerializer.DeSerializeTextureAnimation(buf, ref o, length);
 
                 data.NameValue          = BinarySerializer.DeSerializeString    (buf, ref o, length, 2);

@@ -161,8 +161,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ProfileEnd       = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * CUT_QUANTA;
                 data.ProfileHollow    = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * HOLLOW_QUANTA;
 
-                UInt32 textureEntryLength = BinarySerializer.DeSerializeUInt32_Le(compressedData, ref compressedOffset, length);
-                data.TextureEntry = BinarySerializer.DeSerializeTextureEntry(compressedData, ref compressedOffset, compressedOffset + (int)textureEntryLength);
+                data.TextureEntry = BinarySerializer.DeSerializeTextureEntry(compressedData, ref compressedOffset, compressedLength, true);
                 logMessage += $", TextureEntry={data.TextureEntry}";
 
                 if ((compressedFlags & CompressedFlags.TextureAnimation) != 0)
