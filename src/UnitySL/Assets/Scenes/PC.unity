@@ -1247,7 +1247,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36349c0fa419bbd47a7474228a9e491d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Settings: []
+  Settings:
+  - MessageId: 4294902147
+    Source: 2
+    Output: 4
+  - MessageId: 4294901918
+    Source: 2
+    Output: 4
+  - MessageId: 4294902083
+    Source: 2
+    Output: 4
+  - MessageId: 4294902082
+    Source: 2
+    Output: 4
+  - MessageId: 4294902013
+    Source: 2
+    Output: 4
+  - MessageId: 4294901956
+    Source: 2
+    Output: 0
+  - MessageId: 4294901910
+    Source: 2
+    Output: 4
 --- !u!4 &156233571
 Transform:
   m_ObjectHideFlags: 0

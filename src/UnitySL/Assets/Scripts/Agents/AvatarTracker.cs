@@ -73,7 +73,7 @@ namespace Assets.Scripts.Agents
 
         protected void OnAvatarNameReceived (Guid agentId, AvatarName avatarName)
         {
-            Logger.LogDebug("AvatarTracker.OnAvatarNameReceived", $"FirstName=\"{avatarName.FirstName}\", LastName=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
+            //Logger.LogDebug("AvatarTracker.OnAvatarNameReceived", $"FirstName=\"{avatarName.FirstName}\", LastName=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
         }
 
 
@@ -254,13 +254,13 @@ namespace Assets.Scripts.Agents
 
         protected void OnOnlineNotificationMessage (OnlineNotificationMessage message)
         {
-            Logger.LogDebug("LLAvatarTracker::processOnlineNotification()", "");
+            //Logger.LogDebug("LLAvatarTracker::processOnlineNotification()", "");
             ProcessNotify (message.Agents, true);
         }
 
         protected void OnOfflineNotificationMessage(OfflineNotificationMessage message)
         {
-            Logger.LogDebug("LLAvatarTracker::processOfflineNotification()", "");
+            //Logger.LogDebug("LLAvatarTracker::processOfflineNotification()", "");
             ProcessNotify (message.Agents, false);
         }
 
@@ -269,7 +269,7 @@ namespace Assets.Scripts.Agents
             int count = agents.Count;
             bool chatNotify = Settings.Instance.chat.notifyOnlineStatus;
 
-            Logger.LogDebug("AvatarTracker.ProcessNotify", $"Received {count} online notifications **** ");
+            //Logger.LogDebug("AvatarTracker.ProcessNotify", $"Received {count} online notifications **** ");
             if (count <= 0)
             {
                 return;

@@ -73,7 +73,6 @@ public class VolumeLayerManager
 
     public static void UnpackLayerData()
     {
-        Logger.LogDebug("VolumeLayerManager.UnpackLayerData", "");
         for (int i = 0; i < LayerData.Count; i++)
         {
             VolumeLayerData vlData = LayerData[i];

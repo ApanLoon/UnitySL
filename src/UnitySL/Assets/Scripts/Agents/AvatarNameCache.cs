@@ -282,7 +282,7 @@ namespace Assets.Scripts.Agents
                     }
                     node = node.NextSibling; // Move to next key
                 }
-                Logger.LogDebug("AvatarNameCache.ProcessResponse", "Parse complete");
+                //Logger.LogDebug("AvatarNameCache.ProcessResponse", "Parse complete");
             }
             catch (Exception e)
             {

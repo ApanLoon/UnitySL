@@ -84,7 +84,6 @@ public class Session
         FirstSimHost = new Host(loginResponse.SimIp, loginResponse.SimPort);
         Region region = World.Instance.AddRegion(loginResponse.RegionHandle, FirstSimHost);
 
-        Logger.LogInfo("Session.Start", "Requesting capability grants...");
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Requesting capability grants...", 0.32f);
         
         Task seedCapabilitiesTask = region.SetSeedCapability(loginResponse.SeedCapability);
@@ -109,8 +108,6 @@ public class Session
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region capabilities...", 0.47f);
 
         await seedCapabilitiesTask;
-        Logger.LogInfo("Session.Start", "Got capability grants.");
-
         #endregion SeedGrantedWait
 
         #region SeedCapabilitiesGranted
@@ -123,7 +120,6 @@ public class Session
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Waiting for region handshake...", 0.59f);
         await region.Circuit.SendUseCircuitCode(loginResponse.CircuitCode, SessionId, loginResponse.AgentId);
-        Logger.LogInfo("Session.Start", "UseCircuitCode was acked.");
 
         AvatarNameCache.Instance.Start();
         #endregion SeedCapabilitiesGranted
@@ -133,7 +129,6 @@ public class Session
 
         EventManager.Instance.RaiseOnProgressUpdate("Login", "Connecting to region...", 0.6f);
         await region.Circuit.SendCompleteAgentMovement(loginResponse.AgentId, SessionId, loginResponse.CircuitCode);
-        Logger.LogInfo("Session.Start", "CompleteAgentMovement was acked.");
         #endregion AgentSend
 
         #region InventorySend

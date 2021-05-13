@@ -48,7 +48,6 @@ public class Login
         {
             slurl = new Slurl(Slurl.SIM_LOCATION_LAST);
         }
-        Logger.LogDebug("Login.Connect", $"Connecting {credential.First} {credential.Last} using {uri}.");
 
         XmlRpcParameterArray parameters = CreateLoginParameters(credential, slurl, getInventoryLibrary, godMode);
         

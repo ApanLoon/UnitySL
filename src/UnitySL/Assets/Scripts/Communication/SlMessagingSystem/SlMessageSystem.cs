@@ -187,8 +187,6 @@ public class SlMessageSystem : IDisposable
 
     public Circuit EnableCircuit(Host host, float heartBeatInterval = 5f, float circuitTimeout = 100f)
     {
-        Logger.LogDebug("SlMessageSystem.EnableCircuit", "");
-
         if (CircuitByHost.ContainsKey(host))
         {
             return CircuitByHost[host];
