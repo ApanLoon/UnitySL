@@ -207,7 +207,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public float ProfileHollow { get; set; }
 
             public TextureEntry TextureEntry { get; set; }
-            public List<byte> TextureAnims { get; set; } = new List<byte>();
+            public TextureAnimation TextureAnimation { get; set; }
 
             public string NameValue { get; set; }
             public byte[] Data2 { get; set; } // TODO: What is this?
@@ -243,7 +243,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
             public override string ToString()
             {
-                return $"FootPlane={FootPlane}, Position={Position}, Velocity={Velocity}, Acceleration={Acceleration}, Rotation= {Rotation}, AngularVelocity={AngularVelocity}";
+                return $"{{FootPlane={FootPlane}, Position={Position}, Velocity={Velocity}, Acceleration={Acceleration}, Rotation= {Rotation}, AngularVelocity={AngularVelocity}}}";
             }
         }
 
@@ -301,12 +301,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
                 len                     = BinarySerializer.DeSerializeUInt16_Le   (buf, ref o, length);
                 data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, o + len);
-
-                len = buf[o++];
-                for (int j = 0; j < len; j++)
-                {
-                    data.TextureAnims.Add(buf[o++]);
-                }
+                data.TextureAnimation   = BinarySerializer.DeSerializeTextureAnimation(buf, ref o, length);
 
                 data.NameValue          = BinarySerializer.DeSerializeString    (buf, ref o, length, 2);
                 len                     = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length);
@@ -433,7 +428,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                      + $"\n                     ParentId={data.ParentId}, UpdateFlags={data.UpdateFlags}"
                      + $"\n                     PathCurve={data.PathCurve}, ProfileCurve={data.ProfileCurve}, Path=({data.PathBegin}-{data.PathEnd}), PathScale=({data.PathScaleX}, {data.PathScaleY}), PathShear=({data.PathShearX}, {data.PathShearY}), PathTwist={data.PathTwist}, PathTwistBegin={data.PathTwistBegin}, PathRadiusOffset={data.PathRadiusOffset}, PathTaper=({data.PathTaperX}, {data.PathTaperY}), PathRevolutions={data.PathRevolutions}, PathSkew={data.PathSkew}, Profile=({data.ProfileBegin}-{data.ProfileEnd}), Hollow={data.ProfileHollow}"
                      + $"\n                     TextureEntry({data.TextureEntry})"
-                     + $"\n                     TextureAnims({data.TextureAnims.Count})"
+                     + $"\n                     TextureAnim={data.TextureAnimation}"
                      + $"\n                     NameValue={data.NameValue.Replace("\n", "\\n")}, Data2({data.Data2.Length}), Text={data.Text}, TextColour={data.TextColour}, MediaUrl={data.MediaUrl}"
                      + $"\n                     ParticleSystemData({data.ParticleSystemData.Length})"
                      + $"\n                     ExtraParams({data.ExtraParameters})"

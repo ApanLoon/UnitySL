@@ -17,5 +17,10 @@ namespace Assets.Scripts.Primitives
                 FaceTextures[i] = new TextureEntryFace();
             }
         }
+
+        public override string ToString()
+        {
+            return $"{{DefaultTexture={DefaultTexture}}}";
+        }
     }
 }

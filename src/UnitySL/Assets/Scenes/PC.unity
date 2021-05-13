@@ -1269,6 +1269,9 @@ MonoBehaviour:
   - MessageId: 4294901910
     Source: 2
     Output: 4
+  - MessageId: 12
+    Source: 2
+    Output: 0
 --- !u!4 &156233571
 Transform:
   m_ObjectHideFlags: 0

@@ -167,16 +167,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
                 if ((compressedFlags & CompressedFlags.TextureAnimation) != 0)
                 {
-                    TextureAnimation textureAnimation = new TextureAnimation()
-                    {
-                        Mode   = (TextureAnimationMode)compressedData[compressedOffset++],
-                        Face   = compressedData[compressedOffset++],
-                        SizeX  = compressedData[compressedOffset++],
-                        SizeY  = compressedData[compressedOffset++],
-                        Start  = BinarySerializer.DeSerializeFloat_Le(compressedData, ref compressedOffset, length),
-                        Length = BinarySerializer.DeSerializeFloat_Le(compressedData, ref compressedOffset, length),
-                        Rate   = BinarySerializer.DeSerializeFloat_Le(compressedData, ref compressedOffset, length)
-                    };
+                    data.TextureAnimation = BinarySerializer.DeSerializeTextureAnimation(compressedData, ref compressedOffset, compressedLength);
                     logMessage += ", TextureAnimation";
                 }
 

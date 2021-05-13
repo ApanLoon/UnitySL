@@ -44,6 +44,28 @@ public static class BinarySerializer
     }
     #endregion UInt8
 
+    #region Int8
+    public static int GetSerializedLength(sbyte v)
+    {
+        return 1;
+    }
+    public static int Serialize(sbyte v, byte[] buffer, int offset, int length)
+    {
+        int o = offset;
+        buffer[o++] = (byte)v;
+        return o;
+    }
+    public static sbyte DeSerializeInt8(byte[] buffer, ref int offset, int length)
+    {
+        if (length - offset < 1)
+        {
+            throw new IndexOutOfRangeException("BinarySerializer.DeSerializeInt8: Not enough bytes in buffer.");
+        }
+
+        return (sbyte)buffer[offset++];
+    }
+    #endregion Int8
+
     #region UInt16
     public static int GetSerializedLength(UInt16 v)
     {
@@ -1301,6 +1323,39 @@ public static class BinarySerializer
     }
 
     #endregion TextureEntry
+
+    #region TextureAnim
+    public static TextureAnimation DeSerializeTextureAnimation(byte[] buffer, ref int offset, int length)
+    {
+        byte len = buffer[offset++];
+        if (len == 0)
+        {
+            return null;
+        }
+        if (len != 16)
+        {
+            throw new Exception($"TextureAnimation length should be 16. It was {len}.");
+        }
+
+        TextureAnimation animation = new TextureAnimation();
+        animation.Mode = (TextureAnimationMode)DeSerializeUInt8(buffer, ref offset, length);
+        animation.Face =                        DeSerializeInt8(buffer, ref offset, length);
+        if (animation.Mode.HasFlag(TextureAnimationMode.SMOOTH))
+        {
+            animation.SizeX = (byte)Mathf.Max(0, DeSerializeUInt8(buffer, ref offset, length));
+            animation.SizeY = (byte)Mathf.Max(0, DeSerializeUInt8(buffer, ref offset, length));
+        }
+        else
+        {
+            animation.SizeX = (byte)Mathf.Max(1, DeSerializeUInt8(buffer, ref offset, length));
+            animation.SizeY = (byte)Mathf.Max(1, DeSerializeUInt8(buffer, ref offset, length));
+        }
+        animation.Start  = DeSerializeFloat_Le(buffer, ref offset, length);
+        animation.Length = DeSerializeFloat_Le(buffer, ref offset, length);
+        animation.Rate   = DeSerializeFloat_Le(buffer, ref offset, length);
+        return animation;
+    }
+    #endregion TextureAnim
 
     #endregion Primitives
 }

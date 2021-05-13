@@ -1,4 +1,7 @@
 ﻿
+using System;
+
+[Flags]
 public enum TextureAnimationMode : byte
 {
     /// <summary>Disable texture animation</summary>
@@ -21,10 +24,15 @@ public enum TextureAnimationMode : byte
 public class TextureAnimation
 {
     public TextureAnimationMode Mode { get; set; }
-    public uint Face { get; set; }
-    public uint SizeX { get; set; }
-    public uint SizeY { get; set; }
+    public sbyte Face { get; set; }
+    public byte SizeX { get; set; }
+    public byte SizeY { get; set; }
     public float Start { get; set; }
     public float Length { get; set; }
     public float Rate { get; set; }
+
+    public override string ToString()
+    {
+        return $"{{Mode={Mode}, Face={Face}, SizeX={SizeX}, SizeY={SizeY}, Start={Start}, Length={Length}, Rate={Rate}}}";
+    }
 }
