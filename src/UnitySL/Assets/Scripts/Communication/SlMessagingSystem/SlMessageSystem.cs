@@ -116,16 +116,27 @@ public class SlMessageSystem : IDisposable
     public void Stop()
     {
         Logger.LogDebug("SlMessageSystem.Stop", "");
-        _cts.Cancel();
-
-        foreach (Circuit circuit in CircuitByEndPoint.Values)
+        try
         {
-            circuit.Stop();
-        }
+            _cts.Cancel();
 
-        _cts.Dispose();
-        UdpClient.Close();
-        UdpClient?.Dispose();
+            foreach (Circuit circuit in CircuitByEndPoint.Values)
+            {
+                circuit.Stop();
+            }
+
+            _cts.Dispose();
+            UdpClient.Close();
+            UdpClient?.Dispose();
+        }
+        catch (ObjectDisposedException e)
+        {
+            // We do nothing here.
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("SlMessageSystem.Stop", e.Message);
+        }
     }
 
     private CancellationTokenSource _cts;
