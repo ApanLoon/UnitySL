@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Extensions;
 using UnityEngine;
 
 namespace Assets.Scripts.MonoBehaviours.DebugScripts
@@ -27,7 +28,7 @@ namespace Assets.Scripts.MonoBehaviours.DebugScripts
         [Serializable]
         public class Setting
         {
-            public MessageId MessageId;
+            [UIntEnum(typeof(MessageId))] public MessageId MessageId;
             public Source Source;
             public Output Output;
         }
