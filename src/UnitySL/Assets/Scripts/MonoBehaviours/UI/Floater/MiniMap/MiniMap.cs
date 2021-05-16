@@ -3,29 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Agents;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Map;
-using Assets.Scripts.MonoBehaviours.UI.ToolTips;
 using Assets.Scripts.Regions;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Assets.Scripts.MonoBehaviours.UI.Floater
+namespace Assets.Scripts.MonoBehaviours.UI.Floater.MiniMap
 {
     public class MiniMap : MonoBehaviour
     {
         [SerializeField] protected RectTransform MapParent;
         [SerializeField] protected RawImage ParcelGrid;
-        [SerializeField] protected GameObject MarkerPrefab;
         [SerializeField] protected RectTransform MarkerContainer;
+        [SerializeField] protected MapMarkerTemplate MapMarkers;
 
-        protected class MarkerInfo
-        {
-            public GameObject GameObject;
-            public RectTransform Transform;
-            public Image Image;
-            public ToolTipTarget ToolTipTarget;
-        }
-
-        protected Dictionary<Guid, MarkerInfo> MarkerInfoByAgentId = new Dictionary<Guid, MarkerInfo>();
+        protected Dictionary<Guid, MiniMapMarker> MarkerByAgentId = new Dictionary<Guid, MiniMapMarker>();
 
         protected bool IsMouseOver = false;
         protected float Zoom = 1f;
@@ -77,38 +68,33 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
             Transform preyTransform = null;
             foreach (CoarseLocation location in message.Locations)
             {
-                MarkerInfo mi;
-                if (MarkerInfoByAgentId.ContainsKey(location.AgentId))
+                MiniMapMarker marker;
+                if (MarkerByAgentId.ContainsKey(location.AgentId))
                 {
-                    mi = MarkerInfoByAgentId[location.AgentId];
+                    marker = MarkerByAgentId[location.AgentId];
                 }
                 else
                 {
-                    mi = new MarkerInfo();
-                    mi.GameObject = Instantiate(MarkerPrefab, MarkerContainer);
-                    mi.Transform = mi.GameObject.GetComponent<RectTransform>();
-                    mi.Image = mi.GameObject.GetComponent<Image>();
-                    mi.ToolTipTarget = mi.GameObject.GetComponent<ToolTipTarget>();
-
-                    MarkerInfoByAgentId[location.AgentId] = mi;
+                    marker = MapMarkers.InstantiateTemplate();
+                    MarkerByAgentId[location.AgentId] = marker;
                 }
             
-                mi.Transform.anchoredPosition = ScalePosition(location.Position);
+                marker.Transform.anchoredPosition = ScalePosition(location.Position);
 
                 Color c = Color.green;
                 if (location.IsYou)
                 {
                     c = Color.white;
-                    youTransform = mi.Transform;
+                    youTransform = marker.Transform;
                 }
                 if (location.IsPrey)
                 {
                     c = Color.red;
-                    preyTransform = mi.Transform;
+                    preyTransform = marker.Transform;
                 }
-                mi.Image.color = c;
+                marker.Image.color = c;
 
-                mi.ToolTipTarget.Text = location.AgentId.ToString();
+                marker.ToolTipTarget.Text = location.AgentId.ToString();
 
                 AvatarNameCache.Instance.Get(location.AgentId, OnNameReceived);
 
@@ -126,35 +112,28 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
             }
 
             // Remove markers that have left:
-            for (int i = MarkerInfoByAgentId.Count - 1; i >= 0 ; i--)
+            for (int i = MarkerByAgentId.Count - 1; i >= 0 ; i--)
             {
-                Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
-                MarkerInfo mi = MarkerInfoByAgentId[key];
+                Guid key = MarkerByAgentId.Keys.ElementAt(i);
+                MiniMapMarker marker = MarkerByAgentId[key];
                 if (message.Locations.FirstOrDefault(x => x.AgentId == key) == null)
                 {
-                    Destroy(MarkerInfoByAgentId[key].GameObject);
-                    MarkerInfoByAgentId.Remove(key);
+                    MapMarkers.ReturnItemToPool(marker);
+                    MarkerByAgentId.Remove(key);
                 }
             }
         }
 
         private void OnLogout()
         {
-            // Remove markers:
-            for (int i = MarkerInfoByAgentId.Count - 1; i >= 0; i--)
-            {
-                Guid key = MarkerInfoByAgentId.Keys.ElementAt(i);
-                MarkerInfo mi = MarkerInfoByAgentId[key];
-                Destroy(MarkerInfoByAgentId[key].GameObject);
-                MarkerInfoByAgentId.Remove(key);
-            }
+            MapMarkers.Clear();
         }
 
         protected void OnNameReceived(Guid agentId, AvatarName avatarName)
         {
-            if (MarkerInfoByAgentId.ContainsKey(agentId))
+            if (MarkerByAgentId.ContainsKey(agentId))
             {
-                MarkerInfoByAgentId[agentId].ToolTipTarget.Text = avatarName.DisplayName;
+                MarkerByAgentId[agentId].ToolTipTarget.Text = avatarName.DisplayName;
             }
         }
 
@@ -172,5 +151,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater
         {
             IsMouseOver = false;
         }
+
+        [Serializable] public class MapMarkerTemplate : Template<MiniMapMarker> { }
     }
 }
