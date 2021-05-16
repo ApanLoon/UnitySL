@@ -26,6 +26,7 @@ namespace Assets.Scripts.MonoBehaviours.UI.Floater.MiniMap
 
         private void OnEnable()
         {
+            MapMarkers.Initialize();
             if (Agent.CurrentPlayer != null)
             {
                 OnParcelOverlayChanged(Agent.CurrentPlayer.Region);
