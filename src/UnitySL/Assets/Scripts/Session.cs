@@ -284,7 +284,7 @@ public class Session
         //msg->setHandlerFuncFast(_PREHASH_ImagePacket, LLViewerTextureList::receiveImagePacket);
         //msg->setHandlerFuncFast(_PREHASH_ObjectUpdate, process_object_update);
 
-        EventManager.Instance.OnObjectUpdateMessage += ProcessObjectUpdate;
+        EventManager.Instance.OnObjectUpdate += ProcessObjectUpdate;
         //msg->setHandlerFunc("ObjectUpdateCached", process_cached_object_update);
         //msg->setHandlerFuncFast(_PREHASH_ImprovedTerseObjectUpdate, process_terse_object_update_improved);
         //msg->setHandlerFunc("SimStats", process_sim_stats);
@@ -456,7 +456,7 @@ public class Session
     private void UnregisterEventListeners()
     {
         EventManager.Instance.OnLayerDataMessage -= ProcessLayerData;
-        EventManager.Instance.OnObjectUpdateMessage -= ProcessObjectUpdate;
+        EventManager.Instance.OnObjectUpdate -= ProcessObjectUpdate;
     }
 
     protected void ProcessObjectUpdate (ObjectUpdateMessage obj)

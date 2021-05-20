@@ -1,8 +1,6 @@
 ﻿using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
-using Assets.Scripts.Primitives;
-using UnityEngine;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 {
@@ -73,18 +71,19 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.Material    = (MaterialType)compressedData[compressedOffset++];
                 data.ClickAction = (ClickAction)compressedData[compressedOffset++];
                 data.Scale       = BinarySerializer.DeSerializeVector3    (compressedData, ref compressedOffset, compressedLength);
-                data.Position    = BinarySerializer.DeSerializeVector3    (compressedData, ref compressedOffset, compressedLength);
-                data.Rotation    = BinarySerializer.DeSerializeQuaternion (compressedData, ref compressedOffset, compressedLength);
+                data.MovementUpdate = new MovementUpdate();
+                data.MovementUpdate.Position    = BinarySerializer.DeSerializeVector3    (compressedData, ref compressedOffset, compressedLength);
+                data.MovementUpdate.Rotation    = BinarySerializer.DeSerializeQuaternion (compressedData, ref compressedOffset, compressedLength);
                 CompressedFlags compressedFlags = (CompressedFlags)BinarySerializer.DeSerializeUInt32_Le(compressedData, ref compressedOffset, compressedLength);
 
                 data.OwnerId     = BinarySerializer.DeSerializeGuid(compressedData, ref compressedOffset, compressedLength);
 
-                logMessage += $"\n    FullId={data.FullId}, LocalId={data.LocalId}, PCode={data.PCode}, State={data.State}, Crc={data.Crc}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}, Position={data.Position}, Rotation={data.Rotation}, CompressedFlags=({compressedFlags})";
+                logMessage += $"\n    FullId={data.FullId}, LocalId={data.LocalId}, PCode={data.PCode}, State={data.State}, Crc={data.Crc}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}, Position={data.MovementUpdate.Position}, Rotation={data.MovementUpdate.Rotation}, CompressedFlags=({compressedFlags})";
 
                 if ((compressedFlags & CompressedFlags.HasAngularVelocity) != 0)
                 {
-                    data.AngularVelocity = BinarySerializer.DeSerializeVector3(compressedData, ref compressedOffset, compressedLength);
-                    logMessage += $", AngularVelocity={data.AngularVelocity}";
+                    data.MovementUpdate.AngularVelocity = BinarySerializer.DeSerializeVector3(compressedData, ref compressedOffset, compressedLength);
+                    logMessage += $", AngularVelocity={data.MovementUpdate.AngularVelocity}";
                 }
 
                 data.ParentId = (compressedFlags & CompressedFlags.HasParent) != 0 ? BinarySerializer.DeSerializeUInt32_Le (compressedData, ref compressedOffset, compressedLength) : (uint) 0;

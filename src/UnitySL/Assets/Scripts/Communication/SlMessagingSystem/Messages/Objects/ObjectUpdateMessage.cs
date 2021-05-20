@@ -179,9 +179,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public MaterialType Material { get; set; }
             public ClickAction ClickAction { get; set; }
             public Vector3 Scale { get; set; }
-            public Vector3 Position { get; set; } // In data?
-            public Quaternion Rotation { get; set; } // In data?
-            public Vector3 AngularVelocity { get; set; }
             public MovementUpdate MovementUpdate { get; set; }
 
             public UInt32 ParentId { get; set; }
@@ -333,7 +330,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             }
         }
 
-        public MovementUpdate DeSerializeMovementUpdate(byte[] buffer, ref int offset, int length)
+        public MovementUpdate DeSerializeMovementUpdate(byte[] buffer, ref int offset, int length, int forcedLen = 0)
         {
             float size = 256; // TODO: This should be fetched from the Region.WidthInMetres of the region this message is for.
             float minHeight = -256; // TODO: I don't know where this should come from
@@ -341,7 +338,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 
             MovementUpdate update = new MovementUpdate();
 
-            int len = buffer[offset++];
+            int len = forcedLen == 0 ? buffer[offset++] : forcedLen;
             int limit = offset + len;
             switch (len)
             {

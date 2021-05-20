@@ -53,7 +53,7 @@ namespace Assets.Scripts
         #endregion Agent
 
         #region Object
-        public event Action<ObjectUpdateMessage> OnObjectUpdateMessage;
+        public event Action<ObjectUpdateMessage> OnObjectUpdate;
         #endregion Object
 
         #region Region
@@ -114,8 +114,9 @@ namespace Assets.Scripts
 
         protected static Dictionary<MessageId, Action<Message>> HandlerByMessageId = new Dictionary<MessageId, Action<Message>>()
         {
-            {MessageId.ObjectUpdate,                 (m) => Instance.OnObjectUpdateMessage?.Invoke           ((ObjectUpdateMessage)m)            },
-            //{MessageId.ObjectUpdateCompressed,       (m) => Instance.OnObjectUpdateMessage?.Invoke           ((ObjectUpdateMessage)m)            },
+            {MessageId.ObjectUpdate,                 (m) => Instance.OnObjectUpdate?.Invoke                  ((ObjectUpdateMessage)m)            },
+            {MessageId.ObjectUpdateCompressed,       (m) => Instance.OnObjectUpdate?.Invoke                  ((ObjectUpdateMessage)m)            },
+            {MessageId.ImprovedTerseObjectUpdate,    (m) => Instance.OnObjectUpdate?.Invoke                  ((ObjectUpdateMessage)m)            },
             {MessageId.SoundTrigger,                 (m) => Instance.OnSoundTriggerMessage?.Invoke           ((SoundTriggerMessage)m)            },
 
             {MessageId.CoarseLocationUpdate,         (m) => Instance.OnCoarseLocationUpdateMessage?.Invoke   ((CoarseLocationUpdateMessage)m)    },
