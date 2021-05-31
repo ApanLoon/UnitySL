@@ -333,8 +333,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
         public MovementUpdate DeSerializeMovementUpdate(byte[] buffer, ref int offset, int length, int forcedLen = 0)
         {
             float size = 256; // TODO: This should be fetched from the Region.WidthInMetres of the region this message is for.
-            float minHeight = -256; // TODO: I don't know where this should come from
-            float maxHeight = 3 * 256; // TODO: I don't know where this should come from
+            float minHeight = -256; // TODO: This should be fetched from the surface of the region this message is for.
+            float maxHeight = 3 * 256; // TODO: This should be fetched from the surface of the region this message is for.
 
             MovementUpdate update = new MovementUpdate();
 

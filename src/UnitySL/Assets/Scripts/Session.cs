@@ -282,11 +282,7 @@ public class Session
         EventManager.Instance.OnLayerDataMessage += ProcessLayerData;
         //msg->setHandlerFuncFast(_PREHASH_ImageData, LLViewerTextureList::receiveImageHeader);
         //msg->setHandlerFuncFast(_PREHASH_ImagePacket, LLViewerTextureList::receiveImagePacket);
-        //msg->setHandlerFuncFast(_PREHASH_ObjectUpdate, process_object_update);
 
-        EventManager.Instance.OnObjectUpdate += ProcessObjectUpdate;
-        //msg->setHandlerFunc("ObjectUpdateCached", process_cached_object_update);
-        //msg->setHandlerFuncFast(_PREHASH_ImprovedTerseObjectUpdate, process_terse_object_update_improved);
         //msg->setHandlerFunc("SimStats", process_sim_stats);
         //msg->setHandlerFuncFast(_PREHASH_HealthMessage, process_health_message);
         //msg->setHandlerFuncFast(_PREHASH_EconomyData, process_economy_data);
@@ -456,12 +452,6 @@ public class Session
     private void UnregisterEventListeners()
     {
         EventManager.Instance.OnLayerDataMessage -= ProcessLayerData;
-        EventManager.Instance.OnObjectUpdate -= ProcessObjectUpdate;
-    }
-
-    protected void ProcessObjectUpdate (ObjectUpdateMessage obj)
-    {
-        
     }
 
     protected void ProcessLayerData(LayerDataMessage message) // TODO: This should not be here

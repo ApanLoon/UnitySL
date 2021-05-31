@@ -21,11 +21,15 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             Placeholders.Initialize();
 
             EventManager.Instance.OnObjectUpdate += OnObjectUpdate;
+            EventManager.Instance.OnObjectUpdateCompressed += OnObjectUpdateCompressed;
+            EventManager.Instance.OnImprovedTerseObjectUpdate += OnImprovedTerseObjectUpdate;
             EventManager.Instance.OnLogout += OnLogout;
         }
 
         private void OnDisable()
         {
+            EventManager.Instance.OnImprovedTerseObjectUpdate -= OnImprovedTerseObjectUpdate;
+            EventManager.Instance.OnObjectUpdateCompressed -= OnObjectUpdateCompressed;
             EventManager.Instance.OnObjectUpdate -= OnObjectUpdate;
             EventManager.Instance.OnLogout -= OnLogout;
 
@@ -55,6 +59,65 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             }
         }
 
+        protected void OnObjectUpdateCompressed(ObjectUpdateCompressedMessage message)
+        {
+            foreach (ObjectUpdateMessage.ObjectData objectData in message.Objects)
+            {
+                if (objectData.FullId == Guid.Empty
+                    && GameObjectByRegionAndId.ContainsKey(message.RegionHandle)
+                    && GameObjectByRegionAndId[message.RegionHandle].ContainsKey(objectData.LocalId))
+                {
+                    GameObject go = GameObjectByRegionAndId[message.RegionHandle][objectData.LocalId];
+                    objectData.FullId = FullIdByGameObject[go];
+                }
+
+                if (GameObjectGoByFullId.ContainsKey(objectData.FullId))
+                {
+                    UpdateObject(objectData, message.RegionHandle);
+                }
+                else
+                {
+                    AddObject(objectData, message.RegionHandle);
+                }
+            }
+        }
+
+        protected void OnImprovedTerseObjectUpdate(ImprovedTerseObjectUpdateMessage message)
+        {
+            foreach (ImprovedTerseObjectUpdateMessage.ObjectData objectData in message.Objects)
+            {
+                Guid fullId = Guid.Empty;
+                if (   GameObjectByRegionAndId.ContainsKey(message.RegionHandle)
+                    && GameObjectByRegionAndId[message.RegionHandle].ContainsKey(objectData.LocalId))
+                {
+                    GameObject go = GameObjectByRegionAndId[message.RegionHandle][objectData.LocalId];
+                    fullId = FullIdByGameObject[go];
+                }
+
+                if (GameObjectGoByFullId.ContainsKey(fullId))
+                {
+                    UpdateObject(objectData, fullId, message.RegionHandle);
+                }
+            }
+        }
+
+        #region ImprovedTerseObjectUpdate
+        protected virtual void UpdateObject(ImprovedTerseObjectUpdateMessage.ObjectData objectData, Guid fullId, RegionHandle regionHandle)
+        {
+            UpdateObject(objectData, GameObjectGoByFullId[fullId], regionHandle);
+        }
+
+        protected virtual void UpdateObject(ImprovedTerseObjectUpdateMessage.ObjectData objectData, GameObject go, RegionHandle regionHandle)
+        {
+            if (objectData.MovementUpdate != null)
+            {
+                go.transform.localPosition = objectData.MovementUpdate.Position;
+                go.transform.localRotation = objectData.MovementUpdate.Rotation;
+            }
+        }
+        #endregion ImprovedTerseObjectUpdate
+
+        #region FullUpdate
         protected virtual void AddObject(ObjectUpdateMessage.ObjectData objectData, RegionHandle regionHandle)
         {
             if (objectData.PCode != PCode.LEGACY_AVATAR)
@@ -74,7 +137,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                 RegionCount++;
             }
             GameObjectByRegionAndId[regionHandle][objectData.LocalId] = placeholder.gameObject;
-            
+
             UpdateObject(objectData, placeholder.gameObject, regionHandle);
         }
 
@@ -159,6 +222,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             }
 
         }
+        #endregion FullUpdate
 
         protected void OnLogout()
         {

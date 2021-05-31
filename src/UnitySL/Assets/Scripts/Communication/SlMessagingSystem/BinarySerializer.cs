@@ -986,7 +986,6 @@ public static class BinarySerializer
     /// <returns></returns>
     public static TextureEntry DeSerializeTextureEntry(byte[] buffer, ref int offset, int length, bool lengthIsUInt32 = false)
     {
-        TextureEntry entry = new TextureEntry();
         int len;
         if (lengthIsUInt32)
         {
@@ -996,8 +995,14 @@ public static class BinarySerializer
         {
             len = BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length);
         }
-        
+
+        if (len == 0)
+        {
+            return null;
+        }
+
         int limit = offset + len;
+        TextureEntry entry = new TextureEntry();
 
         string logMessage = "TextureEntry:\n**** image_id:\n";
         DeSerializeTextureEntryField(buffer, ref offset, limit,
