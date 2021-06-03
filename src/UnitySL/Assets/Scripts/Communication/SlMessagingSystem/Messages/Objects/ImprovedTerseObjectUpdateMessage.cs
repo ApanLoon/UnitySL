@@ -37,8 +37,6 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             // TODO: Get the region for this handle
 
             float size = 256; // TODO: This should be fetched from the Region.WidthInMetres of the region this message is for.
-            float minHeight = -256; // TODO: This should be fetched from the surface of the region this message is for.
-            float maxHeight = 3 * 256; // TODO: This should be fetched from the surface of the region this message is for.
 
             int nObjects = buf[o++];
             for (int i = 0; i < nObjects; i++)
