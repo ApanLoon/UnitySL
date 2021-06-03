@@ -15,7 +15,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
         protected static Dictionary<Guid, GameObject> GameObjectGoByFullId = new Dictionary<Guid, GameObject>();
         protected static Dictionary<GameObject, Guid> FullIdByGameObject = new Dictionary<GameObject, Guid>();
         protected static Dictionary<RegionHandle, Dictionary<UInt32, GameObject>> GameObjectByRegionAndId = new Dictionary<RegionHandle, Dictionary<uint, GameObject>>();
-
+        
         private void OnEnable()
         {
             Placeholders.Initialize();
@@ -36,26 +36,24 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             GameObjectGoByFullId.Clear();
         }
 
+        #region ObjectUpdate
         protected void OnObjectUpdate(ObjectUpdateMessage message)
         {
             foreach (ObjectUpdateMessage.ObjectData objectData in message.Objects)
             {
-                if (objectData.FullId == Guid.Empty
-                && GameObjectByRegionAndId.ContainsKey(message.RegionHandle)
-                && GameObjectByRegionAndId[message.RegionHandle].ContainsKey(objectData.LocalId))
+                //if (objectData.PCode == PCode.LEGACY_AVATAR) Logger.LogDebug("ViewerObjectManager.OnObjectUpdate", $"fullId={objectData.FullId}, localId={objectData.LocalId}");
+                GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId, objectData.PCode);
+                if (go == null)
                 {
-                    GameObject go = GameObjectByRegionAndId[message.RegionHandle][objectData.LocalId];
-                    objectData.FullId = FullIdByGameObject[go];
+                    return;
                 }
 
-                if (GameObjectGoByFullId.ContainsKey(objectData.FullId))
-                {
-                    UpdateObject(objectData, message.RegionHandle);
-                }
-                else
-                {
-                    AddObject(objectData, message.RegionHandle);
-                }
+                go.GetComponent<ToolTipTarget>().Text = $"{objectData.PCode}\n{objectData.FullId}\n{objectData.NameValue}";
+
+                UpdateParent(message.RegionHandle, objectData.ParentId, go);
+                UpdateMovement(objectData.MovementUpdate, GameObjectByLocalId(message.RegionHandle, objectData.LocalId));
+                go.transform.localScale = objectData.Scale;
+                UpdatePlaceholderColour(objectData.PCode, go);
             }
         }
 
@@ -63,22 +61,19 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
         {
             foreach (ObjectUpdateMessage.ObjectData objectData in message.Objects)
             {
-                if (objectData.FullId == Guid.Empty
-                    && GameObjectByRegionAndId.ContainsKey(message.RegionHandle)
-                    && GameObjectByRegionAndId[message.RegionHandle].ContainsKey(objectData.LocalId))
+                //if (objectData.PCode == PCode.LEGACY_AVATAR) Logger.LogDebug("ViewerObjectManager.OnObjectUpdateCompressed", $"fullId={objectData.FullId}, localId={objectData.LocalId}");
+                GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId, objectData.PCode);
+                if (go == null)
                 {
-                    GameObject go = GameObjectByRegionAndId[message.RegionHandle][objectData.LocalId];
-                    objectData.FullId = FullIdByGameObject[go];
+                    return;
                 }
 
-                if (GameObjectGoByFullId.ContainsKey(objectData.FullId))
-                {
-                    UpdateObject(objectData, message.RegionHandle);
-                }
-                else
-                {
-                    AddObject(objectData, message.RegionHandle);
-                }
+                go.GetComponent<ToolTipTarget>().Text = $"{objectData.PCode}\n{objectData.FullId}\n{objectData.NameValue}";
+
+                UpdateParent(message.RegionHandle, objectData.ParentId, go);
+                UpdateMovement(objectData.MovementUpdate, GameObjectByLocalId(message.RegionHandle, objectData.LocalId));
+                go.transform.localScale = objectData.Scale;
+                UpdatePlaceholderColour(objectData.PCode, go);
             }
         }
 
@@ -86,90 +81,47 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
         {
             foreach (ImprovedTerseObjectUpdateMessage.ObjectData objectData in message.Objects)
             {
-                Guid fullId = Guid.Empty;
-                if (   GameObjectByRegionAndId.ContainsKey(message.RegionHandle)
-                    && GameObjectByRegionAndId[message.RegionHandle].ContainsKey(objectData.LocalId))
+                GameObject go = GameObjectByLocalId(message.RegionHandle, objectData.LocalId);
+                if (go == null)
                 {
-                    GameObject go = GameObjectByRegionAndId[message.RegionHandle][objectData.LocalId];
-                    fullId = FullIdByGameObject[go];
+                    return;
                 }
 
-                if (GameObjectGoByFullId.ContainsKey(fullId))
-                {
-                    UpdateObject(objectData, fullId, message.RegionHandle);
-                }
+                UpdateMovement(objectData.MovementUpdate, go);
             }
         }
 
-        #region ImprovedTerseObjectUpdate
-        protected virtual void UpdateObject(ImprovedTerseObjectUpdateMessage.ObjectData objectData, Guid fullId, RegionHandle regionHandle)
+        protected void UpdateParent(RegionHandle regionHandle, UInt32 parentId, GameObject go)
         {
-            UpdateObject(objectData, GameObjectGoByFullId[fullId], regionHandle);
-        }
-
-        protected virtual void UpdateObject(ImprovedTerseObjectUpdateMessage.ObjectData objectData, GameObject go, RegionHandle regionHandle)
-        {
-            if (objectData.MovementUpdate != null)
-            {
-                go.transform.localPosition = objectData.MovementUpdate.Position;
-                go.transform.localRotation = objectData.MovementUpdate.Rotation;
-            }
-        }
-        #endregion ImprovedTerseObjectUpdate
-
-        #region FullUpdate
-        protected virtual void AddObject(ObjectUpdateMessage.ObjectData objectData, RegionHandle regionHandle)
-        {
-            if (objectData.PCode != PCode.LEGACY_AVATAR)
+            if (parentId == 0
+                || GameObjectByRegionAndId.ContainsKey(regionHandle) == false
+                || GameObjectByRegionAndId[regionHandle].ContainsKey(parentId) == false)
             {
                 return;
             }
 
-            ViewerObjectPlaceholder placeholder = Placeholders.InstantiateTemplate();
-            GameObjectGoByFullId[objectData.FullId] = placeholder.gameObject;
-            FullIdByGameObject[placeholder.gameObject] = objectData.FullId;
-
-            ObjectCount++;
-
-            if (GameObjectByRegionAndId.ContainsKey(regionHandle) == false)
+            if (GameObjectByRegionAndId[regionHandle][parentId].transform != go.transform.parent)
             {
-                GameObjectByRegionAndId[regionHandle] = new Dictionary<uint, GameObject>();
-                RegionCount++;
+                go.transform.SetParent(GameObjectByRegionAndId[regionHandle][parentId].transform);
             }
-            GameObjectByRegionAndId[regionHandle][objectData.LocalId] = placeholder.gameObject;
-
-            UpdateObject(objectData, placeholder.gameObject, regionHandle);
         }
 
-        protected virtual void UpdateObject(ObjectUpdateMessage.ObjectData objectData, RegionHandle regionHandle)
+        protected void UpdateMovement(ObjectUpdateMessage.MovementUpdate update, GameObject go)
         {
-            UpdateObject(objectData, GameObjectGoByFullId[objectData.FullId], regionHandle);
+            if (update == null || go == null)
+            {
+                return;
+            }
+
+            go.transform.localPosition = update.Position;
+            go.transform.localRotation = update.Rotation;
+
         }
-        
-        protected virtual void UpdateObject(ObjectUpdateMessage.ObjectData objectData, GameObject go, RegionHandle regionHandle)
+
+        protected void UpdatePlaceholderColour(PCode pCode, GameObject go)
         {
-            go.GetComponent<ToolTipTarget>().Text = $"{objectData.PCode}\n{objectData.FullId}\n{objectData.NameValue}";
-
-            if (   objectData.ParentId != 0
-                && GameObjectByRegionAndId.ContainsKey(regionHandle)
-                && GameObjectByRegionAndId[regionHandle].ContainsKey(objectData.ParentId))
-            {
-                if (GameObjectByRegionAndId[regionHandle][objectData.ParentId].transform != go.transform.parent)
-                {
-                    go.transform.SetParent(GameObjectByRegionAndId[regionHandle][objectData.ParentId].transform);
-                }
-            }
-
-            if (objectData.MovementUpdate != null)
-            {
-                go.transform.localPosition = objectData.MovementUpdate.Position;
-                go.transform.localRotation =  objectData.MovementUpdate.Rotation;
-            }
-
-            go.transform.localScale = objectData.Scale;
-
             ViewerObjectPlaceholder placeholder = go.GetComponent<ViewerObjectPlaceholder>();
-            switch (objectData.PCode)
+            switch (pCode)
             {
                 case PCode.CUBE:
                 case PCode.PRISM:
@@ -220,9 +172,8 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
         }
-        #endregion FullUpdate
+        #endregion ObjectUpdate
 
         protected void OnLogout()
         {
@@ -232,6 +183,58 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             }
 
             GameObjectGoByFullId.Clear();
+        }
+
+        protected GameObject GameObjectByLocalId(RegionHandle regionHandle, UInt32 localId)
+        {
+            if (GameObjectByRegionAndId.ContainsKey(regionHandle) == false
+                || GameObjectByRegionAndId[regionHandle].ContainsKey(localId) == false)
+            {
+                return null;
+            }
+            return GameObjectByRegionAndId[regionHandle][localId];
+        }
+
+        protected GameObject GetOrCreateGameObject(RegionHandle regionHandle, Guid fullId, UInt32 localId, PCode pCode)
+        {
+            GameObject go;
+            if (fullId != Guid.Empty)
+            {
+                go = GameObjectGoByFullId.ContainsKey(fullId)
+                    ? GameObjectGoByFullId[fullId]
+                    : AddObject(regionHandle, fullId, localId, pCode);
+            }
+            else
+            {
+                go = GameObjectByLocalId(regionHandle, localId);
+            }
+
+            return go;
+        }
+
+        protected GameObject AddObject(RegionHandle regionHandle, Guid fullId, UInt32 localId, PCode pCode)
+        {
+            if (pCode != PCode.LEGACY_AVATAR)
+            {
+                return null;
+            }
+
+            Logger.LogDebug("ViewerObjectManager.AddObject", $"fullId={fullId}, localId={localId}");
+
+            ViewerObjectPlaceholder placeholder = Placeholders.InstantiateTemplate();
+            GameObjectGoByFullId[fullId] = placeholder.gameObject;
+            FullIdByGameObject[placeholder.gameObject] = fullId;
+
+            ObjectCount++;
+
+            if (GameObjectByRegionAndId.ContainsKey(regionHandle) == false)
+            {
+                GameObjectByRegionAndId[regionHandle] = new Dictionary<uint, GameObject>();
+                RegionCount++;
+            }
+            GameObjectByRegionAndId[regionHandle][localId] = placeholder.gameObject;
+
+            return placeholder.gameObject;
         }
 
         [Serializable] public class PlaceholderTemplate : Template<ViewerObjectPlaceholder> { }
