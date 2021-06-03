@@ -48,7 +48,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                     return;
                 }
 
-                go.GetComponent<ToolTipTarget>().Text = $"{objectData.PCode}\n{objectData.FullId}\n{objectData.NameValue}";
+                go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData.PCode}\n{objectData.FullId}";
 
                 UpdateParent(message.RegionHandle, objectData.ParentId, go);
                 UpdateMovement(objectData.MovementUpdate, GameObjectByLocalId(message.RegionHandle, objectData.LocalId));
@@ -68,7 +68,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                     return;
                 }
 
-                go.GetComponent<ToolTipTarget>().Text = $"{objectData.PCode}\n{objectData.FullId}\n{objectData.NameValue}";
+                go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData.PCode}\n{objectData.FullId}";
 
                 UpdateParent(message.RegionHandle, objectData.ParentId, go);
                 UpdateMovement(objectData.MovementUpdate, GameObjectByLocalId(message.RegionHandle, objectData.LocalId));
@@ -183,6 +183,9 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             }
 
             GameObjectGoByFullId.Clear();
+            GameObjectByRegionAndId.Clear();
+            ObjectCount = 0;
+            RegionCount = 0;
         }
 
         protected GameObject GameObjectByLocalId(RegionHandle regionHandle, UInt32 localId)
