@@ -226,6 +226,24 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public Vector3 JointAxisOrAnchor { get; set; }
         
             public bool IsAttachment { get; set; }
+
+            public override string ToString()
+            {
+                return     $"                     ObjectId={LocalId}, State={State}"
+                       + $"\n                     FullId={FullId}, Crc={Crc}, PCode={PCode}, Material={Material}, ClickAction={ClickAction}, Scale={Scale}"
+                       + $"\n                     MovementUpdate={MovementUpdate}"
+                       + $"\n                     ParentId={ParentId}, UpdateFlags={UpdateFlags}"
+                       + $"\n                     PathCurve={PathCurve}, ProfileCurve={ProfileCurve}, Path=({PathBegin}-{PathEnd}), PathScale=({PathScaleX}, {PathScaleY}), PathShear=({PathShearX}, {PathShearY}), PathTwist={PathTwist}, PathTwistBegin={PathTwistBegin}, PathRadiusOffset={PathRadiusOffset}, PathTaper=({PathTaperX}, {PathTaperY}), PathRevolutions={PathRevolutions}, PathSkew={PathSkew}, Profile=({ProfileBegin}-{ProfileEnd}), Hollow={ProfileHollow}"
+                       + $"\n                     TextureEntry({TextureEntry})"
+                       + $"\n                     TextureAnim={TextureAnimation}"
+                       + $"\n                     NameValue={(NameValue != null ? NameValue.Replace("\n", "\\n"): "null")}"
+                       + $"\n                     Data2({Data2?.Length.ToString()}), Text={Text}, TextColour={TextColour}, MediaUrl={MediaUrl}"
+                       + $"\n                     ParticleSystemData({ParticleSystemData?.Length.ToString()})"
+                       + $"\n                     ExtraParams({ExtraParameters})"
+                       + $"\n                     SoundId={SoundId}, OwnerId={OwnerId}, Gain={Gain}, Flags={SoundFlags}, Radius={Radius}"
+                       + $"\n                     JointType={JointType}, JointPivot={JointPivot}, JointAxisOrAnchor={JointAxisOrAnchor}"
+                       ;
+            }
         }
 
         public class MovementUpdate
@@ -417,19 +435,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             string s = $"{base.ToString()}: UpdateType={UpdateType}, RegionHandle={RegionHandle}, TimeDilation={TimeDilation}";
             foreach (ObjectUpdateMessage.ObjectData data in Objects)
             {
-                s += $"\n                     ObjectId={data.LocalId}, State={data.State}"
-                     + $"\n                     FullId={data.FullId}, Crc={data.Crc}, PCode={data.PCode}, Material={data.Material}, ClickAction={data.ClickAction}, Scale={data.Scale}"
-                     + $"\n                     MovementUpdate={data.MovementUpdate}"
-                     + $"\n                     ParentId={data.ParentId}, UpdateFlags={data.UpdateFlags}"
-                     + $"\n                     PathCurve={data.PathCurve}, ProfileCurve={data.ProfileCurve}, Path=({data.PathBegin}-{data.PathEnd}), PathScale=({data.PathScaleX}, {data.PathScaleY}), PathShear=({data.PathShearX}, {data.PathShearY}), PathTwist={data.PathTwist}, PathTwistBegin={data.PathTwistBegin}, PathRadiusOffset={data.PathRadiusOffset}, PathTaper=({data.PathTaperX}, {data.PathTaperY}), PathRevolutions={data.PathRevolutions}, PathSkew={data.PathSkew}, Profile=({data.ProfileBegin}-{data.ProfileEnd}), Hollow={data.ProfileHollow}"
-                     + $"\n                     TextureEntry({data.TextureEntry})"
-                     + $"\n                     TextureAnim={data.TextureAnimation}"
-                     + $"\n                     NameValue={data.NameValue.Replace("\n", "\\n")}, Data2({data.Data2.Length}), Text={data.Text}, TextColour={data.TextColour}, MediaUrl={data.MediaUrl}"
-                     + $"\n                     ParticleSystemData({data.ParticleSystemData.Length})"
-                     + $"\n                     ExtraParams({data.ExtraParameters})"
-                     + $"\n                     SoundId={data.SoundId}, OwnerId={data.OwnerId}, Gain={data.Gain}, Flags={data.SoundFlags}, Radius={data.Radius}"
-                     + $"\n                     JointType={data.JointType}, JointPivot={data.JointPivot}, JointAxisOrAnchor={data.JointAxisOrAnchor}"
-                    ;
+                s += $"{data}";
             }
             return s;
         }

@@ -41,11 +41,18 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
         {
             foreach (ObjectUpdateMessage.ObjectData objectData in message.Objects)
             {
-                //if (objectData.PCode == PCode.LEGACY_AVATAR) Logger.LogDebug("ViewerObjectManager.OnObjectUpdate", $"fullId={objectData.FullId}, localId={objectData.LocalId}");
-                GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId, objectData.PCode);
+                if (false
+                    //|| objectData.PCode != PCode.LEGACY_AVATAR
+                    || Vector3.Distance(objectData.MovementUpdate.Position, new Vector3(25f, 24f, 155f)) > 10f
+                    )
+                {
+                    continue;
+                }
+                Logger.LogDebug("ViewerObjectManager.OnObjectUpdate", $"\n{objectData}");
+                GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId);
                 if (go == null)
                 {
-                    return;
+                    continue;
                 }
 
                 go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData.PCode}\n{objectData.FullId}";
@@ -61,11 +68,19 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
         {
             foreach (ObjectUpdateMessage.ObjectData objectData in message.Objects)
             {
-                //if (objectData.PCode == PCode.LEGACY_AVATAR) Logger.LogDebug("ViewerObjectManager.OnObjectUpdateCompressed", $"fullId={objectData.FullId}, localId={objectData.LocalId}");
-                GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId, objectData.PCode);
+                if (false
+                    //|| objectData.PCode != PCode.LEGACY_AVATAR
+                    || Vector3.Distance(objectData.MovementUpdate.Position, new Vector3(25f, 24f, 155f)) > 10f
+                )
+                {
+                    continue;
+                }
+                Logger.LogDebug("ViewerObjectManager.OnObjectUpdateCompressed", $"\n{objectData}");
+
+                GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId);
                 if (go == null)
                 {
-                    return;
+                    continue;
                 }
 
                 go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData.PCode}\n{objectData.FullId}";
@@ -198,14 +213,14 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             return GameObjectByRegionAndId[regionHandle][localId];
         }
 
-        protected GameObject GetOrCreateGameObject(RegionHandle regionHandle, Guid fullId, UInt32 localId, PCode pCode)
+        protected GameObject GetOrCreateGameObject(RegionHandle regionHandle, Guid fullId, UInt32 localId)
         {
             GameObject go;
             if (fullId != Guid.Empty)
             {
                 go = GameObjectGoByFullId.ContainsKey(fullId)
                     ? GameObjectGoByFullId[fullId]
-                    : AddObject(regionHandle, fullId, localId, pCode);
+                    : AddObject(regionHandle, fullId, localId);
             }
             else
             {
@@ -215,14 +230,9 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             return go;
         }
 
-        protected GameObject AddObject(RegionHandle regionHandle, Guid fullId, UInt32 localId, PCode pCode)
+        protected GameObject AddObject(RegionHandle regionHandle, Guid fullId, UInt32 localId)
         {
-            if (pCode != PCode.LEGACY_AVATAR)
-            {
-                return null;
-            }
-
-            Logger.LogDebug("ViewerObjectManager.AddObject", $"fullId={fullId}, localId={localId}");
+            //Logger.LogDebug("ViewerObjectManager.AddObject", $"fullId={fullId}, localId={localId}");
 
             ViewerObjectPlaceholder placeholder = Placeholders.InstantiateTemplate();
             GameObjectGoByFullId[fullId] = placeholder.gameObject;
