@@ -1,6 +1,7 @@
 ﻿using System;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Audio;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem;
+using Assets.Scripts.Primitives;
 
 namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
 {
@@ -140,25 +141,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                     logMessage += $", NameValue={data.NameValue}";
                 }
 
-                data.PathCurve        = (PathType)compressedData[compressedOffset++];
-                data.PathBegin        = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * CUT_QUANTA;
-                data.PathEnd          = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * CUT_QUANTA;
-                data.PathScaleX       = compressedData[compressedOffset++]                                                  * SCALE_QUANTA;
-                data.PathScaleY       = compressedData[compressedOffset++]                                                  * SCALE_QUANTA;
-                data.PathShearX       = compressedData[compressedOffset++]                                                  * SHEAR_QUANTA;
-                data.PathShearY       = compressedData[compressedOffset++]                                                  * SHEAR_QUANTA;
-                data.PathTwist        = (sbyte)compressedData[compressedOffset++]                                           * SCALE_QUANTA;
-                data.PathTwistBegin   = (sbyte)compressedData[compressedOffset++]                                           * SCALE_QUANTA;
-                data.PathRadiusOffset = (sbyte)compressedData[compressedOffset++]                                           * SCALE_QUANTA;
-                data.PathTaperX       = (sbyte)compressedData[compressedOffset++]                                           * TAPER_QUANTA;
-                data.PathTaperY       = (sbyte)compressedData[compressedOffset++]                                           * TAPER_QUANTA;
-                data.PathRevolutions  = compressedData[compressedOffset++]                                                  * REV_QUANTA;
-                data.PathSkew         = (sbyte)compressedData[compressedOffset++]                                           * SCALE_QUANTA;
-
-                data.ProfileCurve     = (ProfileType)compressedData[compressedOffset++];
-                data.ProfileBegin     = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * CUT_QUANTA;
-                data.ProfileEnd       = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * CUT_QUANTA;
-                data.ProfileHollow    = BinarySerializer.DeSerializeUInt16_Le(compressedData, ref compressedOffset, length) * HOLLOW_QUANTA;
+                data.PrimUpdate       = DeSerializePrimUpdate(compressedData, ref compressedOffset, compressedLength);
 
                 data.TextureEntry = BinarySerializer.DeSerializeTextureEntry(compressedData, ref compressedOffset, compressedLength, true);
                 logMessage += $", TextureEntry={data.TextureEntry}";

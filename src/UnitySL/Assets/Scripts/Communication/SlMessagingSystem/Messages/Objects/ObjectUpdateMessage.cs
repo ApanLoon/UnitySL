@@ -183,24 +183,8 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public UInt32 ParentId { get; set; }
             public ObjectUpdateFlags UpdateFlags { get; set; }
 
-            public PathType PathCurve { get; set; }
-            public ProfileType ProfileCurve { get; set; }
-            public float PathBegin { get; set; }
-            public float PathEnd { get; set; }
-            public float PathScaleX { get; set; }
-            public float PathScaleY { get; set; }
-            public float PathShearX { get; set; }
-            public float PathShearY { get; set; }
-            public float PathTwist { get; set; }
-            public float PathTwistBegin { get; set; }
-            public float PathRadiusOffset { get; set; }
-            public float PathTaperX { get; set; }
-            public float PathTaperY { get; set; }
-            public float PathRevolutions { get; set; }
-            public float PathSkew { get; set; }
-            public float ProfileBegin { get; set; }
-            public float ProfileEnd { get; set; }
-            public float ProfileHollow { get; set; }
+            //public VolumeParameters VolumeParameters { get; set; } // TODO: This should possibly be used instead of the PrimUpdate below.
+            public PrimUpdate PrimUpdate { get; set; }
 
             public TextureEntry TextureEntry { get; set; }
             public TextureAnimation TextureAnimation { get; set; }
@@ -233,7 +217,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                        + $"\n                     FullId={FullId}, Crc={Crc}, PCode={PCode}, Material={Material}, ClickAction={ClickAction}, Scale={Scale}"
                        + $"\n                     MovementUpdate={MovementUpdate}"
                        + $"\n                     ParentId={ParentId}, UpdateFlags={UpdateFlags}"
-                       + $"\n                     PathCurve={PathCurve}, ProfileCurve={ProfileCurve}, Path=({PathBegin}-{PathEnd}), PathScale=({PathScaleX}, {PathScaleY}), PathShear=({PathShearX}, {PathShearY}), PathTwist={PathTwist}, PathTwistBegin={PathTwistBegin}, PathRadiusOffset={PathRadiusOffset}, PathTaper=({PathTaperX}, {PathTaperY}), PathRevolutions={PathRevolutions}, PathSkew={PathSkew}, Profile=({ProfileBegin}-{ProfileEnd}), Hollow={ProfileHollow}"
+                       + $"\n                     PrimUpdate={PrimUpdate}"
                        + $"\n                     TextureEntry({TextureEntry})"
                        + $"\n                     TextureAnim={TextureAnimation}"
                        + $"\n                     NameValue={(NameValue != null ? NameValue.Replace("\n", "\\n"): "null")}"
@@ -258,6 +242,33 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
             public override string ToString()
             {
                 return $"{{FootPlane={FootPlane}, Position={Position}, Velocity={Velocity}, Acceleration={Acceleration}, Rotation= {Rotation}, AngularVelocity={AngularVelocity}}}";
+            }
+        }
+
+        public class PrimUpdate
+        {
+            public PathType PathCurve { get; set; }
+            public ProfileType ProfileCurve { get; set; }
+            public float PathBegin { get; set; }
+            public float PathEnd { get; set; }
+            public float PathScaleX { get; set; }
+            public float PathScaleY { get; set; }
+            public float PathShearX { get; set; }
+            public float PathShearY { get; set; }
+            public float PathTwist { get; set; }
+            public float PathTwistBegin { get; set; }
+            public float PathRadiusOffset { get; set; }
+            public float PathTaperX { get; set; }
+            public float PathTaperY { get; set; }
+            public float PathRevolutions { get; set; }
+            public float PathSkew { get; set; }
+            public float ProfileBegin { get; set; }
+            public float ProfileEnd { get; set; }
+            public float ProfileHollow { get; set; }
+
+            public override string ToString()
+            {
+                return $"{{PathCurve={PathCurve}, ProfileCurve={ProfileCurve}, Path=({PathBegin}-{PathEnd}), PathScale=({PathScaleX}, {PathScaleY}), PathShear=({PathShearX}, {PathShearY}), PathTwist={PathTwist}, PathTwistBegin={PathTwistBegin}, PathRadiusOffset={PathRadiusOffset}, PathTaper=({PathTaperX}, {PathTaperY}), PathRevolutions={PathRevolutions}, PathSkew={PathSkew}, Profile=({ProfileBegin}-{ProfileEnd}), Hollow={ProfileHollow}}}";
             }
         }
 
@@ -294,24 +305,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                 data.ParentId           = BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
                 data.UpdateFlags        = (ObjectUpdateFlags)BinarySerializer.DeSerializeUInt32_Le (buf, ref o, length);
 
-                data.PathCurve          = (PathType)buf[o++];
-                data.ProfileCurve       = (ProfileType)buf[o++];
-                data.PathBegin          = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * CUT_QUANTA;
-                data.PathEnd            = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * CUT_QUANTA;
-                data.PathScaleX         = buf[o++]        * SCALE_QUANTA;
-                data.PathScaleY         = buf[o++]        * SCALE_QUANTA;
-                data.PathShearX         = buf[o++]        * SHEAR_QUANTA;
-                data.PathShearY         = buf[o++]        * SHEAR_QUANTA;
-                data.PathTwist          = (sbyte)buf[o++] * SCALE_QUANTA;
-                data.PathTwistBegin     = (sbyte)buf[o++] * SCALE_QUANTA;
-                data.PathRadiusOffset   = (sbyte)buf[o++] * SCALE_QUANTA;
-                data.PathTaperX         = (sbyte)buf[o++] * TAPER_QUANTA;
-                data.PathTaperY         = (sbyte)buf[o++] * TAPER_QUANTA;
-                data.PathRevolutions    = buf[o++]        * REV_QUANTA;
-                data.PathSkew           = (sbyte)buf[o++] * SCALE_QUANTA;
-                data.ProfileBegin       = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * CUT_QUANTA;
-                data.ProfileEnd         = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * CUT_QUANTA;
-                data.ProfileHollow      = BinarySerializer.DeSerializeUInt16_Le (buf, ref o, length) * HOLLOW_QUANTA;
+                data.PrimUpdate         = DeSerializePrimUpdate(buf, ref o, length);
 
                 data.TextureEntry       = BinarySerializer.DeSerializeTextureEntry(buf, ref o, length);
                 data.TextureAnimation   = BinarySerializer.DeSerializeTextureAnimation(buf, ref o, length);
@@ -426,6 +420,30 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects
                         y: BinarySerializer.DeSerializeUInt8(buffer, ref offset, limit).ToFloat(-size, size));
                     break;
             }
+            return update;
+        }
+
+        protected PrimUpdate DeSerializePrimUpdate(byte[] buffer, ref int offset, int length)
+        {
+            PrimUpdate update = new PrimUpdate();
+            update.PathCurve        = (PathType)buffer[offset++]; // TODO: This is not the correct type - I get values outside the range, such as 16 and 32.
+            update.ProfileCurve     = (ProfileType)buffer[offset++];
+            update.PathBegin        = BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length) * CUT_QUANTA;
+            update.PathEnd          = BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length) * CUT_QUANTA;
+            update.PathScaleX       = buffer[offset++] * SCALE_QUANTA;
+            update.PathScaleY       = buffer[offset++] * SCALE_QUANTA;
+            update.PathShearX       = buffer[offset++] * SHEAR_QUANTA;
+            update.PathShearY       = buffer[offset++] * SHEAR_QUANTA;
+            update.PathTwist        = (sbyte)buffer[offset++] * SCALE_QUANTA;
+            update.PathTwistBegin   = (sbyte)buffer[offset++] * SCALE_QUANTA;
+            update.PathRadiusOffset = (sbyte)buffer[offset++] * SCALE_QUANTA;
+            update.PathTaperX       = (sbyte)buffer[offset++] * TAPER_QUANTA;
+            update.PathTaperY       = (sbyte)buffer[offset++] * TAPER_QUANTA;
+            update.PathRevolutions  = buffer[offset++] * REV_QUANTA;
+            update.PathSkew         = (sbyte)buffer[offset++] * SCALE_QUANTA;
+            update.ProfileBegin     = BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length) * CUT_QUANTA;
+            update.ProfileEnd       = BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length) * CUT_QUANTA;
+            update.ProfileHollow    = BinarySerializer.DeSerializeUInt16_Le(buffer, ref offset, length) * HOLLOW_QUANTA;
             return update;
         }
         #endregion DeSerialise

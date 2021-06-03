@@ -48,7 +48,8 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                 {
                     continue;
                 }
-                Logger.LogDebug("ViewerObjectManager.OnObjectUpdate", $"\n{objectData}");
+                //Logger.LogDebug("ViewerObjectManager.OnObjectUpdate", $"\n{objectData}");
+
                 GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId);
                 if (go == null)
                 {
@@ -75,7 +76,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                 {
                     continue;
                 }
-                Logger.LogDebug("ViewerObjectManager.OnObjectUpdateCompressed", $"\n{objectData}");
+                //Logger.LogDebug("ViewerObjectManager.OnObjectUpdateCompressed", $"\n{objectData}");
 
                 GameObject go = GetOrCreateGameObject(message.RegionHandle, objectData.FullId, objectData.LocalId);
                 if (go == null)
