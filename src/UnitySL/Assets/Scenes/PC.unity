@@ -5701,7 +5701,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DebugCameraPos: {x: 24, y: 20, z: 154}
-  DebugViewDistance: 0
+  DebugViewDistance: 10
+  DebugNumObjectsNearby: 0
   Placeholders:
     template: {fileID: 1372515339}
   ObjectCount: 0
