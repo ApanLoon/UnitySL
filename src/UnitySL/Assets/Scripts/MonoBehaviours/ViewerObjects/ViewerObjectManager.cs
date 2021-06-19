@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using Assets.Scripts.Communication.SlMessagingSystem.Messages.Objects;
 using Assets.Scripts.MonoBehaviours.UI.ToolTips;
+using Assets.Scripts.Types.OctTrees;
 using UnityEngine;
 
 namespace Assets.Scripts.MonoBehaviours.ViewerObjects
 {
     public class ViewerObjectManager : MonoBehaviour
     {
+        [SerializeField] protected Vector3 DebugCameraPos;
+        [SerializeField] protected float DebugViewDistance = 5f;
+        [SerializeField] protected int DebugNumObjectsNearby;
+
         [SerializeField] protected PlaceholderTemplate Placeholders;
         [SerializeField] protected int ObjectCount = 0;
         [SerializeField] protected int RegionCount = 0;
@@ -15,7 +20,51 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
         protected static Dictionary<Guid, GameObject> GameObjectGoByFullId = new Dictionary<Guid, GameObject>();
         protected static Dictionary<GameObject, Guid> FullIdByGameObject = new Dictionary<GameObject, Guid>();
         protected static Dictionary<RegionHandle, Dictionary<UInt32, GameObject>> GameObjectByRegionAndId = new Dictionary<RegionHandle, Dictionary<uint, GameObject>>();
-        
+
+        protected DenseOctTree<ViewerObjectPlaceholder> OctTree = new DenseOctTree<ViewerObjectPlaceholder>(Vector3.zero, new Vector3(256, 256, 256), 3);
+
+        private void OnDrawGizmos()
+        {
+            DrawOctTreeGizmos(OctTree.Space);
+        }
+
+        private void DrawOctTreeGizmos(Cell<ViewerObjectPlaceholder> cell)
+        {
+            Vector3 size = cell.MaxPosition - cell.MinPosition;
+
+            Color c = new Color(cell.MaxPosition.x / 256f, cell.MaxPosition.y / 256f, cell.MaxPosition.z / 256f, 1f);
+            Gizmos.color = c;
+            Gizmos.DrawSphere(cell.MidPosition, 1f);
+            //foreach (ViewerObjectPlaceholder item in cell.Items)
+            //{
+            //    Gizmos.DrawSphere(item.Position, 1f);
+            //}
+
+            List<ViewerObjectPlaceholder> l = OctTree.FindNearby(DebugCameraPos, DebugViewDistance);
+            DebugNumObjectsNearby = l.Count;
+            foreach (ViewerObjectPlaceholder item in l)
+            {
+                Gizmos.DrawSphere(item.Position, 1f);
+            }
+
+            Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
+            Gizmos.DrawSphere(DebugCameraPos, DebugViewDistance);
+
+            c.a = 0.5f;
+            Gizmos.color = c;
+            Gizmos.DrawCube(cell.MidPosition, size);
+
+            if (!cell.HasSubdivisions)
+            {
+                return;
+            }
+
+            foreach (Cell<ViewerObjectPlaceholder> child in cell.Subdivisions)
+            {
+                DrawOctTreeGizmos(child);
+            }
+        }
+
         private void OnEnable()
         {
             Placeholders.Initialize();
@@ -128,9 +177,12 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             {
                 return;
             }
+            ViewerObjectPlaceholder placeholder = go.GetComponent<ViewerObjectPlaceholder>();
 
+            OctTree.Remove(placeholder);
             go.transform.localPosition = update.Position;
             go.transform.localRotation = update.Rotation;
+            OctTree.Add(placeholder);
 
         }
 
@@ -251,6 +303,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             return placeholder.gameObject;
         }
 
-        [Serializable] public class PlaceholderTemplate : Template<ViewerObjectPlaceholder> { }
+        [Serializable]
+        public class PlaceholderTemplate : Template<ViewerObjectPlaceholder> { }
     }
 }

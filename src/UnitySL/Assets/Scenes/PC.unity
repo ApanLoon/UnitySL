@@ -5700,6 +5700,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fee2176034a81f46818e33e66b85ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DebugCameraPos: {x: 24, y: 20, z: 154}
+  DebugViewDistance: 0
   Placeholders:
     template: {fileID: 1372515339}
   ObjectCount: 0
