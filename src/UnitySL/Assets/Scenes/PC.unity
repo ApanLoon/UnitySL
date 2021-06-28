@@ -5433,12 +5433,12 @@ PrefabInstance:
     - target: {fileID: 1565332467722461414, guid: 8bc2f5c29b110af4ba31679dc72140a4,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 573
+      value: 1198
       objectReference: {fileID: 0}
     - target: {fileID: 1565332467722461414, guid: 8bc2f5c29b110af4ba31679dc72140a4,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -464
+      value: -163
       objectReference: {fileID: 0}
     - target: {fileID: 1565332467722461414, guid: 8bc2f5c29b110af4ba31679dc72140a4,
         type: 3}
@@ -5702,6 +5702,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DebugCameraPos: {x: 24, y: 20, z: 154}
   DebugViewDistance: 10
+  ShowOctTreeGizmos: 0
+  ShowOctTreeVolumes: 1
+  ShowActiveObjectCentres: 1
+  ShowActiveVolumeCentres: 1
+  ShowCameraPos: 1
   DebugNumObjectsNearby: 0
   Placeholders:
     template: {fileID: 1372515339}
@@ -9900,7 +9905,7 @@ PrefabInstance:
     - target: {fileID: 1565332467722461414, guid: 1c0769089497a724e8e9479aaa0dc7db,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -464
+      value: -595
       objectReference: {fileID: 0}
     - target: {fileID: 1565332467722461414, guid: 1c0769089497a724e8e9479aaa0dc7db,
         type: 3}

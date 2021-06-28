@@ -9,10 +9,17 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
 {
     public class ViewerObjectManager : MonoBehaviour
     {
+        [Header("OctTree Debug")]
         [SerializeField] protected Vector3 DebugCameraPos;
         [SerializeField] protected float DebugViewDistance = 5f;
+        [SerializeField] protected bool ShowOctTreeGizmos = true;
+        [SerializeField] protected bool ShowOctTreeVolumes = true;
+        [SerializeField] protected bool ShowActiveObjectCentres = true;
+        [SerializeField] protected bool ShowActiveVolumeCentres = true;
+        [SerializeField] protected bool ShowCameraPos = true;
         [SerializeField] protected int DebugNumObjectsNearby;
 
+        [Header("Objects")]
         [SerializeField] protected PlaceholderTemplate Placeholders;
         [SerializeField] protected int ObjectCount = 0;
         [SerializeField] protected int RegionCount = 0;
@@ -25,7 +32,10 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
 
         private void OnDrawGizmos()
         {
-            DrawOctTreeGizmos(OctTree.Space);
+            if (ShowOctTreeGizmos)
+            {
+                DrawOctTreeGizmos(OctTree.Space);
+            }
         }
 
         private void DrawOctTreeGizmos(Cell<ViewerObjectPlaceholder> cell)
@@ -33,26 +43,34 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
             Vector3 size = cell.MaxPosition - cell.MinPosition;
 
             Color c = new Color(cell.MaxPosition.x / 256f, cell.MaxPosition.y / 256f, cell.MaxPosition.z / 256f, 1f);
-            Gizmos.color = c;
-            Gizmos.DrawSphere(cell.MidPosition, 1f);
-            //foreach (ViewerObjectPlaceholder item in cell.Items)
-            //{
-            //    Gizmos.DrawSphere(item.Position, 1f);
-            //}
+            if (ShowActiveVolumeCentres)
+            {
+                Gizmos.color = c;
+                Gizmos.DrawSphere(cell.MidPosition, 1f);
+            }
 
             List<ViewerObjectPlaceholder> l = OctTree.FindNearby(DebugCameraPos, DebugViewDistance);
             DebugNumObjectsNearby = l.Count;
-            foreach (ViewerObjectPlaceholder item in l)
+            if (ShowActiveObjectCentres)
             {
-                Gizmos.DrawSphere(item.Position, 1f);
+                foreach (ViewerObjectPlaceholder item in l)
+                {
+                    Gizmos.DrawSphere(item.Position, 1f);
+                }
             }
 
-            Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
-            Gizmos.DrawSphere(DebugCameraPos, DebugViewDistance);
+            if (ShowCameraPos)
+            {
+                Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
+                Gizmos.DrawSphere(DebugCameraPos, DebugViewDistance);
+            }
 
-            c.a = 0.5f;
-            Gizmos.color = c;
-            Gizmos.DrawCube(cell.MidPosition, size);
+            if (ShowOctTreeVolumes)
+            {
+                c.a = 0.5f;
+                Gizmos.color = c;
+                Gizmos.DrawCube(cell.MidPosition, size);
+            }
 
             if (!cell.HasSubdivisions)
             {
