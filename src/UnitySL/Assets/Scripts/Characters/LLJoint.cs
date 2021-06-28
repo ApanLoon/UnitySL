@@ -4,7 +4,7 @@ using System.Linq;
 using Assets.Scripts.Extensions.MathExtensions;
 using UnityEngine;
 
-namespace Assets.Scripts.Character
+namespace Assets.Scripts.Characters
 {
     // priority levels, from highest to lowest
     public enum JointPriority

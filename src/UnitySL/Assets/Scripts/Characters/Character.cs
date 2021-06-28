@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Assets.Scripts.Appearance;
 using UnityEngine;
 
-namespace Assets.Scripts.Character
+namespace Assets.Scripts.Characters
 {
     public abstract class Character
     {
