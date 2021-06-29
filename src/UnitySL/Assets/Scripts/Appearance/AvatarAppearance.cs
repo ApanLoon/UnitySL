@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using Assets.Scripts.Characters;
-using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts.Appearance
@@ -13,8 +12,8 @@ namespace Assets.Scripts.Appearance
         protected const string AVATAR_DEFAULT_CHAR = "avatar";
         protected static readonly Color DUMMY_COLOR = new Color(0.5f, 0.5f, 0.5f, 1.0f);
 
-        protected static AvatarSkeletonInfo AvatarSkeletonInfo;
-        protected static AvatarXmlInfo AvatarXmlInfo;
+        public static AvatarSkeletonInfo AvatarSkeletonInfo { get; protected set; }
+        public static AvatarXmlInfo AvatarXmlInfo { get; protected set; }
 
         protected static XmlDocument AvatarConfigurationXmlTree;
         protected static XmlDocument SkeletonXmlTree;
