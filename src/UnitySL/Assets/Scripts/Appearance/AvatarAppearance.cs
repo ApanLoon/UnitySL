@@ -1,8 +1,8 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Xml;
 using Assets.Scripts.Characters;
+using Assets.Scripts.Extensions.SystemExtensions;
 using UnityEngine;
 
 namespace Assets.Scripts.Appearance
@@ -44,7 +44,7 @@ namespace Assets.Scripts.Appearance
             try
             {
                 AvatarSkeletonInfo = null;
-                AvatarSkeletonInfo = AvatarSkeletonInfo.ParseXml(SkeletonXmlTree.LastChild); // This skips any XmlDeclaration
+                AvatarSkeletonInfo = AvatarSkeletonInfo.ParseXml(SkeletonXmlTree.GetFirstChild());
             }
             catch (Exception e)
             {
@@ -54,7 +54,7 @@ namespace Assets.Scripts.Appearance
             try
             {
                 AvatarXmlInfo = null;
-                AvatarXmlInfo = AvatarXmlInfo.ParseXml(AvatarConfigurationXmlTree.LastChild); // This skips any XmlDeclaration
+                AvatarXmlInfo = AvatarXmlInfo.ParseXml(AvatarConfigurationXmlTree.GetFirstChild());
             }
             catch (Exception e)            
             {
@@ -84,7 +84,7 @@ namespace Assets.Scripts.Appearance
             }
 
             // Sanity-check the XML file:
-            XmlNode root = doc.LastChild; // This skips any XmlDeclaration
+            XmlNode root = doc.GetFirstChild();
             if (root == null)
             {
                 Logger.LogError("AvatarAppearance.OpenAvatarXmlFile", $"No root node found in {rootName} file: {filename}");

@@ -1,4 +1,7 @@
-﻿using System.Xml;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 
 namespace Assets.Scripts.Extensions.SystemExtensions
 {
@@ -20,6 +23,11 @@ namespace Assets.Scripts.Extensions.SystemExtensions
                 }
             }
             return null;
+        }
+
+        public static IEnumerable<XmlNode> Where(this XmlNodeList src, Func<XmlNode, bool> test)
+        {
+            return src.Cast<XmlNode>().Where(test).ToList();
         }
     }
 }

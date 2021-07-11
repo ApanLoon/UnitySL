@@ -29,6 +29,11 @@ namespace Assets.Scripts.Appearance
 
             foreach (XmlNode childNode in rootElement.ChildNodes)
             {
+                if (childNode.NodeType != XmlNodeType.Element)
+                {
+                    continue;
+                }
+
                 AvatarBoneInfo boneInfo = AvatarBoneInfo.ParseXml(childNode);
                 avatarSkeletonInfo.BoneInfoList.Add(boneInfo);
             }
