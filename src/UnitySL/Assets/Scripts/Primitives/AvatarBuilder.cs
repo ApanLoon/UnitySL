@@ -15,6 +15,9 @@ namespace Assets.Scripts.Primitives
                 AvatarAppearance.InitClass();
             }
 
+            AvatarAppearance appearance = new AvatarAppearance(new WearableData());
+            appearance.InitInstance();
+
             //foreach (var VARIABLE in AvatarAppearance.AvatarXmlInfo.)
             //{
                 

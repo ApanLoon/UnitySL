@@ -9,13 +9,14 @@ using UnityEngine;
 
 namespace Assets.Scripts.Appearance
 {
-    public abstract class AvatarAppearance : Character
+    public class AvatarAppearance : Character
     {
         protected const string AVATAR_DEFAULT_CHAR = "avatar";
         protected static readonly Color DUMMY_COLOR = new Color(0.5f, 0.5f, 0.5f, 1.0f);
 
         #region Initialisation
-        protected AvatarAppearance(WearableData wearableData) : base()
+
+        public AvatarAppearance(WearableData wearableData) : base() // Note: indra has a protected constructor since it subclasses this in VOAvatar
         {
             IsDummy = false;
             TexSkinColor = null; //TODO: Not implemented
@@ -87,13 +88,61 @@ namespace Assets.Scripts.Appearance
         /// </summary>
         public virtual void InitInstance()
         {
+            // Initialise joint, mesh and shape members
+
             Root = CreateAvatarJoint();
             Root.Name = "mRoot";
 
-            //TODO: Stopped here
+            foreach (var keyValuePair in AvatarAppearanceDictionary.Instance.MeshEntries)
+            {
+                AvatarAppearanceDictionary.MeshIndex meshIndex = keyValuePair.Key;
+                AvatarAppearanceDictionary.MeshEntry meshEntry = keyValuePair.Value;
+
+                AvatarJoint joint = CreateAvatarJoint();
+                joint.Name = meshEntry.Name;
+                joint.MeshId = (int)meshIndex;
+                MeshLod.Add(joint);
+
+                for (int lod = 0; lod < meshEntry.Lod; lod++)
+                {
+                    // TODO: Stopped here!
+                    //LLAvatarJointMesh* mesh = createAvatarJointMesh();
+                    //std::string mesh_name = "m" + mesh_dict->mName + boost::lexical_cast < std::string> (lod);
+                    //// We pre-pended an m - need to capitalize first character for camelCase
+                    //mesh_name[1] = toupper(mesh_name[1]);
+                    //mesh->setName(mesh_name);
+                    //mesh->setMeshID(mesh_index);
+                    //mesh->setPickName(mesh_dict->mPickName);
+                    //mesh->setIsTransparent(FALSE);
+                    //switch ((S32)mesh_index)
+                    //{
+                    //    case MESH_ID_HAIR:
+                    //        mesh->setIsTransparent(TRUE);
+                    //        break;
+                    //    case MESH_ID_SKIRT:
+                    //        mesh->setIsTransparent(TRUE);
+                    //        break;
+                    //    case MESH_ID_EYEBALL_LEFT:
+                    //    case MESH_ID_EYEBALL_RIGHT:
+                    //        mesh->setSpecular(LLColor4(1.0f, 1.0f, 1.0f, 1.0f), 1.f);
+                    //        break;
+                    //}
+
+                    //joint.MeshParts.Add(mesh);
+                }
+            }
+
+            // TODO: Associate baked textures with meshes
+
+            //BuildCharacter();
+
+            InitFlags |= 1 << 0;
         }
 
-        protected abstract AvatarJoint CreateAvatarJoint();
+        protected AvatarJoint CreateAvatarJoint()
+        {
+            return new AvatarJoint(); // NOTE: indra has LLViewerJoint here in the VOAvatar subclass
+        }
 
         public static int InitFlags { get; set; }
 
