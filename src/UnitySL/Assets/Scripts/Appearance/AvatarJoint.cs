@@ -1,8 +1,13 @@
-﻿namespace Assets.Scripts.Appearance
+﻿using System.Collections.Generic;
+using Assets.Scripts.Characters;
+
+namespace Assets.Scripts.Appearance
 {
-    public class AvatarJoint
+    public class AvatarJoint : LLJoint
     {
-        public string Name { get; set; }
         public int MeshId { get; set; }
+        public List<AvatarJointMesh> MeshParts { get; } = new List<AvatarJointMesh>();
+
+        // TODO: AvatarJoint is not implemented
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Appearance
@@ -9,7 +10,7 @@ namespace Assets.Scripts.Appearance
         public Quaternion Rotation { get; set; }
         public Vector3 Scale { get; set; }
 
-        public int NumVertices { get; set; }
+        public UInt32 NumVertices { get; set; }
         public Vector3[] BaseCoords { get; set; }
         public Vector3[] BaseNormals { get; set; }
         public Vector3[] BaseBiNormals { get; set; }
@@ -37,7 +38,7 @@ namespace Assets.Scripts.Appearance
         public int NumTriangleIndices { get; set; }
         public int[] TriangleIndices { get; set; }
 
-        public void AllocateVertexData(int numVertices)
+        public void AllocateVertexData(UInt32 numVertices)
         {
             NumVertices = numVertices;
             BaseCoords      = new Vector3[NumVertices];

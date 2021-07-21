@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -9,7 +10,31 @@ namespace Assets.Scripts.Appearance
     {
         protected const string ExpectedBinaryIdentifier = "Linden Binary Mesh 1.0";
 
+        #region Transform
+        public Vector3 Position => SharedData.Position;
+        public Quaternion Rotation => SharedData.Rotation;
+        public Vector3 Scale => SharedData.Scale;
+        #endregion Transform
+
+        #region Vertex
+        public UInt32 NumVertices => SharedData.NumVertices;
+        public bool HasDetailTexCoords => SharedData.HasDetailTexCoords;
+        public bool HasWeights => SharedData.HasWeights;
+        public List<Vector3> Coords { get; } = new List<Vector3>(); // TODO: Vector4?
+        public List<Vector3> Normals { get; } = new List<Vector3>(); // TODO: Vector4?
+        public List<Vector3> Binormals { get; } = new List<Vector3>(); // TODO: Vector4?
+
+        //TODO: Stopped here
+        #endregion Vertex
+
+        #region Face
+        public string[] JointNames => SharedData.JointNames;
+        #endregion Face
+
         public bool IsLod { get; protected set; } = false;
+
+        public List<JointRenderData> JointRenderData { get; } = new List<JointRenderData>();
+
         public PolyMeshSharedData SharedData { get; protected set; }
 
         public static PolyMesh LoadMesh(string fileName, bool isLod = false)
@@ -76,7 +101,7 @@ namespace Assets.Scripts.Appearance
 
             if (isLod == false)
             {
-                int numVertices = BinarySerializer.DeSerializeUInt16_Le(buffer, ref o, length);
+                UInt32 numVertices = BinarySerializer.DeSerializeUInt16_Le(buffer, ref o, length);
                 logMessage += $"    nVertices:          0x{numVertices:x4}\n";
                 mesh.SharedData.AllocateVertexData(numVertices);
 
@@ -188,7 +213,7 @@ namespace Assets.Scripts.Appearance
                     {
                         if (face[j] > mesh.SharedData.NumVertices - 1)
                         {
-                            mesh.SharedData.NumVertices = face[j] + 1;
+                            mesh.SharedData.NumVertices = (UInt32)face[j] + 1;
                         }
                     }
                 }
