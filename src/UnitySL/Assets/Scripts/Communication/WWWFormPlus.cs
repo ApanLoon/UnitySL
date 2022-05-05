@@ -157,7 +157,7 @@ public class WWWFormPlus
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();
 
-            if (webRequest.isNetworkError)
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError)
             {
                 onError?.Invoke($"({webRequest.responseCode}) {webRequest.error}");
             }
@@ -175,7 +175,7 @@ public class WWWFormPlus
             // Request and wait for the desired page.
             yield return uwr.SendWebRequest();
 
-            if (uwr.isNetworkError)
+            if (uwr.result == UnityWebRequest.Result.ConnectionError)
             {
                 onError?.Invoke($"({uwr.responseCode}) {uwr.error}");
             }
@@ -193,7 +193,7 @@ public class WWWFormPlus
             // Request and wait for the desired page.
             yield return uwr.SendWebRequest();
 
-            if (uwr.isNetworkError)
+            if (uwr.result == UnityWebRequest.Result.ConnectionError)
             {
                 onError?.Invoke($"({uwr.responseCode}) {uwr.error}");
             }
