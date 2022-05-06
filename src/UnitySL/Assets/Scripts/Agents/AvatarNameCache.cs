@@ -305,7 +305,7 @@ namespace Assets.Scripts.Agents
                     throw new Exception($"Expected <map> got <{child.Name}>");
                 }
 
-                Guid agentId;
+                Guid agentId = Guid.Empty;
                 AvatarName avatarName = new AvatarName();
 
                 child = child.FirstChild;
@@ -409,6 +409,7 @@ namespace Assets.Scripts.Agents
                 }
                 Logger.LogDebug("AvatarNameCache.ParseResponseAgents", $"Parsed: First=\"{avatarName.FirstName}\", Last=\"{avatarName.LastName}\", DisplayName=\"{avatarName.DisplayName}\"");
 
+                // TODO: What if agentId was never received?
                 NameCache[agentId] = avatarName;
 
                 if (PendingRequests.ContainsKey(agentId))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace SLViewerLib.Communication.XmlRpc
 {
     public class XmlRpcClient
     {
-        protected static readonly HttpClient HttpClient = new HttpClient();
+        protected static readonly HttpClient HttpClient = new HttpClient(new HttpClientHandler{AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip});
 
         public static async Task<XmlRpcResponse> Call(string uri, string methodName, XmlRpcParameterArray parameters = null)
         {
@@ -34,7 +35,8 @@ namespace SLViewerLib.Communication.XmlRpc
                     {
                         {"Host", requestUri.Host + (requestUri.IsDefaultPort ? "" : $":{requestUri.Port}")},
                         {"User-Agent", "SecondLifeUnity/0.1" },
-                        {"Accept", "*/*" }
+                        {"Accept", "*/*" },
+                        {"Accept-Encoding", "gzip, deflate"}
                     },
                     Content = content
                 };
@@ -46,29 +48,34 @@ namespace SLViewerLib.Communication.XmlRpc
                     throw new Exception($"WARN XmlRpcClient.Call: Post failed with return code {responseMessage.StatusCode} {responseMessage.ReasonPhrase}.");
                 }
 
-                var contentStream = await responseMessage.Content.ReadAsStreamAsync();
+                //var contentStream = await responseMessage.Content.ReadAsStreamAsync();
+                //int length = (int)(responseMessage.Content.Headers.ContentLength ?? 2048);
+                //var buffer = new byte[length];
+                //try
+                //{
+                //    int count = 0;
+                //    int start = 0;
+                //    while ((count = await contentStream.ReadAsync(buffer, start, length - start)) != 0)
+                //    {
+                //        start += count;
+                //        //Logger.LogDebug("XmlRpcClient.Call", $"Read {count} bytes. ({start}/{length})");
+                //    }
+                //}
+                //catch (WebException ex)
+                //{
+                //    // TODO: WTF is "Expecting chunk trailer"?!
+                //    Logger.LogDebug("XmlRpcClient.Call", ex.Message);
+                //}
+                //catch (IOException ex)
+                //{
+                //    if (!ex.Message.StartsWith("The response ended prematurely"))
+                //    {
+                //        throw;
+                //    }
+                //}
+                //string responseText = Encoding.UTF8.GetString(buffer).Replace("\0", "");
 
-                int length = (int)(responseMessage.Content.Headers.ContentLength ?? 2048);
-                var buffer = new byte[length];
-                try
-                {
-                    int count = 0;
-                    int start = 0;
-                    while ((count = await contentStream.ReadAsync(buffer, start, length - start)) != 0)
-                    {
-                        start += count;
-                        //Logger.LogDebug("XmlRpcClient.Call", $"Read {count} bytes. ({start}/{length})");
-                    }
-                }
-                catch (IOException ex)
-                {
-                    if (!ex.Message.StartsWith("The response ended prematurely"))
-                    {
-                        throw;
-                    }
-                }
-                string responseText = Encoding.UTF8.GetString(buffer).Replace("\0", "");
-
+                string responseText = await responseMessage.Content.ReadAsStringAsync();
                 XmlDocument document = new XmlDocument();
                 document.Load(new StringReader(responseText));
 
