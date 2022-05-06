@@ -13,7 +13,7 @@ namespace SLViewerLib.Communication.XmlRpc.DataTypes
 
         public XmlRpcDouble(XmlNode node)
         {
-            Value = double.Parse(node.InnerText.Trim());
+            Value = double.Parse(node.InnerText.Trim(), System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
         }
 
         public override string ToXml()

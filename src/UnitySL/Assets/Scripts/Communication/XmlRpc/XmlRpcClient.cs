@@ -49,7 +49,6 @@ namespace SLViewerLib.Communication.XmlRpc
                 }
 
                 //var contentStream = await responseMessage.Content.ReadAsStreamAsync();
-
                 //int length = (int)(responseMessage.Content.Headers.ContentLength ?? 2048);
                 //var buffer = new byte[length];
                 //try
@@ -77,7 +76,6 @@ namespace SLViewerLib.Communication.XmlRpc
                 //string responseText = Encoding.UTF8.GetString(buffer).Replace("\0", "");
 
                 string responseText = await responseMessage.Content.ReadAsStringAsync();
-                Logger.LogDebug("XmlRpcClient.Call", responseText);
                 XmlDocument document = new XmlDocument();
                 document.Load(new StringReader(responseText));
 
