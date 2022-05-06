@@ -2,6 +2,7 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
 #
+/src/UnitySL/[Uu]ser[Ss]ettings/
 /src/UnitySL/[Ll]ibrary/
 /src/UnitySL/[Tt]emp/
 /[Bb]uild/
