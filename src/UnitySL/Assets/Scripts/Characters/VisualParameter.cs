@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Assets.Scripts.Character
+namespace Assets.Scripts.Characters
 {
     [Flags]
     public enum CharacterSex
