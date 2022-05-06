@@ -11,5 +11,12 @@ namespace Tests
         {
             PolyMesh mesh = PolyMesh.LoadMesh(System.IO.Path.Combine(Application.streamingAssetsPath, "Character", "avatar_head.llm"));
         }
+
+        [Test]
+        public void AvatarAppearance_InitClass()
+        {
+            AvatarAppearance.InitClass();
+        }
+
     }
 }

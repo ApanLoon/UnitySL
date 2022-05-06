@@ -4,7 +4,7 @@ using System.Linq;
 using Assets.Scripts.Extensions.MathExtensions;
 using UnityEngine;
 
-namespace Assets.Scripts.Character
+namespace Assets.Scripts.Characters
 {
     // priority levels, from highest to lowest
     public enum JointPriority
@@ -91,12 +91,12 @@ namespace Assets.Scripts.Character
         public int JointNum { get; set; }
 
         // child joints
-        public List<LLJoint> Children;
+        public List<LLJoint> Children = new List<LLJoint>();
 
         // debug statics
         public static int NumTouches;
         public static int NumUpdates;
-        public static HashSet<string> DebugJointNames;
+        public static HashSet<string> DebugJointNames  = new HashSet<string>();
 
         public static void SetDebugJointNames(HashSet<string> names)
         {

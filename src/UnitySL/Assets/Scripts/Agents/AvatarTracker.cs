@@ -275,7 +275,7 @@ namespace Assets.Scripts.Agents
                 return;
             }
 
-            Guid trackingId;
+            Guid trackingId = Guid.Empty;
             if (CurrentTrackingData != null)
             {
                 trackingId = CurrentTrackingData.AvatarId;
