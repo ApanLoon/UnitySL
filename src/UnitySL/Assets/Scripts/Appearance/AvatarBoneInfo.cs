@@ -101,7 +101,7 @@ namespace Assets.Scripts.Appearance
                 int i = 0;
                 foreach (string c in s.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    v[i++] = float.Parse(c);
+                    v[i++] = float.Parse(c, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
                 }
                 return v;
             }

@@ -14,9 +14,9 @@ namespace Assets.Scripts.Extensions.UnityExtensions
                 throw new ArgumentException($"A vector3 requires three components separated by a comma or space. Got \"{s}\"");
             }
 
-            v.x = float.Parse(components[0]);
-            v.y = float.Parse(components[2]); // Handedness
-            v.z = float.Parse(components[1]); // Handedness
+            v.x = float.Parse(components[0], System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+            v.y = float.Parse(components[2], System.Globalization.CultureInfo.InvariantCulture.NumberFormat); // Handedness
+            v.z = float.Parse(components[1], System.Globalization.CultureInfo.InvariantCulture.NumberFormat); // Handedness
         }
     }
 }
