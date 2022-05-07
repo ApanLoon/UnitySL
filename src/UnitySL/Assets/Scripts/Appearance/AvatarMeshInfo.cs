@@ -48,7 +48,7 @@ namespace Assets.Scripts.Appearance
             s = rootElement.GetAttribute("min_pixel_area").Trim();
             if (string.IsNullOrEmpty(s) == false)
             {
-                MinPixelArea = float.Parse(s);
+                MinPixelArea = float.Parse(s, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
             }
             else // We weren't given a pixel area, let's see if we got a pixel width instead and compute the area:
             {
@@ -56,7 +56,7 @@ namespace Assets.Scripts.Appearance
                 s = rootElement.GetAttribute("min_pixel_width").Trim();
                 if (string.IsNullOrEmpty(s) == false)
                 {
-                    minPixelWidth = float.Parse(s);
+                    minPixelWidth = float.Parse(s, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
                 }
                 MinPixelArea = minPixelWidth * minPixelWidth;
             }

@@ -225,15 +225,15 @@ public class Slurl
 
         if (match.Groups["x"].Success)
         {
-            x = byte.Parse(match.Groups["x"].Value);
+            x = int.Parse(match.Groups["x"].Value);
         }
         if (match.Groups["y"].Success)
         {
-            y = byte.Parse(match.Groups["y"].Value);
+            y = int.Parse(match.Groups["y"].Value);
         }
         if (match.Groups["z"].Success)
         {
-            z = byte.Parse(match.Groups["z"].Value);
+            z = int.Parse(match.Groups["z"].Value);
         }
 
         slurl.SlurlType = SlUrlType.Location;
