@@ -31,8 +31,8 @@ namespace Assets.Scripts.Primitives
     public class Volume : MonoBehaviour
     {
         public const int MIN_DETAIL_FACES = 6;
-        public const float MIN_LOD = 0f;
-        public const float MAX_LOD = 3f;
+        public const float MIN_LOD = 0.1f; //0f;
+        public const float MAX_LOD = 7f; //3f;
 
         [Flags]
         public enum GizmoVisibility
@@ -83,12 +83,17 @@ namespace Assets.Scripts.Primitives
 
         private void OnValidate()
         {
+            if (Path == null)
+            {
+                Start();
+                return;
+            }
             GenerateMesh();
         }
 
         private void OnDrawGizmos()
         {
-            if (ShowGizmos.HasFlag(GizmoVisibility.Path) && Path != null)
+            if (ShowGizmos.HasFlag (GizmoVisibility.Path) && Path != null)
             {
                 for (var i = 0; i < Path.Points.Count; i++)
                 {
