@@ -91,7 +91,7 @@ namespace Assets.Scripts.Communication.SlMessagingSystem.Messages.MessageSystem
         /// <summary>
         /// MTU - The largest total size of a packet.
         /// </summary>
-        public static readonly int MaximumTranferUnit = 1200;
+        public static readonly int MaximumTransferUnit = 1200;
 
         public PacketFlags Flags { get; set; }
         public UInt32 SequenceNumber { get; set; }

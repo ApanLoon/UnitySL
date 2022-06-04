@@ -288,10 +288,10 @@ public class Circuit : IDisposable
             int nAcks = WaitingForOutboundAck.Count;
 
             // If there is room in the packet and there are SequenceNumbers in WaitingForOutboundAck, add as many as possible
-            if (nAcks > 0 && len < Message.MaximumTranferUnit - 5 && message is PacketAckMessage == false)
+            if (nAcks > 0 && len < Message.MaximumTransferUnit - 5 && message is PacketAckMessage == false)
             {
                 // At least one Ack fits, calculate how many:
-                nAcks = Math.Min(nAcks, (Message.MaximumTranferUnit - len - 1) / 4);
+                nAcks = Math.Min(nAcks, (Message.MaximumTransferUnit - len - 1) / 4);
                 for (int i = 0; i < nAcks; i++)
                 {
                     message.AddAck(WaitingForOutboundAck.Dequeue());

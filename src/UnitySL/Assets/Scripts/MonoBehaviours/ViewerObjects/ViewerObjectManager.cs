@@ -123,7 +123,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                     continue;
                 }
 
-                go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData.PCode}\n{objectData.FullId}";
+                go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData}";
 
                 UpdateParent(message.RegionHandle, objectData.ParentId, go);
                 UpdateMovement(objectData.MovementUpdate, GameObjectByLocalId(message.RegionHandle, objectData.LocalId));
@@ -151,7 +151,7 @@ namespace Assets.Scripts.MonoBehaviours.ViewerObjects
                     continue;
                 }
 
-                go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData.PCode}\n{objectData.FullId}";
+                go.GetComponent<ToolTipTarget>().Text = $"{objectData.NameValue}\n{objectData}";
 
                 UpdateParent(message.RegionHandle, objectData.ParentId, go);
                 UpdateMovement(objectData.MovementUpdate, GameObjectByLocalId(message.RegionHandle, objectData.LocalId));
