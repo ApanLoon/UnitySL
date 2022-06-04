@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor;
 
 namespace Assets.Scripts.Primitives
 {
@@ -24,6 +25,7 @@ namespace Assets.Scripts.Primitives
         TorusHemi     = 14,   //Not compliant with Indra
     }
 
+    [ExecuteInEditMode]
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
     public class Volume : MonoBehaviour
@@ -78,6 +80,11 @@ namespace Assets.Scripts.Primitives
 
         protected MeshFilter MeshFilter;
         protected MeshRenderer MeshRenderer;
+
+        private void OnValidate()
+        {
+            GenerateMesh();
+        }
 
         private void OnDrawGizmos()
         {
